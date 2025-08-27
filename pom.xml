@@ -14,6 +14,7 @@
         <module>disbursement-service</module>
         <module>analytics-service</module>
         <module>api-gateway</module>
+        <module>shared-dependencies</module>
     </modules>
 
     <properties>
