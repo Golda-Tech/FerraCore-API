@@ -10,6 +10,10 @@
     <packaging>pom</packaging>
     <modules>
         <module>auth-service</module>
+        <module>collections-service</module>
+        <module>disbursement-service</module>
+        <module>analytics-service</module>
+        <module>api-gateway</module>
     </modules>
 
     <properties>
