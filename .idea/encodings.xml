@@ -11,6 +11,8 @@
     <file url="file://$PROJECT_DIR$/collections-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/disbursement-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/disbursement-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/shared-dependencies/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/shared-dependencies/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>
