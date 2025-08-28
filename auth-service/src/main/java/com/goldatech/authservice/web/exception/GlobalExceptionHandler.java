@@ -1,7 +1,9 @@
 package com.goldatech.authservice.web.exception;
 
+import com.goldatech.authservice.domain.exception.UserAlreadyExistsException;
 import com.goldatech.authservice.domain.exception.UserNotFoundException;
 import org.springframework.http.*;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -20,6 +22,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final URI NOT_FOUND_TYPE = URI.create("https://api.rexpayapi.com/errors/not-found");
     private static final URI ISE_FOUND_TYPE = URI.create("https://api.rexpayapi.com/errors/server-error");
     private static final URI BAD_REQUEST_TYPE = URI.create("https://api.rexpayapi.com/errors/bad-request");
+    private static final URI CONFLICT_TYPE = URI.create("https://api.rexpayapi.com/errors/conflict");
     private static final String SERVICE_NAME = "auth-service";
 
     @ExceptionHandler(Exception.class)
@@ -36,15 +39,43 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    ProblemDetail handleProductNotFoundException(UserNotFoundException e) {
+    ProblemDetail handleUserNotFoundException(UserNotFoundException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
-        problemDetail.setTitle("Order Not Found");
+        problemDetail.setTitle("User Not Found");
         problemDetail.setType(NOT_FOUND_TYPE);
         problemDetail.setProperty("service", SERVICE_NAME);
-        problemDetail.setProperty("error_category", "Generic");
+        problemDetail.setProperty("error_category", "Authentication");
         problemDetail.setProperty("timestamp", Instant.now());
         return problemDetail;
     }
+
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    ProblemDetail handleUserAlreadyExistsException(UserAlreadyExistsException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        problemDetail.setTitle("User Already Exists");
+        problemDetail.setType(CONFLICT_TYPE);
+        problemDetail.setProperty("service", SERVICE_NAME);
+        problemDetail.setProperty("error_category", "Registration");
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
+    @Override
+    @Nullable
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Required request body is missing or malformed");
+        problemDetail.setTitle("Bad Request");
+        problemDetail.setType(BAD_REQUEST_TYPE);
+        problemDetail.setProperty("service", SERVICE_NAME);
+        problemDetail.setProperty("error_category", "Validation");
+        problemDetail.setProperty("timestamp", Instant.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
 
     @Override
     @Nullable

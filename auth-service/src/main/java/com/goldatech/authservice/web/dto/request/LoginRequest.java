@@ -1,5 +1,7 @@
 package com.goldatech.authservice.web.dto.request;
 
+import jakarta.validation.constraints.Email;
+
 /**
  * Data Transfer Object (DTO) for login requests.
  * This record is used to receive user credentials from the client for login.
@@ -8,6 +10,6 @@ package com.goldatech.authservice.web.dto.request;
  * @param password the user's password
  */
 public record LoginRequest(
-        String email,
+        @Email String email,
         String password
 ) {}

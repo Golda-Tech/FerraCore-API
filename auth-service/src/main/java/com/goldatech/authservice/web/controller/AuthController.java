@@ -34,7 +34,7 @@ public class AuthController {
      * @return a ResponseEntity with an AuthResponse containing a JWT token.
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
