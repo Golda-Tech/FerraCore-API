@@ -1,5 +1,7 @@
 package com.goldatech.authservice.web.dto.request;
 
+import jakarta.validation.constraints.Email;
+
 /**
  * Data Transfer Object (DTO) for registration requests.
  * This record is used to receive new user details from the client for registration.
@@ -12,6 +14,6 @@ package com.goldatech.authservice.web.dto.request;
 public record RegisterRequest(
         String firstname,
         String lastname,
-        String email,
+        @Email String email,
         String password
 ) {}

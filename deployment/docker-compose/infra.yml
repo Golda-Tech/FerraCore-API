@@ -2,7 +2,7 @@ version: "3.8"
 name: "bookstore-microservices"
 services:
   user-db:
-    image: postgres:17-alpine
+    image: postgres:latest
     container_name: user-db
     environment:
       - POSTGRES_USER=postgres
@@ -21,7 +21,7 @@ services:
           memory: 500m
 
   collections-db:
-    image: postgres:17-alpine
+    image: postgres:latest
     container_name: collections-db
     environment:
       - POSTGRES_USER=postgres
@@ -58,7 +58,7 @@ services:
 
 
   notifications-db:
-    image: postgres:17-alpine
+    image: postgres:latest
     container_name: notifications-db
     environment:
       - POSTGRES_USER=postgres
