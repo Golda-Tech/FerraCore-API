@@ -1,5 +1,6 @@
 package com.goldatech.authservice.domain.service;
 
+import com.goldatech.authservice.domain.exception.UserAlreadyExistsException;
 import com.goldatech.authservice.domain.model.Role;
 import com.goldatech.authservice.domain.model.User;
 import com.goldatech.authservice.domain.repository.UserRepository;
@@ -12,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service class containing the business logic for authentication.
@@ -31,8 +33,15 @@ public class AuthService {
      *
      * @param request a RegisterRequest with user details.
      * @return an AuthResponse containing the JWT token and user details.
+     * @throws UserAlreadyExistsException if a user with the given email already exists.
      */
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
+        // Check if user already exists
+        if (repository.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
+        }
+
         // Build a new User object from the registration request.
         var user = User.builder()
                 .firstname(request.firstname())
@@ -41,7 +50,16 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.password()))
                 .role(Role.USER) // Assign a default role
                 .build();
-        repository.save(user);
+
+        try {
+            repository.save(user);
+        } catch (Exception e) {
+            // Handle potential database constraint violations (race condition fallback)
+            if (e.getMessage().contains("email") || e.getMessage().contains("unique")) {
+                throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
+            }
+            throw e;
+        }
 
         // Generate a JWT token for the new user.
         var jwtToken = jwtService.generateToken(user);
