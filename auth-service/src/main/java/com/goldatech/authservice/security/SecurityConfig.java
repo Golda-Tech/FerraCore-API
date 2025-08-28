@@ -28,7 +28,6 @@ public class SecurityConfig {
     private static final String[] WHITELIST = {
             "/api/v1/auth/**",
             "/api/v1/health/**",
-            // Swagger UI v3 (OpenAPI)
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html"
