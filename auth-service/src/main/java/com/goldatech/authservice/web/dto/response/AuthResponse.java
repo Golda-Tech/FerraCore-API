@@ -1,5 +1,7 @@
 package com.goldatech.authservice.web.dto.response;
 
+import com.goldatech.authservice.domain.model.Role;
+
 /**
  * Data Transfer Object (DTO) for authentication responses.
  * This record is used to return the JWT token to the client after a successful login or registration,

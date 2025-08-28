@@ -40,9 +40,9 @@ services:
           memory: 500m
 
 
-  bookstore-rabbitmq:
+  rexpay-rabbitmq:
     image: rabbitmq:3.12.11-management
-    container_name: bookstore-rabbitmq
+    container_name: rexpay-rabbitmq
     ports:
       - "5673:5672"
       - "15673:15672"

@@ -39,10 +39,12 @@
             <artifactId>postgresql</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-        </dependency>
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.flywaydb/flyway-core &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.flywaydb</groupId>-->
+<!--            <artifactId>flyway-core</artifactId>-->
+<!--            <version>11.11.2</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.projectlombok</groupId>

@@ -1,5 +1,9 @@
 package com.goldatech.authservice.web.controller;
 
+import com.goldatech.authservice.domain.service.AuthService;
+import com.goldatech.authservice.web.dto.request.LoginRequest;
+import com.goldatech.authservice.web.dto.request.RegisterRequest;
+import com.goldatech.authservice.web.dto.response.AuthResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
+    private final AuthService authService;
 
     /**
      * Handles user registration.
