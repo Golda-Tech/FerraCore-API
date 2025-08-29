@@ -2,7 +2,7 @@ services:
   - type: pserv
     name: auth-service
     runtime: docker
-    plan: starter
+    plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: .
     envVars:
