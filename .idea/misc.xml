@@ -12,7 +12,6 @@
       <set>
         <option value="$PROJECT_DIR$/analytics-service/pom.xml" />
         <option value="$PROJECT_DIR$/api-gateway/pom.xml" />
-        <option value="$PROJECT_DIR$/collections-service/pom.xml" />
         <option value="$PROJECT_DIR$/disbursement-service/pom.xml" />
       </set>
     </option>
