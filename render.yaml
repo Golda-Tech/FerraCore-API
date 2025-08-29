@@ -1,0 +1,35 @@
+services:
+  - type: pserv
+    name: auth-service
+    runtime: java
+    buildCommand: "./mvnw clean package -DskipTests"
+    startCommand: "java -jar target/auth-service-*.jar"
+    plan: starter
+    env: java
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: auth-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: auth-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: auth-db
+          property: password
+      - key: SERVER_PORT
+        value: "8080"
+      - key: APPLICATION_SECURITY_JWT_SECRET_KEY
+        generateValue: true
+      - key: APPLICATION_SECURITY_JWT_EXPIRATION
+        value: "86400000"
+
+databases:
+  - name: auth-db
+    databaseName: authservice
+    user: authuser
+    plan: starter
