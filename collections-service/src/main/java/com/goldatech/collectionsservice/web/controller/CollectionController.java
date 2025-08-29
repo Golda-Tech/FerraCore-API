@@ -23,7 +23,8 @@ public class CollectionController {
      * This endpoint receives a request from a client, processes it, and
      * interacts with an external payment gateway to collect funds.
      *
-     * @param request The InitiateCollectionRequest containing details for the collection.
+     * @param request The InitiateCollectionRequest containing details for the collection,
+     * including an optional idempotency key.
      * @return A Mono of ResponseEntity with CollectionResponse, indicating the status of the initiation.
      */
     @PostMapping
@@ -31,13 +32,16 @@ public class CollectionController {
     public Mono<ResponseEntity<CollectionResponse>> initiateCollection(@RequestBody InitiateCollectionRequest request) {
         // Delegate to the CollectionService to handle the business logic
         return collectionService.initiateCollection(request)
-                .map(ResponseEntity::ok)
+                // Removed .map(ResponseEntity::ok) as initiateCollection in service already returns ResponseEntity
                 .onErrorResume(IdempotencyConflictException.class, e -> {
                     // Handle idempotency conflicts specifically
-                    return Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(
-                            new CollectionResponse(null, e.getReferenceId(), null, null, null, null,
-                                    null, null, null, e.getMessage())
-                    ));
+                    // Return the existing collection's details if available
+                    return collectionService.getCollectionDetails(e.getReferenceId())
+                            .map(existingCollection -> ResponseEntity.status(HttpStatus.CONFLICT).body(existingCollection))
+                            .defaultIfEmpty(ResponseEntity.status(HttpStatus.CONFLICT).body(
+                                    new CollectionResponse(null, e.getReferenceId(), null, null, null, null,
+                                            null, null, null, e.getMessage())
+                            ));
                 })
                 .onErrorResume(PaymentGatewayException.class, e -> {
                     // Handle general payment gateway errors

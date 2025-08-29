@@ -22,4 +22,12 @@ public interface CollectionRepository extends JpaRepository<Collection, Long> {
      * @return An Optional containing the Collection if found.
      */
     Optional<Collection> findByExternalRef(String externalRef);
+
+
+    /**
+     * Finds a collection by the client-provided request ID.
+     * @param clientRequestId The client-provided unique request ID.
+     * @return An Optional containing the Collection if found.
+     */
+    Optional<Collection> findByClientRequestId(String clientRequestId);
 }

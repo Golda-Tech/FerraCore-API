@@ -16,10 +16,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -37,77 +39,116 @@ public class CollectionService {
 
     /**
      * Initiates a new payment collection based on a client request.
+     * Implements client-side idempotency using the `clientRequestId`.
      *
-     * @param request The InitiateCollectionRequest from the client.
+     * @param request The InitiateCollectionRequest from the client, including an optional `clientRequestId`.
      * @return A Mono of CollectionResponse representing the initiated collection.
-     * @throws IdempotencyConflictException if a request with the same reference is found but has a different status.
-     * @throws PaymentGatewayException if an error occurs when calling the external payment API.
+     * @throws IdempotencyConflictException if a request with the same `clientRequestId` is found
+     * and its status is not `INITIATED` or `FAILED`.
+     * @throws PaymentGatewayException      if an error occurs when calling the external payment API.
      */
-    public Mono<CollectionResponse> initiateCollection(InitiateCollectionRequest request) {
-        String collectionRef = UUID.randomUUID().toString(); // Our internal idempotency key
-        log.info("Initiating collection with internal reference: {}", collectionRef);
+    public Mono<ResponseEntity<CollectionResponse>> initiateCollection(InitiateCollectionRequest request) {
+        // Use clientRequestId if provided, otherwise generate a new internal one for uniqueness
+        final String clientProvidedIdempotencyKey = request.clientRequestId();
+        final String internalCollectionRef = clientProvidedIdempotencyKey != null ?
+                clientProvidedIdempotencyKey : UUID.randomUUID().toString();
+
+        log.info("Initiating collection with clientRequestId: {} (internal ref: {})", clientProvidedIdempotencyKey, internalCollectionRef);
 
         return Mono.defer(() -> {
-            // Check for existing collection with the same reference (client-side idempotency if the client retries with the same reference)
-            // For now, we generate a new UUID for each client request, ensuring idempotency from *our* system to the external gateway.
-            // If the client needs to send their own idempotency key, that would be passed in InitiateCollectionRequest.
+                    // Check for existing collection based on clientRequestId (if provided)
+                    if (clientProvidedIdempotencyKey != null) {
+                        Optional<Collection> existingCollectionOptional = collectionRepository.findByClientRequestId(clientProvidedIdempotencyKey);
+                        if (existingCollectionOptional.isPresent()) {
+                            Collection existingCollection = existingCollectionOptional.get();
+                            // If the existing collection is already in a processing or final state,
+                            // return it to ensure idempotency.
+                            if (existingCollection.getStatus() != CollectionStatus.INITIATED &&
+                                    existingCollection.getStatus() != CollectionStatus.FAILED) {
+                                log.warn("Idempotent request received with clientRequestId: {}. Returning existing collection details.", clientProvidedIdempotencyKey);
+                                return Mono.error(new IdempotencyConflictException(clientProvidedIdempotencyKey,
+                                        "A collection with this clientRequestId is already being processed or has completed."));
+                            }
+                            // If it's INITIATED or FAILED, we might decide to retry or proceed with a new attempt,
+                            // but for strict idempotency, we'll generally return the existing.
+                            // For now, we'll re-use the existing collectionRef for the external call.
+                            log.info("Idempotent request for clientRequestId {} found in state {}. Attempting to re-process/return.",
+                                    clientProvidedIdempotencyKey, existingCollection.getStatus());
+                            // We will update this existing collection rather than creating a new one
+                            return processCollection(existingCollection, request);
+                        }
+                    }
 
-            // 1. Persist the initial collection record in our database
-            Collection newCollection = Collection.builder()
-                    .collectionRef(collectionRef)
-                    .amount(request.amount())
-                    .currency(request.currency())
-                    .customerId(request.customerId())
-                    .status(CollectionStatus.INITIATED)
-                    .initiatedAt(LocalDateTime.now())
-                    .description(request.description())
-                    .paymentChannel(request.paymentChannel())
-                    .provider(request.provider())
-                    .merchantName(request.merchantName())
-                    .build();
+                    // If no existing collection found with clientRequestId, or clientRequestId was null, create a new one
+                    Collection newCollection = Collection.builder()
+                            .clientRequestId(clientProvidedIdempotencyKey) // Store client's idempotency key
+                            .collectionRef(internalCollectionRef) // Our internal unique ID and external PG's idempotency key
+                            .amount(request.amount())
+                            .currency(request.currency())
+                            .customerId(request.customerId())
+                            .status(CollectionStatus.INITIATED)
+                            .initiatedAt(LocalDateTime.now())
+                            .description(request.description())
+                            .paymentChannel(request.paymentChannel())
+                            .provider(request.provider())
+                            .merchantName(request.merchantName())
+                            .build();
 
-            return Mono.fromCallable(() -> collectionRepository.save(newCollection))
-                    .flatMap(savedCollection -> {
-                        // 2. Prepare request for the external payment API
-                        ExternalInitiatePaymentRequest externalApiRequest = new ExternalInitiatePaymentRequest(
-                                savedCollection.getCollectionRef(), // Our internal ref as external's idempotency key
-                                request.amount(),
-                                request.currency(),
-                                request.customerId(), // Use our customerId as userId for external API
-                                request.paymentChannel(),
-                                request.provider(),
-                                request.merchantName(),
-                                serviceCallbackUrl // Our service's callback URL
-                        );
-
-                        // 3. Call the external payment gateway
-                        return externalPaymentGatewayService.initiatePayment(externalApiRequest)
-                                .flatMap(externalApiResponse -> {
-                                    // 4. Update our collection record with external reference and status
-                                    savedCollection.setExternalRef(externalApiResponse.externalPaymentReference());
-                                    savedCollection.setStatus(mapExternalStatus(externalApiResponse.status()));
-                                    savedCollection.setUpdatedAt(LocalDateTime.now());
-                                    savedCollection.setExternalClientId(externalApiResponse.clientId());
-                                    savedCollection.setProviderStatusMessage(externalApiResponse.providerResponse());
-                                    // providerExtraInfo and other fields might be mapped here if relevant to Collection entity
-
-                                    return Mono.fromCallable(() -> collectionRepository.save(savedCollection))
-                                            .map(this::toCollectionResponse);
-                                })
-                                .onErrorResume(e -> {
-                                    log.error("Error calling external payment API for {}: {}", collectionRef, e.getMessage());
-                                    // Update collection status to FAILED if external call fails
-                                    savedCollection.setStatus(CollectionStatus.FAILED);
-                                    savedCollection.setFailureReason("External API call failed: " + e.getMessage());
-                                    savedCollection.setUpdatedAt(LocalDateTime.now());
-                                    return Mono.fromCallable(() -> collectionRepository.save(savedCollection))
-                                            .map(this::toCollectionResponse)
-                                            .then(Mono.error(new PaymentGatewayException("Failed to initiate payment with external gateway for " + collectionRef, e)));
-                                });
-                    })
-                    .doOnError(e -> log.error("Error initiating collection: {}", e.getMessage()));
-        });
+                    return processCollection(newCollection, request);
+                })
+                .doOnError(e -> log.error("Error initiating collection: {}", e.getMessage()));
     }
+
+    /**
+     * Helper method to process (save and call external API) a collection.
+     *
+     * @param collection The Collection entity to process.
+     * @param request The original InitiateCollectionRequest.
+     * @return A Mono of CollectionResponse.
+     */
+    private Mono<ResponseEntity<CollectionResponse>> processCollection(Collection collection, InitiateCollectionRequest request) {
+        return Mono.fromCallable(() -> collectionRepository.save(collection))
+                .flatMap(savedCollection -> {
+                    // Prepare request for the external payment API
+                    ExternalInitiatePaymentRequest externalApiRequest = new ExternalInitiatePaymentRequest(
+                            savedCollection.getCollectionRef(), // Our internal ref as external's idempotency key
+                            request.amount(),
+                            request.currency(),
+                            request.customerId(), // Use our customerId as userId for external API
+                            request.paymentChannel(),
+                            request.provider(),
+                            request.merchantName(),
+                            serviceCallbackUrl // Our service's callback URL
+                    );
+
+                    // Call the external payment gateway
+                    return externalPaymentGatewayService.initiatePayment(externalApiRequest)
+                            .flatMap(externalApiResponse -> {
+                                // Update our collection record with external reference and status
+                                savedCollection.setExternalRef(externalApiResponse.externalPaymentReference());
+                                savedCollection.setStatus(mapExternalStatus(externalApiResponse.status()));
+                                savedCollection.setUpdatedAt(LocalDateTime.now());
+                                savedCollection.setExternalClientId(externalApiResponse.clientId());
+                                savedCollection.setProviderStatusMessage(externalApiResponse.providerResponse());
+                                // providerExtraInfo and other fields might be mapped here if relevant to Collection entity
+
+                                return Mono.fromCallable(() -> collectionRepository.save(savedCollection))
+                                        .map(this::toCollectionResponse);
+                            })
+                            .onErrorResume(e -> {
+                                log.error("Error calling external payment API for {}: {}", savedCollection.getCollectionRef(), e.getMessage());
+                                // Update collection status to FAILED if external call fails
+                                savedCollection.setStatus(CollectionStatus.FAILED);
+                                savedCollection.setFailureReason("External API call failed: " + e.getMessage());
+                                savedCollection.setUpdatedAt(LocalDateTime.now());
+                                return Mono.fromCallable(() -> collectionRepository.save(savedCollection))
+                                        .map(this::toCollectionResponse)
+                                        .then(Mono.error(new PaymentGatewayException("Failed to initiate payment with external gateway for " + savedCollection.getCollectionRef(), e)));
+                            });
+                })
+                .map(collectionResponse -> ResponseEntity.ok(collectionResponse));
+    }
+
 
     /**
      * Retrieves the details of a collection by its internal reference.

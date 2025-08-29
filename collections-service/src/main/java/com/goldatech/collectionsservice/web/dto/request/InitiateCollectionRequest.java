@@ -20,5 +20,6 @@ public record InitiateCollectionRequest(
         String description,
         String paymentChannel,
         String provider,
-        String merchantName
+        String merchantName,
+        String clientRequestId
 ) {}

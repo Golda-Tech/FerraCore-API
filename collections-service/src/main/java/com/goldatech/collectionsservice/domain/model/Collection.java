@@ -21,7 +21,11 @@ public class Collection {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Internal unique reference for this collection (also used as idempotency key)
+    // Optional client-provided idempotency key
+    @Column(name = "client_request_id", unique = true)
+    private String clientRequestId;
+
+    // Internal unique reference for this collection (also used as idempotency key to external PG)
     @Column(nullable = false, unique = true)
     private String collectionRef;
 
@@ -36,7 +40,7 @@ public class Collection {
     private String currency;
 
     @Column(nullable = false)
-    private String customerId; // ID of the customer in our system
+    private String customerId; // Our internal customer ID
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -49,7 +53,7 @@ public class Collection {
     private String description;
     private String failureReason; // Stores reason for failure, if applicable
 
-    //fields from external API request for internal tracking
+    // New fields from external API request for internal tracking
     @Column(name = "payment_channel")
     private String paymentChannel;
     private String provider;
