@@ -21,7 +21,7 @@ public class Collection {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Internal unique reference for this collection
+    // Internal unique reference for this collection (also used as idempotency key)
     @Column(nullable = false, unique = true)
     private String collectionRef;
 
@@ -36,7 +36,7 @@ public class Collection {
     private String currency;
 
     @Column(nullable = false)
-    private String customerId;
+    private String customerId; // ID of the customer in our system
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -47,5 +47,31 @@ public class Collection {
 
     private LocalDateTime updatedAt;
     private String description;
-    private String failureReason;
+    private String failureReason; // Stores reason for failure, if applicable
+
+    //fields from external API request for internal tracking
+    @Column(name = "payment_channel")
+    private String paymentChannel;
+    private String provider;
+    @Column(name = "merchant_name")
+    private String merchantName;
+    @Column(name = "external_user_id") // userId from external API
+    private String externalUserId;
+
+    // New fields from external API response for detailed tracking
+    private BigDecimal fees;
+    @Column(name = "provider_status_message")
+    private String providerStatusMessage;
+    @Column(name = "provider_initiated")
+    private Boolean providerInitiated;
+    @Column(name = "platform_settled")
+    private Boolean platformSettled;
+    @Column(name = "external_client_id")
+    private String externalClientId;
+    @Column(name = "client_logo_url")
+    private String clientLogoUrl;
+    @Column(name = "client_name")
+    private String clientName;
+    @Column(columnDefinition = "jsonb") // For storing flexible metadata
+    private String metadata; // Store as JSON string
 }

@@ -1,8 +1,10 @@
 package com.goldatech.collectionsservice.web.controller;
 
+import com.goldatech.collectionsservice.domain.exception.PaymentGatewayException;
 import com.goldatech.collectionsservice.domain.service.CollectionService;
 import com.goldatech.collectionsservice.web.dto.request.InitiateCollectionRequest;
 import com.goldatech.collectionsservice.web.dto.response.CollectionResponse;
+import com.goldatech.collectionsservice.domain.exception.IdempotencyConflictException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +32,21 @@ public class CollectionController {
         // Delegate to the CollectionService to handle the business logic
         return collectionService.initiateCollection(request)
                 .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()); // Handle potential empty response
+                .onErrorResume(IdempotencyConflictException.class, e -> {
+                    // Handle idempotency conflicts specifically
+                    return Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(
+                            new CollectionResponse(null, e.getReferenceId(), null, null, null, null,
+                                    null, null, null, e.getMessage())
+                    ));
+                })
+                .onErrorResume(PaymentGatewayException.class, e -> {
+                    // Handle general payment gateway errors
+                    return Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
+                            new CollectionResponse(null, null, null, null, null, null,
+                                    null, null, null, "Payment gateway error: " + e.getMessage())
+                    ));
+                })
+                .defaultIfEmpty(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()); // Fallback for other issues
     }
 
     /**
