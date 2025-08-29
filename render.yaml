@@ -3,8 +3,8 @@ services:
     name: auth-service
     runtime: docker
     plan: free
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    repo: https://github.com/Golda-Tech/RexPay-API
+    rootDir: ./auth-service
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: production
