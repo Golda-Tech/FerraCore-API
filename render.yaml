@@ -1,11 +1,10 @@
 services:
   - type: pserv
     name: auth-service
-    runtime: java
-    buildCommand: "./mvnw clean package -DskipTests"
-    startCommand: "java -jar target/auth-service-*.jar"
+    runtime: docker
     plan: starter
-    env: java
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: production
@@ -21,8 +20,10 @@ services:
         fromDatabase:
           name: auth-db
           property: password
+      - key: PORT
+        value: "10000"
       - key: SERVER_PORT
-        value: "8080"
+        value: "10000"
       - key: APPLICATION_SECURITY_JWT_SECRET_KEY
         generateValue: true
       - key: APPLICATION_SECURITY_JWT_EXPIRATION

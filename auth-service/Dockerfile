@@ -12,5 +12,6 @@ RUN mvn clean package -DskipTests -Dspotless.check.skip=true
 FROM openjdk:21-slim
 WORKDIR /app
 COPY --from=builder /app/target/auth-service-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 8081
+# Render uses PORT environment variable
+EXPOSE ${PORT:-10000}
 ENTRYPOINT ["java", "-jar", "app.jar"]
