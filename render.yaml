@@ -9,28 +9,14 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: production
       - key: SPRING_DATASOURCE_URL
-        fromDatabase:
-          name: auth-db
-          property: connectionString
+        value: "jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:6543/postgres"
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase:
-          name: auth-db
-          property: user
+        value: postgres.soluxcknwrhdmygsbxsh
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase:
-          name: auth-db
-          property: password
+        value: rexpaypass
       - key: PORT
-        value: "10000"
-      - key: SERVER_PORT
         value: "10000"
       - key: APPLICATION_SECURITY_JWT_SECRET_KEY
         generateValue: true
       - key: APPLICATION_SECURITY_JWT_EXPIRATION
         value: "86400000"
-
-databases:
-  - name: auth-db
-    databaseName: authservice
-    user: authuser
-    plan: starter
