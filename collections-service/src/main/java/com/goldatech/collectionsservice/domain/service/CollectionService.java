@@ -49,8 +49,7 @@ public class CollectionService {
     @Transactional
     public ResponseEntity<CollectionResponse> initiateCollection(InitiateCollectionRequest request) {
         final String clientProvidedIdempotencyKey = request.clientRequestId();
-        final String internalCollectionRef = clientProvidedIdempotencyKey != null ?
-                clientProvidedIdempotencyKey : UUID.randomUUID().toString();
+        final String internalCollectionRef = UUID.randomUUID().toString();
 
         final String sanitizedInternalRef = sanitizeReference(internalCollectionRef);
 
@@ -182,7 +181,7 @@ public class CollectionService {
         }
 
         try {
-            var externalDetails = externalPaymentGatewayService.getPaymentDetails(collection.getExternalRef());
+            var externalDetails = externalPaymentGatewayService.getPaymentDetails(collection.getCollectionRef());
 
             collection.setStatus(mapExternalStatus(externalDetails.status()));
             collection.setUpdatedAt(LocalDateTime.now());
