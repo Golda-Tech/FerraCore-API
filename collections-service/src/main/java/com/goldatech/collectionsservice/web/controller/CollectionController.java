@@ -6,78 +6,86 @@ import com.goldatech.collectionsservice.web.dto.request.InitiateCollectionReques
 import com.goldatech.collectionsservice.web.dto.response.CollectionResponse;
 import com.goldatech.collectionsservice.domain.exception.IdempotencyConflictException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/v1/collections")
 @RequiredArgsConstructor
+@Slf4j
 public class CollectionController {
 
     private final CollectionService collectionService;
 
     /**
      * Initiates a new payment collection.
-     * This endpoint receives a request from a client, processes it, and
-     * interacts with an external payment gateway to collect funds.
-     *
-     * @param request The InitiateCollectionRequest containing details for the collection,
-     * including an optional idempotency key.
-     * @return A Mono of ResponseEntity with CollectionResponse, indicating the status of the initiation.
      */
     @PostMapping
-    @ResponseStatus(HttpStatus.ACCEPTED) // Use ACCEPTED as processing is asynchronous with external API
-    public Mono<ResponseEntity<CollectionResponse>> initiateCollection(@RequestBody InitiateCollectionRequest request) {
-        // Delegate to the CollectionService to handle the business logic
-        return collectionService.initiateCollection(request)
-                // Removed .map(ResponseEntity::ok) as initiateCollection in service already returns ResponseEntity
-                .onErrorResume(IdempotencyConflictException.class, e -> {
-                    // Handle idempotency conflicts specifically
-                    // Return the existing collection's details if available
-                    return collectionService.getCollectionDetails(e.getReferenceId())
-                            .map(existingCollection -> ResponseEntity.status(HttpStatus.CONFLICT).body(existingCollection))
-                            .defaultIfEmpty(ResponseEntity.status(HttpStatus.CONFLICT).body(
-                                    new CollectionResponse(null, e.getReferenceId(), null, null, null, null,
-                                            null, null, null, e.getMessage())
-                            ));
-                })
-                .onErrorResume(PaymentGatewayException.class, e -> {
-                    // Handle general payment gateway errors
-                    return Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
-                            new CollectionResponse(null, null, null, null, null, null,
-                                    null, null, null, "Payment gateway error: " + e.getMessage())
-                    ));
-                })
-                .defaultIfEmpty(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()); // Fallback for other issues
+    public ResponseEntity<CollectionResponse> initiateCollection(@RequestBody InitiateCollectionRequest request) {
+        try {
+            return collectionService.initiateCollection(request);
+        } catch (IdempotencyConflictException e) {
+            CollectionResponse existingCollection = collectionService.getCollectionDetails(e.getReferenceId());
+            if (existingCollection != null) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(existingCollection);
+            } else {
+                CollectionResponse errorResponse = new CollectionResponse(
+                        null, e.getReferenceId(), null, null, null, null,
+                        null, null, null, e.getMessage()
+                );
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+            }
+        } catch (PaymentGatewayException e) {
+            CollectionResponse errorResponse = new CollectionResponse(
+                    null, null, null, null, null, null,
+                    null, null, null, "Payment gateway error: " + e.getMessage()
+            );
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse);
+        } catch (Exception e) {
+            log.error("Unexpected error initiating collection: {}", e.getMessage(), e);
+            CollectionResponse errorResponse = new CollectionResponse(
+                    null, null, null, null, null, null,
+                    null, null, null, "Internal server error"
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
     /**
      * Retrieves the details of a specific payment collection by its internal reference ID.
-     * This allows clients to check the status of a previously initiated collection.
-     *
-     * @param collectionRef The internal reference ID of the collection.
-     * @return A Mono of ResponseEntity with CollectionResponse, or a 404 if not found.
      */
     @GetMapping("/{collectionRef}")
-    public Mono<ResponseEntity<CollectionResponse>> getCollectionDetails(@PathVariable String collectionRef) {
-        return collectionService.getCollectionDetails(collectionRef)
-                .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+    public ResponseEntity<CollectionResponse> getCollectionDetails(@PathVariable String collectionRef) {
+        try {
+            CollectionResponse collection = collectionService.getCollectionDetails(collectionRef);
+            if (collection != null) {
+                return ResponseEntity.ok(collection);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            log.error("Error getting collection details for {}: {}", collectionRef, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
      * Retrieves the details of a specific payment collection by its external payment gateway ID.
-     * This allows clients to check the status using the external reference.
-     *
-     * @param externalRef The external reference ID provided by the payment gateway.
-     * @return A Mono of ResponseEntity with CollectionResponse, or a 404 if not found.
      */
     @GetMapping("/external/{externalRef}")
-    public Mono<ResponseEntity<CollectionResponse>> getCollectionDetailsByExternalRef(@PathVariable String externalRef) {
-        return collectionService.getCollectionDetailsByExternalRef(externalRef)
-                .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+    public ResponseEntity<CollectionResponse> getCollectionDetailsByExternalRef(@PathVariable String externalRef) {
+        try {
+            CollectionResponse collection = collectionService.getCollectionDetailsByExternalRef(externalRef);
+            if (collection != null) {
+                return ResponseEntity.ok(collection);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            log.error("Error getting collection details by external ref {}: {}", externalRef, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

@@ -7,7 +7,6 @@ import com.goldatech.collectionsservice.domain.model.Collection;
 import com.goldatech.collectionsservice.domain.model.CollectionStatus;
 import com.goldatech.collectionsservice.domain.repository.CollectionRepository;
 import com.goldatech.collectionsservice.web.dto.request.ExternalInitiatePaymentRequest;
-import com.goldatech.collectionsservice.web.dto.request.ExternalPaymentApiRequest;
 import com.goldatech.collectionsservice.domain.exception.IdempotencyConflictException;
 import com.goldatech.collectionsservice.web.dto.request.InitiateCollectionRequest;
 import com.goldatech.collectionsservice.web.dto.request.PaymentCallbackRequest;
@@ -18,7 +17,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -31,8 +30,8 @@ public class CollectionService {
 
     private final CollectionRepository collectionRepository;
     private final ExternalPaymentGatewayService externalPaymentGatewayService;
-    private final RabbitTemplate rabbitTemplate; // For publishing events to other services
-    private final ObjectMapper objectMapper; // For JSON serialization of metadata
+    private final RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper;
 
     @Value("${collections.service.callback-url}")
     private String serviceCallbackUrl;
@@ -42,252 +41,229 @@ public class CollectionService {
      * Implements client-side idempotency using the `clientRequestId`.
      *
      * @param request The InitiateCollectionRequest from the client, including an optional `clientRequestId`.
-     * @return A Mono of CollectionResponse representing the initiated collection.
+     * @return A ResponseEntity with CollectionResponse representing the initiated collection.
      * @throws IdempotencyConflictException if a request with the same `clientRequestId` is found
      * and its status is not `INITIATED` or `FAILED`.
      * @throws PaymentGatewayException      if an error occurs when calling the external payment API.
      */
-    public Mono<ResponseEntity<CollectionResponse>> initiateCollection(InitiateCollectionRequest request) {
-        // Use clientRequestId if provided, otherwise generate a new internal one for uniqueness
+    @Transactional
+    public ResponseEntity<CollectionResponse> initiateCollection(InitiateCollectionRequest request) {
         final String clientProvidedIdempotencyKey = request.clientRequestId();
         final String internalCollectionRef = clientProvidedIdempotencyKey != null ?
                 clientProvidedIdempotencyKey : UUID.randomUUID().toString();
 
-        log.info("Initiating collection with clientRequestId: {} (internal ref: {})", clientProvidedIdempotencyKey, internalCollectionRef);
+        final String sanitizedInternalRef = sanitizeReference(internalCollectionRef);
 
-        return Mono.defer(() -> {
-                    // Check for existing collection based on clientRequestId (if provided)
-                    if (clientProvidedIdempotencyKey != null) {
-                        Optional<Collection> existingCollectionOptional = collectionRepository.findByClientRequestId(clientProvidedIdempotencyKey);
-                        if (existingCollectionOptional.isPresent()) {
-                            Collection existingCollection = existingCollectionOptional.get();
-                            // If the existing collection is already in a processing or final state,
-                            // return it to ensure idempotency.
-                            if (existingCollection.getStatus() != CollectionStatus.INITIATED &&
-                                    existingCollection.getStatus() != CollectionStatus.FAILED) {
-                                log.warn("Idempotent request received with clientRequestId: {}. Returning existing collection details.", clientProvidedIdempotencyKey);
-                                return Mono.error(new IdempotencyConflictException(clientProvidedIdempotencyKey,
-                                        "A collection with this clientRequestId is already being processed or has completed."));
-                            }
-                            // If it's INITIATED or FAILED, we might decide to retry or proceed with a new attempt,
-                            // but for strict idempotency, we'll generally return the existing.
-                            // For now, we'll re-use the existing collectionRef for the external call.
-                            log.info("Idempotent request for clientRequestId {} found in state {}. Attempting to re-process/return.",
-                                    clientProvidedIdempotencyKey, existingCollection.getStatus());
-                            // We will update this existing collection rather than creating a new one
-                            return processCollection(existingCollection, request);
-                        }
-                    }
+        log.info("Initiating collection with clientRequestId: {} (internal ref: {})",
+                clientProvidedIdempotencyKey, sanitizedInternalRef);
 
-                    // If no existing collection found with clientRequestId, or clientRequestId was null, create a new one
-                    Collection newCollection = Collection.builder()
-                            .clientRequestId(clientProvidedIdempotencyKey) // Store client's idempotency key
-                            .collectionRef(internalCollectionRef) // Our internal unique ID and external PG's idempotency key
-                            .amount(request.amount())
-                            .currency(request.currency())
-                            .customerId(request.customerId())
-                            .status(CollectionStatus.INITIATED)
-                            .initiatedAt(LocalDateTime.now())
-                            .description(request.description())
-                            .paymentChannel(request.paymentChannel())
-                            .provider(request.provider())
-                            .merchantName(request.merchantName())
-                            .build();
+        // Check for existing collection based on clientRequestId (if provided)
+        if (clientProvidedIdempotencyKey != null) {
+            Optional<Collection> existingCollectionOptional =
+                    collectionRepository.findByClientRequestId(clientProvidedIdempotencyKey);
 
-                    return processCollection(newCollection, request);
-                })
-                .doOnError(e -> log.error("Error initiating collection: {}", e.getMessage()));
+            if (existingCollectionOptional.isPresent()) {
+                Collection existingCollection = existingCollectionOptional.get();
+
+                if (existingCollection.getStatus() != CollectionStatus.INITIATED &&
+                        existingCollection.getStatus() != CollectionStatus.FAILED) {
+                    log.warn("Idempotent request received with clientRequestId: {}. Returning existing collection details.",
+                            clientProvidedIdempotencyKey);
+                    throw new IdempotencyConflictException(clientProvidedIdempotencyKey,
+                            "A collection with this clientRequestId is already being processed or has completed.");
+                }
+
+                log.info("Idempotent request for clientRequestId {} found in state {}. Attempting to re-process.",
+                        clientProvidedIdempotencyKey, existingCollection.getStatus());
+                return processCollection(existingCollection, request);
+            }
+        }
+
+        // Create new collection
+        Collection newCollection = Collection.builder()
+                .clientRequestId(clientProvidedIdempotencyKey)
+                .collectionRef(sanitizedInternalRef)
+                .amount(request.amount())
+                .currency(request.currency())
+                .customerId(request.customerId())
+                .status(CollectionStatus.INITIATED)
+                .initiatedAt(LocalDateTime.now())
+                .description(request.description())
+                .paymentChannel(request.paymentChannel())
+                .provider(request.provider())
+                .merchantName(request.merchantName())
+                .build();
+
+        return processCollection(newCollection, request);
     }
 
     /**
      * Helper method to process (save and call external API) a collection.
-     *
-     * @param collection The Collection entity to process.
-     * @param request The original InitiateCollectionRequest.
-     * @return A Mono of CollectionResponse.
      */
-    private Mono<ResponseEntity<CollectionResponse>> processCollection(Collection collection, InitiateCollectionRequest request) {
-        return Mono.fromCallable(() -> collectionRepository.save(collection))
-                .flatMap(savedCollection -> {
-                    // Prepare request for the external payment API
-                    ExternalInitiatePaymentRequest externalApiRequest = new ExternalInitiatePaymentRequest(
-                            savedCollection.getCollectionRef(), // Our internal ref as external's idempotency key
-                            request.amount(),
-                            request.currency(),
-                            request.customerId(), // Use our customerId as userId for external API
-                            request.paymentChannel(),
-                            request.provider(),
-                            request.merchantName(),
-                            serviceCallbackUrl // Our service's callback URL
-                    );
+    private ResponseEntity<CollectionResponse> processCollection(Collection collection, InitiateCollectionRequest request) {
+        try {
+            Collection savedCollection = collectionRepository.save(collection);
 
-                    // Call the external payment gateway
-                    return externalPaymentGatewayService.initiatePayment(externalApiRequest)
-                            .flatMap(externalApiResponse -> {
-                                // Update our collection record with external reference and status
-                                savedCollection.setExternalRef(externalApiResponse.externalPaymentReference());
-                                savedCollection.setStatus(mapExternalStatus(externalApiResponse.status()));
-                                savedCollection.setUpdatedAt(LocalDateTime.now());
-                                savedCollection.setExternalClientId(externalApiResponse.clientId());
-                                savedCollection.setProviderStatusMessage(externalApiResponse.providerResponse());
-                                // providerExtraInfo and other fields might be mapped here if relevant to Collection entity
+            ExternalInitiatePaymentRequest externalApiRequest = new ExternalInitiatePaymentRequest(
+                    savedCollection.getCollectionRef(),
+                    request.amount(),
+                    request.currency(),
+                    request.customerId(),
+                    request.paymentChannel(),
+                    request.provider(),
+                    request.merchantName(),
+                    serviceCallbackUrl
+            );
 
-                                return Mono.fromCallable(() -> collectionRepository.save(savedCollection))
-                                        .map(this::toCollectionResponse);
-                            })
-                            .onErrorResume(e -> {
-                                log.error("Error calling external payment API for {}: {}", savedCollection.getCollectionRef(), e.getMessage());
-                                // Update collection status to FAILED if external call fails
-                                savedCollection.setStatus(CollectionStatus.FAILED);
-                                savedCollection.setFailureReason("External API call failed: " + e.getMessage());
-                                savedCollection.setUpdatedAt(LocalDateTime.now());
-                                return Mono.fromCallable(() -> collectionRepository.save(savedCollection))
-                                        .map(this::toCollectionResponse)
-                                        .then(Mono.error(new PaymentGatewayException("Failed to initiate payment with external gateway for " + savedCollection.getCollectionRef(), e)));
-                            });
-                })
-                .map(collectionResponse -> ResponseEntity.ok(collectionResponse));
+            try {
+                var externalApiResponse = externalPaymentGatewayService.initiatePayment(externalApiRequest);
+
+                savedCollection.setExternalRef(externalApiResponse.externalPaymentReference());
+                savedCollection.setStatus(mapExternalStatus(externalApiResponse.status()));
+                savedCollection.setUpdatedAt(LocalDateTime.now());
+                savedCollection.setExternalClientId(externalApiResponse.clientId());
+                savedCollection.setProviderStatusMessage(externalApiResponse.providerResponse());
+
+                savedCollection = collectionRepository.save(savedCollection);
+                return ResponseEntity.ok(toCollectionResponse(savedCollection));
+
+            } catch (Exception e) {
+                log.error("Error calling external payment API for {}: {}", savedCollection.getCollectionRef(), e.getMessage());
+                savedCollection.setStatus(CollectionStatus.FAILED);
+                savedCollection.setFailureReason("External API call failed: " + e.getMessage());
+                savedCollection.setUpdatedAt(LocalDateTime.now());
+
+                collectionRepository.save(savedCollection);
+                throw new PaymentGatewayException("Failed to initiate payment with external gateway for " +
+                        savedCollection.getCollectionRef(), e);
+            }
+        } catch (Exception e) {
+            log.error("Error in processCollection: {}", e.getMessage(), e);
+            throw e;
+        }
     }
-
 
     /**
      * Retrieves the details of a collection by its internal reference.
-     *
-     * @param collectionRef The internal reference ID.
-     * @return A Mono of CollectionResponse, or empty if not found.
      */
-    public Mono<CollectionResponse> getCollectionDetails(String collectionRef) {
-        return Mono.fromCallable(() -> collectionRepository.findByCollectionRef(collectionRef))
-                .flatMap(optionalCollection -> optionalCollection
-                        .map(Mono::just)
-                        .orElse(Mono.empty()))
-                .flatMap(this::fetchAndMergeExternalDetails) // Fetch external details and merge
-                .map(this::toCollectionResponse)
-                .doOnError(e -> log.error("Error getting collection details for {}: {}", collectionRef, e.getMessage()));
+    public CollectionResponse getCollectionDetails(String collectionRef) {
+        Optional<Collection> collectionOptional = collectionRepository.findByCollectionRef(collectionRef);
+
+        if (collectionOptional.isEmpty()) {
+            return null;
+        }
+
+        Collection collection = fetchAndMergeExternalDetails(collectionOptional.get());
+        return toCollectionResponse(collection);
     }
 
     /**
      * Retrieves the details of a collection by its external payment gateway reference.
-     *
-     * @param externalRef The external reference ID.
-     * @return A Mono of CollectionResponse, or empty if not found.
      */
-    public Mono<CollectionResponse> getCollectionDetailsByExternalRef(String externalRef) {
-        return Mono.fromCallable(() -> collectionRepository.findByExternalRef(externalRef))
-                .flatMap(optionalCollection -> optionalCollection
-                        .map(Mono::just)
-                        .orElse(Mono.empty()))
-                .flatMap(this::fetchAndMergeExternalDetails) // Fetch external details and merge
-                .map(this::toCollectionResponse)
-                .doOnError(e -> log.error("Error getting collection details by external ref {}: {}", externalRef, e.getMessage()));
+    public CollectionResponse getCollectionDetailsByExternalRef(String externalRef) {
+        Optional<Collection> collectionOptional = collectionRepository.findByExternalRef(externalRef);
+
+        if (collectionOptional.isEmpty()) {
+            return null;
+        }
+
+        Collection collection = fetchAndMergeExternalDetails(collectionOptional.get());
+        return toCollectionResponse(collection);
     }
 
     /**
      * Fetches details from the external payment gateway and merges them into the internal Collection object.
-     * This ensures the most up-to-date status and information.
-     *
-     * @param collection The internal Collection entity.
-     * @return A Mono of the updated Collection entity.
      */
-    private Mono<Collection> fetchAndMergeExternalDetails(Collection collection) {
+    private Collection fetchAndMergeExternalDetails(Collection collection) {
         if (collection.getExternalRef() == null) {
-            log.warn("Cannot fetch external details for collectionRef {} as externalRef is null.", collection.getCollectionRef());
-            return Mono.just(collection); // No external ref, no external details to fetch
+            log.warn("Cannot fetch external details for collectionRef {} as externalRef is null.",
+                    collection.getCollectionRef());
+            return collection;
         }
 
-        return externalPaymentGatewayService.getPaymentDetails(collection.getExternalRef())
-                .flatMap(externalDetails -> {
-                    // Update internal collection with the latest external details
-                    collection.setStatus(mapExternalStatus(externalDetails.status()));
-                    collection.setUpdatedAt(LocalDateTime.now());
-                    collection.setFees(externalDetails.fees());
-                    collection.setProviderStatusMessage(externalDetails.statusMessage());
-                    collection.setProviderInitiated(externalDetails.providerInitiated());
-                    collection.setPlatformSettled(externalDetails.platformSettled());
-                    collection.setExternalUserId(externalDetails.userId()); // Update if different from our customerId
-                    collection.setExternalClientId(externalDetails.clientId());
-                    collection.setClientLogoUrl(externalDetails.clientLogo());
-                    collection.setClientName(externalDetails.clientName());
-                    try {
-                        collection.setMetadata(objectMapper.writeValueAsString(externalDetails.metadata()));
-                    } catch (JsonProcessingException e) {
-                        log.error("Failed to serialize metadata for collection {}: {}", collection.getCollectionRef(), e.getMessage());
-                    }
+        try {
+            var externalDetails = externalPaymentGatewayService.getPaymentDetails(collection.getExternalRef());
 
-                    return Mono.fromCallable(() -> collectionRepository.save(collection));
-                })
-                .onErrorResume(e -> {
-                    log.error("Failed to fetch external details for collectionRef {}: {}", collection.getCollectionRef(), e.getMessage());
-                    // Don't fail the entire get details request if external call fails, return current internal state
-                    return Mono.just(collection);
-                });
+            collection.setStatus(mapExternalStatus(externalDetails.status()));
+            collection.setUpdatedAt(LocalDateTime.now());
+            collection.setFees(externalDetails.fees());
+            collection.setProviderStatusMessage(externalDetails.statusMessage());
+            collection.setProviderInitiated(externalDetails.providerInitiated());
+            collection.setPlatformSettled(externalDetails.platformSettled());
+            collection.setExternalUserId(externalDetails.userId());
+            collection.setExternalClientId(externalDetails.clientId());
+            collection.setClientLogoUrl(externalDetails.clientLogo());
+            collection.setClientName(externalDetails.clientName());
+
+            try {
+                collection.setMetadata(objectMapper.writeValueAsString(externalDetails.metadata()));
+            } catch (JsonProcessingException e) {
+                log.error("Failed to serialize metadata for collection {}: {}",
+                        collection.getCollectionRef(), e.getMessage());
+            }
+
+            return collectionRepository.save(collection);
+
+        } catch (Exception e) {
+            log.error("Failed to fetch external details for collectionRef {}: {}",
+                    collection.getCollectionRef(), e.getMessage());
+            return collection; // Return current state if external call fails
+        }
     }
 
     /**
      * Handles payment status updates received from the external payment gateway's callback.
-     *
-     * @param callbackRequest The PaymentCallbackRequest from the external gateway.
-     * @return A Mono<Void> indicating completion.
      */
-    public Mono<Void> handlePaymentCallback(PaymentCallbackRequest callbackRequest) {
+    @Transactional
+    public void handlePaymentCallback(PaymentCallbackRequest callbackRequest) {
         log.info("Processing callback for clientTransactionId: {}", callbackRequest.transactionId());
-        return Mono.fromCallable(() -> collectionRepository.findByCollectionRef(callbackRequest.transactionId()))
-                .flatMap(optionalCollection -> {
-                    if (optionalCollection.isEmpty()) {
-                        log.warn("Collection with clientTransactionId {} not found for callback.", callbackRequest.transactionId());
-                        // Important: Respond with a success to the external gateway to prevent retries
-                        return Mono.empty();
-                    }
-                    Collection collection = optionalCollection.get();
 
-                    // Check for idempotency: if the status is already final and successful, just log and return
-                    if (collection.getStatus() == CollectionStatus.SUCCESS &&
-                            mapExternalStatus(callbackRequest.status()) == CollectionStatus.SUCCESS) {
-                        log.warn("Ignoring duplicate successful callback for collectionRef {}", collection.getCollectionRef());
-                        return Mono.empty();
-                    }
+        Optional<Collection> collectionOptional =
+                collectionRepository.findByCollectionRef(callbackRequest.transactionId());
 
-                    collection.setExternalRef(callbackRequest.externalTransactionId());
-                    collection.setStatus(mapExternalStatus(callbackRequest.status()));
-                    collection.setUpdatedAt(LocalDateTime.now());
-                    collection.setFailureReason(callbackRequest.reason()); // Store failure reason if provided
+        if (collectionOptional.isEmpty()) {
+            log.warn("Collection with clientTransactionId {} not found for callback.",
+                    callbackRequest.transactionId());
+            return;
+        }
 
-                    return Mono.fromCallable(() -> collectionRepository.save(collection))
-                            .doOnSuccess(updatedCollection -> {
-                                log.info("Collection {} updated to status {}.", updatedCollection.getCollectionRef(), updatedCollection.getStatus());
-                                // Publish an event to RabbitMQ for other services (e.g., Notification, Analytics)
-                                publishCollectionEvent(updatedCollection);
-                            })
-                            .then(); // Return Mono<Void>
-                })
-                .doOnError(e -> log.error("Failed to process payment callback for clientTransactionId {}: {}",
-                        callbackRequest.transactionId(), e.getMessage()))
-                .then(); // Ensure a Mono<Void> is always returned
+        Collection collection = collectionOptional.get();
+
+        // Check for idempotency: if the status is already final and successful, just log and return
+        if (collection.getStatus() == CollectionStatus.SUCCESS &&
+                mapExternalStatus(callbackRequest.status()) == CollectionStatus.SUCCESS) {
+            log.warn("Ignoring duplicate successful callback for collectionRef {}", collection.getCollectionRef());
+            return;
+        }
+
+        collection.setExternalRef(callbackRequest.externalTransactionId());
+        collection.setStatus(mapExternalStatus(callbackRequest.status()));
+        collection.setUpdatedAt(LocalDateTime.now());
+        collection.setFailureReason(callbackRequest.reason());
+
+        Collection updatedCollection = collectionRepository.save(collection);
+        log.info("Collection {} updated to status {}.", updatedCollection.getCollectionRef(), updatedCollection.getStatus());
+
+        publishCollectionEvent(updatedCollection);
     }
 
     /**
      * Maps an external payment gateway status string to our internal CollectionStatus enum.
-     * You will need to implement this logic based on your specific payment provider's documentation.
-     *
-     * @param externalStatus The status string from the external API.
-     * @return The corresponding internal CollectionStatus.
      */
     private CollectionStatus mapExternalStatus(String externalStatus) {
         return switch (externalStatus.toUpperCase()) {
             case "PENDING", "PROCESSING" -> CollectionStatus.PENDING_EXTERNAL;
-            case "ONGOING" -> CollectionStatus.ONGOING; // New status for in-progress
+            case "ONGOING" -> CollectionStatus.ONGOING;
             case "SUCCESS", "COMPLETED" -> CollectionStatus.SUCCESS;
             case "FAILED", "DECLINED", "ERROR" -> CollectionStatus.FAILED;
             case "CANCELLED" -> CollectionStatus.CANCELLED;
             case "REFUNDED" -> CollectionStatus.REFUNDED;
-            default -> CollectionStatus.INITIATED; // Default or handle as unknown
+            default -> CollectionStatus.INITIATED;
         };
     }
 
     /**
      * Converts a Collection entity to a CollectionResponse DTO.
-     * @param collection The Collection entity.
-     * @return The corresponding CollectionResponse DTO.
      */
     private CollectionResponse toCollectionResponse(Collection collection) {
         return new CollectionResponse(
@@ -300,27 +276,29 @@ public class CollectionService {
                 collection.getStatus(),
                 collection.getInitiatedAt(),
                 collection.getUpdatedAt(),
-                "Collection status: " + collection.getStatus().name() + (collection.getProviderStatusMessage() != null ? " (" + collection.getProviderStatusMessage() + ")" : "")
+                "Collection status: " + collection.getStatus().name() +
+                        (collection.getProviderStatusMessage() != null ? " (" + collection.getProviderStatusMessage() + ")" : "")
         );
     }
 
     /**
      * Publishes a collection event to RabbitMQ.
-     * This method sends a message to a RabbitMQ queue/exchange, which can then be consumed
-     * by other microservices like the Notification Service or Analytics Service.
-     *
-     * @param collection The updated Collection entity.
      */
     private void publishCollectionEvent(Collection collection) {
-        // You'll define the exchange and routing key for your RabbitMQ setup.
-        // For simplicity, we'll use a direct exchange with a routing key based on status.
         String exchangeName = "payment.events";
         String routingKey = "collection." + collection.getStatus().name().toLowerCase();
         log.info("Publishing collection event for {}: Status {}", collection.getCollectionRef(), collection.getStatus());
 
-        // The object sent through RabbitMQ should ideally be a dedicated DTO
-        // that contains only the necessary information for the event consumer.
-        // For example: new CollectionEventDTO(collection.getCollectionRef(), collection.getStatus(), ...)
         rabbitTemplate.convertAndSend(exchangeName, routingKey, collection);
+    }
+
+    /**
+     * Sanitizes a reference string to contain only alphanumeric characters.
+     */
+    private String sanitizeReference(String reference) {
+        if (reference == null) {
+            return "";
+        }
+        return reference.replaceAll("[^a-zA-Z0-9]", "");
     }
 }
