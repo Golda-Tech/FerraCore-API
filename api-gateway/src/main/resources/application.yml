@@ -1,3 +1,56 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: api-gateway
+
+  main:
+    web-application-type: reactive
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          default-filters:
+            # Optional global filters (like CORS, header deduplication)
+            - name: DedupeResponseHeader
+              args:
+                strategy: RETAIN_FIRST
+                name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
+          routes:
+            # Auth Service route (public endpoints, no JWT required)
+            - id: auth-service
+              uri: https://auth-service-9tm1.onrender.com  # Use internal service name in Docker/Render or localhost for local
+              predicates:
+                - Path=/auth/**
+
+            # Collections Service route (requires JWT)
+            - id: collections-service
+              uri: https://collections-service.onrender.com
+              predicates:
+                - Path=/collections/**
+              filters:
+                - name: JwtAuthFilter   # Your custom JWT filter component
+
+# Swagger / OpenAPI aggregation
+springdoc:
+  api-docs:
+    enabled: true
+    groups:
+      enabled: true
+  swagger-ui:
+    urls:
+      - name: Auth Service
+        url: /auth/v3/api-docs
+      - name: Collections Service
+        url: /collections/v3/api-docs
+
+# Logging (optional)
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.goldatech: DEBUG
+
+# JWT secret
+APPLICATION_SECURITY_JWT_SECRET_KEY: ${APPLICATION_SECURITY_JWT_SECRET_KEY}
