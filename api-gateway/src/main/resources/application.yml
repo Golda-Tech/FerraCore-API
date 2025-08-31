@@ -1,56 +1,87 @@
+# application.yml for API Gateway with WebFlux
 server:
   port: 8080
+
+application:
+  security:
+    jwt:
+      # CRITICAL: This must be the SAME secret key used by your auth service
+      secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-here-make-it-long-enough-for-security}
+  
+  services:
+    auth-service:
+      url: ${AUTH_SERVICE_URL:https://auth-service-9tm1.onrender.com}
+    collections-service:
+      url: ${COLLECTIONS_SERVICE_URL:https://collections-service.onrender.com}
 
 spring:
   application:
     name: api-gateway
-
   main:
     web-application-type: reactive
-
   cloud:
     gateway:
+      # You can use YAML configuration or programmatic configuration (see GatewayRouteConfig)
       server:
         webflux:
-          default-filters:
-            # Optional global filters (like CORS, header deduplication)
-            - name: DedupeResponseHeader
-              args:
-                strategy: RETAIN_FIRST
-                name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
           routes:
-            # Auth Service route (public endpoints, no JWT required)
+            # Auth service - NO authentication required
             - id: auth-service
-              uri: https://auth-service-9tm1.onrender.com  # Use internal service name in Docker/Render or localhost for local
+              uri: ${application.services.auth-service.url}
               predicates:
-                - Path=/auth/**
-
-            # Collections Service route (requires JWT)
-            - id: collections-service
-              uri: https://collections-service.onrender.com
-              predicates:
-                - Path=/collections/**
+                - Path=/api/v1/auth/**
               filters:
-                - name: JwtAuthFilter   # Your custom JWT filter component
+                - AddRequestHeader=X-Gateway-Source,api-gateway
 
-# Swagger / OpenAPI aggregation
-springdoc:
-  api-docs:
-    enabled: true
-    groups:
-      enabled: true
-  swagger-ui:
-    urls:
-      - name: Auth Service
-        url: /auth/v3/api-docs
-      - name: Collections Service
-        url: /collections/v3/api-docs
+            # Collections service - authentication required (handled by our JWT filter)
+            - id: collections-service
+              uri: ${application.services.collections-service.url}
+              predicates:
+                - Path=/api/v1/collections/**
+              filters:
+                - AddRequestHeader=X-Gateway-Verified,true
 
-# Logging (optional)
+            # Health endpoints for auth service - public access
+            - id: auth-health
+              uri: ${application.services.auth-service.url}
+              predicates:
+                - Path=/api/v1/health/**
+
+            # Fallback route for any unmatched paths to collections service
+            - id: collections-fallback
+              uri: ${application.services.collections-service.url}
+              predicates:
+                - Path=/api/v1/**
+              filters:
+                - AddRequestHeader=X-Gateway-Verified,true
+              metadata:
+                response-timeout: 5000
+                connect-timeout: 2000
+          httpclient:
+            connect-timeout: 2000
+            response-timeout: 5s
+          default-filters:
+            - AddRequestHeader=X-Forwarded-By,api-gateway
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+# Management and monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      access: unrestricted
+
+# Logging configuration
 logging:
   level:
+    com.goldatech.apigateway: DEBUG
     org.springframework.cloud.gateway: INFO
-    com.goldatech: DEBUG
-
-# JWT secret
-APPLICATION_SECURITY_JWT_SECRET_KEY: ${APPLICATION_SECURITY_JWT_SECRET_KEY}
+    org.springframework.web.reactive: DEBUG
+    io.netty: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
