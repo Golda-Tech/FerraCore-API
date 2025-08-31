@@ -9,7 +9,7 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: production
       - key: SPRING_DATASOURCE_URL
-        value: "jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:6543/postgres"
+        value: "jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:5432/postgres"
       - key: SPRING_DATASOURCE_USERNAME
         value: postgres.soluxcknwrhdmygsbxsh
       - key: SPRING_DATASOURCE_PASSWORD
