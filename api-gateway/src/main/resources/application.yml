@@ -1,18 +1,5 @@
-# application.yml for API Gateway with WebFlux
 server:
   port: 8080
-
-application:
-  security:
-    jwt:
-      # CRITICAL: This must be the SAME secret key used by your auth service
-      secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-here-make-it-long-enough-for-security}
-  
-  services:
-    auth-service:
-      url: ${AUTH_SERVICE_URL:https://auth-service-9tm1.onrender.com}
-    collections-service:
-      url: ${COLLECTIONS_SERVICE_URL:https://collections-service.onrender.com}
 
 spring:
   application:
@@ -21,67 +8,83 @@ spring:
     web-application-type: reactive
   cloud:
     gateway:
-      # You can use YAML configuration or programmatic configuration (see GatewayRouteConfig)
       server:
         webflux:
           routes:
-            # Auth service - NO authentication required
+            # Auth service routes - NO authentication required
+            - id: auth-service-docs
+              uri: https://auth-service-9tm1.onrender.com
+              predicates:
+                - Path=/auth-service-docs/**
+              filters:
+                - RewritePath=/auth-service-docs/(?<segment>.*), /${segment}
+
+                # Proxy Collections Service OpenAPI docs
+            - id: collections-service-docs
+              uri: https://collections-service.onrender.com
+              predicates:
+                - Path=/collections-service-docs/**
+              filters:
+                - RewritePath=/collections-service-docs/(?<segment>.*), /${segment}
+
+            # Auth service routes - NO authentication required
             - id: auth-service
-              uri: ${application.services.auth-service.url}
+              uri: https://auth-service-9tm1.onrender.com
               predicates:
                 - Path=/api/v1/auth/**
               filters:
                 - AddRequestHeader=X-Gateway-Source,api-gateway
 
-            # Collections service - authentication required (handled by our JWT filter)
+            # Collections service routes - authentication required
             - id: collections-service
-              uri: ${application.services.collections-service.url}
+              uri: https://collections-service.onrender.com
               predicates:
                 - Path=/api/v1/collections/**
               filters:
                 - AddRequestHeader=X-Gateway-Verified,true
 
-            # Health endpoints for auth service - public access
-            - id: auth-health
-              uri: ${application.services.auth-service.url}
-              predicates:
-                - Path=/api/v1/health/**
-
-            # Fallback route for any unmatched paths to collections service
+            # Fallback for any other /api/v1/** paths to collections service
             - id: collections-fallback
-              uri: ${application.services.collections-service.url}
+              uri: https://collections-service.onrender.com
               predicates:
                 - Path=/api/v1/**
               filters:
                 - AddRequestHeader=X-Gateway-Verified,true
-              metadata:
-                response-timeout: 5000
-                connect-timeout: 2000
+
           httpclient:
-            connect-timeout: 2000
-            response-timeout: 5s
+            connect-timeout: 5000
+            response-timeout: 10s
           default-filters:
             - AddRequestHeader=X-Forwarded-By,api-gateway
-            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 
-# Management and monitoring
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY:your-super-secret-jwt-key-here}
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,gateway
+        include: health,info,gateway
   endpoint:
     health:
       show-details: always
-    gateway:
-      access: unrestricted
 
-# Logging configuration
 logging:
   level:
-    com.goldatech.apigateway: DEBUG
+    com.goldatech.apigateway: INFO
     org.springframework.cloud.gateway: INFO
-    org.springframework.web.reactive: DEBUG
-    io.netty: INFO
+    org.springframework.web.reactive: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    urls:
+      - name: Auth Service
+        url: /auth-service-docs/v3/api-docs
+      - name: Collections Service
+        url: /collections-service-docs/v3/api-docs

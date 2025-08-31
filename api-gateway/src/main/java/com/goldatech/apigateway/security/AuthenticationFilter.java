@@ -26,8 +26,18 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
             "/api/v1/auth/**",
             "/api/v1/health/**",
-            "/actuator/health/**"
+            "/actuator/health/**",
+
+            // Swagger & OpenAPI docs
+            "/v3/api-docs/**",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+
+            // Proxied Swagger docs through gateway
+            "/auth-service-docs/**",
+            "/collections-service-docs/**"
     );
+
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
