@@ -8,15 +8,17 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: production
-      - key: SPRING_DATASOURCE_URL
-        value: "jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:5432/postgres"
-      - key: SPRING_DATASOURCE_USERNAME
-        value: postgres.soluxcknwrhdmygsbxsh
-      - key: SPRING_DATASOURCE_PASSWORD
-        value: rexpaypass
       - key: PORT
-        value: "10000"
-      - key: APPLICATION_SECURITY_JWT_SECRET_KEY
-        generateValue: true
-      - key: APPLICATION_SECURITY_JWT_EXPIRATION
-        value: "86400000"
+        value: "8081"
+
+  - type: web
+    name: collections-service
+    runtime: docker
+    plan: free
+    repo: https://github.com/Golda-Tech/RexPay-API
+    rootDir: ./collections-service
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: PORT
+        value: "8082"
