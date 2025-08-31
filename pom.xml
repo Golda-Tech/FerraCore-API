@@ -13,6 +13,7 @@
         <module>auth-service</module>
         <module>shared-dependencies</module>
         <module>collections-service</module>
+        <module>api-gateway</module>
     </modules>
 
     <properties>
