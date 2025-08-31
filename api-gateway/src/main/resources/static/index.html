@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RexPay API Gateway</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui.css"/>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+        }
+        .topbar {
+            background-color: #1976d2;
+            color: #fff;
+            padding: 1rem 2rem;
+            font-size: 1.6rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        .tab-bar {
+            display: flex;
+            justify-content: center;
+            background-color: #ffffff;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 0.8rem 2rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: #555;
+            transition: all 0.2s;
+        }
+        .tab.active {
+            border-bottom: 3px solid #1976d2;
+            color: #1976d2;
+            font-weight: 700;
+        }
+        #swagger-ui {
+            margin: 0 auto;
+            max-width: 1200px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">RexPay API Gateway</div>
+
+<div class="tab-bar">
+    <div class="tab active" data-url="/auth-service-docs/v3/api-docs">Auth Service</div>
+    <div class="tab" data-url="/collections-service-docs/v3/api-docs">Collections Service</div>
+</div>
+
+<div id="swagger-ui"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui-bundle.js"></script>
+<script>
+    let currentUI;
+
+    function loadSwagger(url) {
+        if(currentUI) {
+            document.getElementById('swagger-ui').innerHTML = '';
+        }
+        currentUI = SwaggerUIBundle({
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [SwaggerUIBundle.presets.apis],
+            layout: "BaseLayout",
+            url: url
+        });
+    }
+
+    // Load default service
+    loadSwagger("/auth-service-docs/v3/api-docs");
+
+    // Tab click handling
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Load selected service
+            const url = tab.getAttribute('data-url');
+            loadSwagger(url);
+        });
+    });
+</script>
+</body>
+</html>
