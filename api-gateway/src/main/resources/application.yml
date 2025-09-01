@@ -13,7 +13,7 @@ spring:
           routes:
             # Auth service routes - NO authentication required
             - id: auth-service-docs
-              uri: https://auth-service-9tm1.onrender.com
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/auth-service-docs/**
               filters:
@@ -21,7 +21,7 @@ spring:
 
                 # Proxy Collections Service OpenAPI docs
             - id: collections-service-docs
-              uri: https://collections-service.onrender.com
+              uri: ${COLLECTIONS_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/collections-service-docs/**
               filters:
@@ -29,7 +29,7 @@ spring:
 
             # Auth service routes - NO authentication required
             - id: auth-service
-              uri: https://auth-service-9tm1.onrender.com
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/api/v1/auth/**
               filters:
@@ -37,7 +37,7 @@ spring:
 
             # Collections service routes - authentication required
             - id: collections-service
-              uri: https://collections-service.onrender.com
+              uri: ${COLLECTIONS_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/api/v1/collections/**
               filters:
@@ -45,7 +45,7 @@ spring:
 
             # Fallback for any other /api/v1/** paths to collections service
             - id: collections-fallback
-              uri: https://collections-service.onrender.com
+              uri: ${COLLECTIONS_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/api/v1/**
               filters:
@@ -60,7 +60,7 @@ spring:
 application:
   security:
     jwt:
-      secret-key: ${JWT_SECRET_KEY:your-super-secret-jwt-key-here}
+      secret-key: ${JWT_SECRET_KEY:v9m2W+q4zF7tPjK6dR8hQsB2yX1nV0eZ4HcP7sLq9FwT3XyK5J8bV6pQ0rN2uM1a}
 
 management:
   endpoints:
