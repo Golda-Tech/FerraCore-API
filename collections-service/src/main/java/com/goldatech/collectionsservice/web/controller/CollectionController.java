@@ -7,9 +7,14 @@ import com.goldatech.collectionsservice.web.dto.response.CollectionResponse;
 import com.goldatech.collectionsservice.domain.exception.IdempotencyConflictException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/collections")
@@ -74,17 +79,34 @@ public class CollectionController {
     /**
      * Retrieves the details of a specific payment collection by its external payment gateway ID.
      */
-    @GetMapping("/external/{externalRef}")
-    public ResponseEntity<CollectionResponse> getCollectionDetailsByExternalRef(@PathVariable String externalRef) {
+    @GetMapping(params = "externalRef")
+    public ResponseEntity<CollectionResponse> getCollectionDetailsByExternalRef(@RequestParam String externalRef) {
+        CollectionResponse collection = collectionService.getCollectionDetailsByExternalRef(externalRef);
+        return collection != null ? ResponseEntity.ok(collection) : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<CollectionResponse>> getCollections(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size
+    ) {
         try {
-            CollectionResponse collection = collectionService.getCollectionDetailsByExternalRef(externalRef);
-            if (collection != null) {
-                return ResponseEntity.ok(collection);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
+            return ResponseEntity.ok(collectionService.getCollections(startDate, endDate, status, page, size));
         } catch (Exception e) {
-            log.error("Error getting collection details by external ref {}: {}", externalRef, e.getMessage(), e);
+            log.error("Error getting collections: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/status-summary")
+    public ResponseEntity<Map<String, Long>> getCollectionStatusSummary() {
+        try {
+            return ResponseEntity.ok(collectionService.getCollectionStatusSummary());
+        } catch (Exception e) {
+            log.error("Error getting collection status summary: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

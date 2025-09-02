@@ -15,13 +15,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -245,6 +253,46 @@ public class CollectionService {
 
         publishCollectionEvent(updatedCollection);
     }
+
+    /**
+     * Retrieves all collections.
+     * @return a list of all collections.
+     */
+    public List<CollectionResponse> getCollections(LocalDateTime startDate,
+                                                   LocalDateTime endDate,
+                                                   String status,
+                                                   Integer page,
+                                                   Integer size) {
+        Pageable pageable = PageRequest.of(page != null ? page : 0,
+                size != null ? size : 20,
+                Sort.by(Sort.Direction.DESC, "initiatedAt"));
+
+        Page<Collection> collPage;
+
+        if (startDate != null && endDate != null && status != null) {
+            collPage = collectionRepository.findByInitiatedAtBetweenAndStatus(
+                    startDate, endDate, CollectionStatus.valueOf(status.toUpperCase()), pageable
+            );
+        } else if (startDate != null && endDate != null) {
+            collPage = collectionRepository.findByInitiatedAtBetween(startDate, endDate, pageable);
+        } else if (status != null) {
+            collPage = collectionRepository.findByStatus(CollectionStatus.valueOf(status.toUpperCase()), pageable);
+        } else {
+            collPage = collectionRepository.findAll(pageable);
+        }
+
+        return collPage.stream().map(this::toCollectionResponse).toList();
+    }
+
+    /**
+     * Provides a summary count of collections by their status.
+     * @return A map with collection statuses as keys and their respective counts as values.
+     */
+    public Map<String, Long> getCollectionStatusSummary() {
+        return collectionRepository.findAll().stream()
+                .collect(Collectors.groupingBy(c -> c.getStatus().name(), Collectors.counting()));
+    }
+
 
     /**
      * Maps an external payment gateway status string to our internal CollectionStatus enum.
