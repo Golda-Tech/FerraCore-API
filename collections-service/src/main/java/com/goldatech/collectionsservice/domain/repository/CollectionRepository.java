@@ -46,4 +46,6 @@ public interface CollectionRepository extends JpaRepository<Collection, Long> {
     Page<Collection> findAll(Pageable pageable);
 
     long countByStatus(CollectionStatus status);
+
+    List<Collection> findByInitiatedAtBetween(LocalDateTime start, LocalDateTime end);
 }
