@@ -1,43 +1,75 @@
-name: Collections Service
+name: Collections Service CI/CD
 
 on:
   push:
     paths:
       - collections-service/**
     branches:
-      - '**'
+      - main # Only deploy from main
 
 jobs:
-  build:
-    name: Build
+  build-and-deploy:
+    name: Build and Deploy
     runs-on: ubuntu-latest
     env:
       working-directory: ./collections-service
       DOCKER_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/rexpay-collections-service
+      GCP_REGION: us-central1
+      CLOUD_RUN_SERVICE: collections-service
+
     defaults:
       run:
-        working-directory: ${{ env.working-directory}}
+        working-directory: ${{ env.working-directory }}
+
     steps:
       - uses: actions/checkout@v4
+
+      # ---- Build ----
       - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
+
       - name: Ensure mvnw is executable
         run: chmod +x mvnw
+
       - name: Build with Maven
         run: ./mvnw -ntp verify
 
+      # ---- Docker ----
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Publish Docker Image
+      - name: Build and Push Docker Image
         run: |
           ./mvnw spring-boot:build-image -DskipTests
-          echo "Pushing the image $DOCKER_IMAGE_NAME to Docker Hub..."
-          docker push $DOCKER_IMAGE_NAME
+          docker push ${{ env.DOCKER_IMAGE_NAME }}:latest
+
+      # ---- GCP Deployment ----
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.CLOUD_RUN_SERVICE }}
+          region: ${{ env.GCP_REGION }}
+          image: ${{ env.DOCKER_IMAGE_NAME }}
+          env_vars: |
+            SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+            SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+            SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+            REX_URL=${{ secrets.REX_URL }}
+            REX_USERNAME=${{ secrets.REX_USERNAME }}
+            REX_PASSWORD=${{ secrets.REX_PASSWORD }}
+            SERVER_PORT=8082
