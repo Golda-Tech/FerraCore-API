@@ -8,5 +8,4 @@ public class CollectionsServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(CollectionsServiceApplication.class, args);
     }
-
 }
