@@ -44,13 +44,6 @@ spring:
                 - AddRequestHeader=X-Gateway-Verified,true
 
             # Fallback for any other /api/v1/** paths to collections service
-#            - id: collections-fallback
-#              uri: ${COLLECTIONS_SERVICE_URL:http://localhost:8082}
-#              predicates:
-#                - Path=/api/v1/**
-#              filters:
-#                - AddRequestHeader=X-Gateway-Verified,true
-
           httpclient:
             connect-timeout: 5000
             response-timeout: 10s
