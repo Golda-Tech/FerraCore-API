@@ -37,7 +37,7 @@ spring:
 
             # Collections service routes - authentication required
             - id: collections-service
-              uri: ${COLLECTIONS_SERVICE_URL:http://collectinos-service:8082}
+              uri: ${COLLECTIONS_SERVICE_URL:http://collections-service:8082}
               predicates:
                 - Path=/api/v1/collections/**
               filters:
