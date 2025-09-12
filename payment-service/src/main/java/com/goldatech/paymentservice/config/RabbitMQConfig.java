@@ -1,4 +1,4 @@
-package com.goldatech.notificationservice.config;
+package com.goldatech.paymentservice.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.core.*;

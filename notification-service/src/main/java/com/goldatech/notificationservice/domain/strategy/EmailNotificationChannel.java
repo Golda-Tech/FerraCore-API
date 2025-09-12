@@ -2,6 +2,7 @@ package com.goldatech.notificationservice.domain.strategy;
 
 import com.goldatech.notificationservice.domain.model.NotificationLog;
 import com.goldatech.notificationservice.domain.repository.NotificationLogRepository;
+import com.goldatech.notificationservice.web.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ public class EmailNotificationChannel implements NotificationChannel {
     public void sendNotification(NotificationEvent event) {
         log.info("Attempting to send an email notification to: {}", event.recipient());
 
+        // This is a placeholder for your actual email sending logic (e.g., calling a third-party API)
         boolean emailSentSuccessfully = true;
         String status = emailSentSuccessfully ? "SUCCESS" : "FAILED";
         String externalRef = UUID.randomUUID().toString();

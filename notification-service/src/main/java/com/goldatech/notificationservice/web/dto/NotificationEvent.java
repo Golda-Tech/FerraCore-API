@@ -14,4 +14,4 @@ public record NotificationEvent(
         String subject,
         String body,
         Map<String, String> data
-) implements Serializable {}
+)  {}

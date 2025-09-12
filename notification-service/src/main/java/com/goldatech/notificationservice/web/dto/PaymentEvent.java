@@ -18,4 +18,4 @@ public record PaymentEvent(
         String message,
         String userId,
         LocalDateTime timestamp
-) implements DomainEvent, Serializable {}
+)  {}

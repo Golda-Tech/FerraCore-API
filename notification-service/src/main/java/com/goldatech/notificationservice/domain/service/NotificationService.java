@@ -1,12 +1,17 @@
 package com.goldatech.notificationservice.domain.service;
 
+import com.goldatech.notificationservice.domain.strategy.NotificationChannel;
+import com.goldatech.notificationservice.domain.strategy.NotificationChannelFactory;
+import com.goldatech.notificationservice.web.dto.AuthEvent;
+import com.goldatech.notificationservice.web.dto.CollectionEvent;
+import com.goldatech.notificationservice.web.dto.NotificationEvent;
+import com.goldatech.notificationservice.web.dto.PaymentEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.goldatech.notificationservice.config.RabbitMQConfig.*;
 
 @Service
 @RequiredArgsConstructor
@@ -15,7 +20,7 @@ public class NotificationService {
 
     private final NotificationChannelFactory channelFactory;
 
-    @RabbitListener(queues = PAYMENT_QUEUE)
+    @RabbitListener(queues = "${notification.payment.queue}")
     @Transactional
     public void handlePaymentEvent(PaymentEvent event) {
         log.info("Received PaymentEvent for transaction ref: {}", event.transactionRef());
@@ -37,7 +42,7 @@ public class NotificationService {
         }
     }
 
-    @RabbitListener(queues = COLLECTION_QUEUE)
+    @RabbitListener(queues = "${notification.collection.queue}")
     @Transactional
     public void handleCollectionEvent(CollectionEvent event) {
         log.info("Received CollectionEvent for collection ref: {}", event.collectionRef());
@@ -59,7 +64,7 @@ public class NotificationService {
         }
     }
 
-    @RabbitListener(queues = AUTH_QUEUE)
+    @RabbitListener(queues = "${notification.auth.queue}")
     @Transactional
     public void handleAuthEvent(AuthEvent event) {
         log.info("Received AuthEvent for username: {}", event.username());

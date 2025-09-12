@@ -1,4 +1,4 @@
-package com.goldatech.notificationservice.web.dto;
+package com.goldatech.paymentservice.domain.model.events;
 
 import lombok.Builder;
 
@@ -7,13 +7,15 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Builder
-public record CollectionEvent(
-        String collectionRef,
+public record PaymentEvent(
+        String transactionRef,
         String externalRef,
+        String collectionRef,
         String mobileNumber,
         BigDecimal amount,
+        String currency,
         String status,
         String message,
         String userId,
         LocalDateTime timestamp
-)  {}
+) {}
