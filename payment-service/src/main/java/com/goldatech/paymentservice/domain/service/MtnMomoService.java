@@ -2,6 +2,8 @@ package com.goldatech.paymentservice.domain.service;
 
 
 import com.goldatech.paymentservice.domain.exception.PaymentGatewayException;
+import com.goldatech.paymentservice.domain.model.momo.MtnToken;
+import com.goldatech.paymentservice.domain.repository.MtnTokenRepository;
 import com.goldatech.paymentservice.web.dto.request.momo.RequestToPayRequest;
 import com.goldatech.paymentservice.web.dto.response.momo.BasicUserInfoResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.RequestToPayStatusResponse;
@@ -16,6 +18,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -25,6 +28,7 @@ import java.util.UUID;
 public class MtnMomoService {
 
     private final RestTemplate restTemplate;
+    private final MtnTokenRepository tokenRepository;
 
     @Value("${mtn.momo.base-url}")
     private String momoBaseUrl;
@@ -118,7 +122,7 @@ public class MtnMomoService {
         String xRef = (referenceId == null || referenceId.isBlank()) ? UUID.randomUUID().toString() : referenceId;
 
         try {
-            String token = getCollectionToken().accessToken();
+            String token = getStoredToken("COLLECTION");
             HttpHeaders headers = createBearerHeaders(token, collectionSubscriptionKey);
             headers.set("X-Reference-Id", xRef);
 
@@ -149,7 +153,7 @@ public class MtnMomoService {
         String url = momoBaseUrl + "/collection/v1_0/requesttopay/" + referenceId;
 
         try {
-            String token = getCollectionToken().accessToken();
+            String token = getStoredToken("COLLECTION");
             HttpHeaders headers = createBearerHeaders(token, collectionSubscriptionKey);
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
@@ -182,7 +186,7 @@ public class MtnMomoService {
         String url = momoBaseUrl + path;
 
         try {
-            String token = getCollectionToken().accessToken();
+            String token = getStoredToken("COLLECTION");
             HttpHeaders headers = createBearerHeaders(token, collectionSubscriptionKey);
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
@@ -236,4 +240,12 @@ public class MtnMomoService {
         }
         return headers;
     }
+
+    private String getStoredToken(String type) {
+        return tokenRepository.findTopByTypeOrderByCreatedAtDesc(type)
+                .filter(token -> token.getExpiresAt().isAfter(LocalDateTime.now()))
+                .map(MtnToken::getAccessToken)
+                .orElseThrow(() -> new PaymentGatewayException("No valid " + type + " token found. Run scheduler first."));
+    }
+
 }
