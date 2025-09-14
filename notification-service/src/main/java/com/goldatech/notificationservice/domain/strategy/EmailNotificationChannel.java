@@ -31,7 +31,7 @@ public class EmailNotificationChannel implements NotificationChannel {
         Resend resend = new Resend(RESEND_API_KEY);
 
         CreateEmailOptions params = CreateEmailOptions.builder()
-                .from("RexPay Collections <onboarding@resend.dev>")
+                .from("RexPay Collections <updates@atomarkin.com>")
                 .to(event.recipient())
                 .subject(event.subject())
                 .html(event.body())
