@@ -1,10 +1,7 @@
 package com.goldatech.paymentservice.domain.model.momo;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -22,6 +19,7 @@ public class MtnToken {
     private Long id;
 
     private String type; // "COLLECTION" or "DISBURSEMENT"
+    @Column(length = 2048)
     private String accessToken;
 
     private LocalDateTime expiresAt;

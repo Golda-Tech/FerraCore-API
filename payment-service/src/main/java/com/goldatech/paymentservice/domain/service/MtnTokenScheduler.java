@@ -2,6 +2,7 @@ package com.goldatech.paymentservice.domain.service;
 
 import com.goldatech.paymentservice.domain.model.momo.MtnToken;
 import com.goldatech.paymentservice.domain.repository.MtnTokenRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -50,5 +51,10 @@ public class MtnTokenScheduler {
 
         tokenRepository.save(token);
         log.debug("Stored {} token valid until {}", type, expiresAt);
+    }
+
+    @PostConstruct
+    public void init() {
+        refreshTokens(); // run once immediately on startup
     }
 }

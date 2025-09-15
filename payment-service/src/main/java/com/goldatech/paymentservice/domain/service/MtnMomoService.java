@@ -48,6 +48,9 @@ public class MtnMomoService {
     @Value("${mtn.momo.environment:sandbox}")
     private String environment;
 
+    @Value("${mtn.momo.basic-auth-token}")
+    private String basicAuthToken;
+
 
     /* -------------------- Token endpoints -------------------- */
 
@@ -55,10 +58,15 @@ public class MtnMomoService {
      * Retrieve a collection access token (calls /collection/token/).
      */
     public TokenResponse getCollectionToken() {
+        log.debug("Requesting collection token...");
         String url = momoBaseUrl + "/collection/token/";
-        HttpHeaders headers = createBasicAuthHeaders(collectionSubscriptionKey, true);
+        HttpHeaders headers = createBasicAuthHeaders(collectionSubscriptionKey, false);
 
         try {
+
+            //Log the URL and headers for debugging
+            log.debug("Requesting collection token from URL: {}", url);
+            log.debug("Request headers: {}", headers);
             ResponseEntity<TokenResponse> response = restTemplate.exchange(
                     url, HttpMethod.POST, new HttpEntity<>(headers), TokenResponse.class);
 
@@ -221,7 +229,7 @@ public class MtnMomoService {
 
         String auth = subscriptionKey + ":" + UUID.randomUUID().toString().toLowerCase();
         String encoded = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
-        headers.set(HttpHeaders.AUTHORIZATION, "Basic " + encoded);
+        headers.set(HttpHeaders.AUTHORIZATION, "Basic " + basicAuthToken);
 
         if (includeEnv && environment != null && !environment.isBlank()) {
             headers.set("X-Target-Environment", environment);

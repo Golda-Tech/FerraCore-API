@@ -40,6 +40,7 @@ public class PaymentService {
         PaymentProvider provider = providerFactory.getProvider(request.provider());
         PaymentTransaction transaction = provider.initiatePayment(request);
 
+
         //Publish event to RabbitMQ for asynchronous processing
         PaymentEvent event = new PaymentEvent(
                 transaction.getTransactionRef(),
