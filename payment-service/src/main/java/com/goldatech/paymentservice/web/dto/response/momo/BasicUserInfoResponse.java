@@ -5,12 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record BasicUserInfoResponse(
-        String displayName,
-        String firstName,
-        String middleName,
-        String lastName,
-        String msisdn,
-        String nationality,
-        @JsonProperty("dateOfBirth") String dateOfBirth
-        // add more fields as required by your integration; unknown fields are ignored
+        @JsonProperty("sub") String id,
+        @JsonProperty("name") String fullName,
+        @JsonProperty("given_name") String firstName,
+        @JsonProperty("family_name") String lastName,
+        @JsonProperty("locale") String locale,
+        @JsonProperty("gender") String gender,
+        @JsonProperty("birthdate") String birthdate,
+        @JsonProperty("updated_at") Long updatedAt
 ) {}

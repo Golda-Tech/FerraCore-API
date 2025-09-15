@@ -28,4 +28,5 @@ public interface PaymentProvider {
      * @return The response containing account name and status.
      */
     Optional<NameEnquiryResponse> nameEnquiry(NameEnquiryRequest request);
+
 }

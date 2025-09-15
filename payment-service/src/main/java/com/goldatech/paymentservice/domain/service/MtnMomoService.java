@@ -39,11 +39,11 @@ public class MtnMomoService {
     @Value("${mtn.momo.disbursement.subscription-key}")
     private String disbursementSubscriptionKey;
 
-    @Value("${mtn.momo.api-user}")
-    private String apiUser;
-
-    @Value("${mtn.momo.api-key}")
-    private String apiKey;
+//    @Value("${mtn.momo.api-user}")
+//    private String apiUser;
+//
+//    @Value("${mtn.momo.api-key}")
+//    private String apiKey;
 
     @Value("${mtn.momo.environment:sandbox}")
     private String environment;
@@ -219,7 +219,7 @@ public class MtnMomoService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Ocp-Apim-Subscription-Key", subscriptionKey);
 
-        String auth = apiUser + ":" + apiKey;
+        String auth = subscriptionKey + ":" + UUID.randomUUID().toString().toLowerCase();
         String encoded = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
         headers.set(HttpHeaders.AUTHORIZATION, "Basic " + encoded);
 
