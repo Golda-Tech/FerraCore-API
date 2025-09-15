@@ -42,16 +42,17 @@ public class MtnTokenScheduler {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiresAt = now.plusSeconds(expiresIn != null ? expiresIn : 3600);
 
-        MtnToken token = MtnToken.builder()
-                .type(type)
-                .accessToken(accessToken)
-                .createdAt(now)
-                .expiresAt(expiresAt)
-                .build();
+        MtnToken token = tokenRepository.findTopByTypeOrderByCreatedAtDesc(type)
+                .orElse(MtnToken.builder().type(type).build());
+
+        token.setAccessToken(accessToken);
+        token.setCreatedAt(now);
+        token.setExpiresAt(expiresAt);
 
         tokenRepository.save(token);
         log.debug("Stored {} token valid until {}", type, expiresAt);
     }
+
 
     @PostConstruct
     public void init() {
