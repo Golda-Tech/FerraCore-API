@@ -21,7 +21,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final URI ISE_FOUND_TYPE = URI.create("https://api.rexpayapi.com/errors/server-error");
     private static final URI BAD_REQUEST_TYPE = URI.create("https://api.rexpayapi.com/errors/bad-request");
     private static final URI CONFLICT_TYPE = URI.create("https://api.rexpayapi.com/errors/conflict");
-    private static final String SERVICE_NAME = "auth-service";
+    private static final String SERVICE_NAME = "payment-service";
 
 
     @ExceptionHandler(Exception.class)

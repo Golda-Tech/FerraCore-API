@@ -34,7 +34,8 @@ public class PaymentController {
     }
 
     @GetMapping("/name-enquiry")
-    public ResponseEntity<NameEnquiryResponse> nameEnquiry(@Valid @RequestBody NameEnquiryRequest request) {
+    public ResponseEntity<NameEnquiryResponse> nameEnquiry(@Valid @RequestParam String mobileNumber) {
+        NameEnquiryRequest request = new NameEnquiryRequest(mobileNumber);
         log.info("Received name enquiry request for mobile: {}", request.mobileNumber());
         return paymentService.nameEnquiry(request)
                 .map(ResponseEntity::ok)
