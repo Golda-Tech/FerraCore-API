@@ -11,8 +11,10 @@ import java.math.BigDecimal;
 public record PaymentRequest(
         @NotBlank String provider,
         @NotBlank String collectionRef,
-        @NotBlank String merchantId,
         @NotBlank String mobileNumber,
         @NotNull @DecimalMin("0.01") BigDecimal amount,
-        @NotBlank String currency
+        @NotBlank String currency,
+        @NotBlank String partyIdType,
+        String payerMessage,
+        String payeeNote
 ) {}
