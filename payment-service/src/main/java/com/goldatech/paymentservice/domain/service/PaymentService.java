@@ -35,7 +35,7 @@ public class PaymentService {
     private String paymentRoutingKey;
 
     @Transactional
-    public PaymentResponse initiatePayment(PaymentRequest request) {
+    public PaymentResponse initiatePayment(PaymentRequest request, String userId, String email) {
         log.info("Initiating payment request for provider: {}", request.provider());
         PaymentProvider provider = providerFactory.getProvider(request.provider());
         PaymentTransaction transaction = provider.initiatePayment(request);
@@ -51,7 +51,8 @@ public class PaymentService {
                 transaction.getCurrency(),
                 transaction.getStatus().toString(),
                 transaction.getMessage(),
-                "USER ID", // This should be replaced with actual user ID from context/session
+                userId,
+                email,
                 LocalDateTime.now()
         );
 

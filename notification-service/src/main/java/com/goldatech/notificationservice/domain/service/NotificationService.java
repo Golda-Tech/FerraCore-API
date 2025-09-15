@@ -25,12 +25,20 @@ public class NotificationService {
     public void handlePaymentEvent(PaymentEvent event) {
         log.info("Received PaymentEvent for transaction ref: {}", event.transactionRef());
 
-        if ("SUCCESS".equalsIgnoreCase(event.status())) {
+        if ("SUCCESSFUL".equalsIgnoreCase(event.status())) {
             NotificationChannel smsChannel = channelFactory.getChannel("SMS");
             String messageBody = String.format("Hi, a payment of %s %s has been successfully processed. Ref: %s",
                     event.amount(), event.currency(), event.transactionRef());
             smsChannel.sendNotification(new NotificationEvent(
                     "PAYMENT_SUCCESS", "SMS", event.mobileNumber(), event.userId(), "Payment Success", messageBody, null
+            ));
+
+            //Send email to user
+            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
+            String emailBody = String.format("Dear User,\n\nYour payment of %s %s has been successfully processed.\nTransaction Reference: %s\n\nThank you for using our services.\n\nBest regards,\nYour Company",
+                    event.amount(), event.currency(), event.transactionRef());
+            emailChannel.sendNotification(new NotificationEvent(
+                    "PAYMENT_SUCCESS_EMAIL", "EMAIL", event.email(), event.userId(), "Payment Success", emailBody, null
             ));
         } else if ("FAILED".equalsIgnoreCase(event.status())) {
             NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");

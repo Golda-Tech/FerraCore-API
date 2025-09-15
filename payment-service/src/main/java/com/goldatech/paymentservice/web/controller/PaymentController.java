@@ -20,9 +20,11 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
-    public ResponseEntity<PaymentResponse> initiatePayment(@Valid @RequestBody PaymentRequest request) {
+    public ResponseEntity<PaymentResponse> initiatePayment(@Valid @RequestBody PaymentRequest request,
+                                                           @RequestHeader("X-User-Email") String email,
+                                                           @RequestHeader("X-User-Id") String userId) {
         log.info("Received payment initiation request for provider: {}", request.provider());
-        PaymentResponse response = paymentService.initiatePayment(request);
+        PaymentResponse response = paymentService.initiatePayment(request, userId, email);
         return ResponseEntity.ok(response);
     }
 
