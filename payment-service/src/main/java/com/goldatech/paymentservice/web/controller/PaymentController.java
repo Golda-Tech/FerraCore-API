@@ -1,5 +1,6 @@
 package com.goldatech.paymentservice.web.controller;
 
+import com.goldatech.paymentservice.domain.model.PaymentTransaction;
 import com.goldatech.paymentservice.domain.service.PaymentService;
 import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
 import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
@@ -44,4 +45,24 @@ public class PaymentController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+
+    //Get a;ll payments
+    @GetMapping
+    public ResponseEntity<Iterable<PaymentTransaction>> getAllPayments() {
+        log.info("Received request to fetch all payments");
+        Iterable<PaymentTransaction> payments = paymentService.getAllPayments();
+        return ResponseEntity.ok(payments);
+    }
+
+    //Get payment by transaction reference
+    @GetMapping("/{transactionRef}")
+    public ResponseEntity<PaymentTransaction> getPaymentByTransactionRef(@PathVariable String transactionRef) {
+        log.info("Received request to fetch payment with transactionRef: {}", transactionRef);
+        return paymentService.getPaymentByTransactionRef(transactionRef)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+
+    }
+
 }

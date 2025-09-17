@@ -85,4 +85,18 @@ public class PaymentService {
         PaymentProvider provider = providerFactory.getProvider("MTN"); // Name enquiry is often specific to the provider
         return provider.nameEnquiry(request);
     }
+
+
+    //Get all payments
+    public Iterable<PaymentTransaction> getAllPayments() {
+        log.info("Getting all payment transactions");
+        return transactionRepository.findAll();
+    }
+
+    //Get payment by transaction reference
+    public Optional<PaymentTransaction> getPaymentByTransactionRef(String transactionRef) {
+        log.info("Getting payment transaction by reference: {}", transactionRef);
+        return transactionRepository.findByTransactionRef(transactionRef);
+
+    }
 }
