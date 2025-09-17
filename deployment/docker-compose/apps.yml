@@ -48,8 +48,12 @@ services:
     container_name: api-gateway
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - CATALOG_SERVICE_URL=http://catalog-service:8081
-      - ORDER_SERVICE_URL=http://order-service:8082
+      - AUTH_SERVICE_URL=http://auth-service:8081
+      - COLLECTIONS_SERVICE_URL=http://collections-service:8082
+      - NOTIFICATIONS_SERVICE_URL=http://notifications-service:8084
+      - PAYMENTS_SERVICE_URL=http://payments-service:8083
+      - JWT_SECRET_KEY=v9m2W+q4zF7tPjK6dR8hQsB2yX1nV0eZ4HcP7sLq9FwT3XyK5J8bV6pQ0rN2uM1a
+      - SERVER_PORT=8080
     ports:
       - "8080:8080"
     restart: unless-stopped
