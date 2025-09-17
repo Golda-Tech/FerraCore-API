@@ -34,7 +34,7 @@ services:
       - REX_USERNAME
       - REX_PASSWORD
     ports:
-      - "8081:8081"
+      - "8082:8082"
     restart: unless-stopped
     deploy:
       resources:
