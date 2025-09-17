@@ -17,7 +17,6 @@ public class ApiGatewayApplication {
     /**
      * CORS configuration for the gateway
      *
-     *
      */
     @Bean
     public CorsWebFilter corsWebFilter() {
