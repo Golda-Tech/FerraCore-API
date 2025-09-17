@@ -24,6 +24,7 @@ public class PaymentController {
                                                            @RequestHeader("X-User-Email") String email,
                                                            @RequestHeader("X-User-Id") String userId) {
         log.info("Received payment initiation request for provider: {}", request.provider());
+        log.info("Request initiated by user: {} with email: {}", userId, email);
         PaymentResponse response = paymentService.initiatePayment(request, userId, email);
         return ResponseEntity.ok(response);
     }

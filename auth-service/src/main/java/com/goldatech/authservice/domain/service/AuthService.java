@@ -15,6 +15,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * Service class containing the business logic for authentication.
  * Handles user registration and login.
@@ -61,8 +65,13 @@ public class AuthService {
             throw e;
         }
 
+        // Create extra claims
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("userId", user.getId().toString()); // or however you get user ID
+        extraClaims.put("role", user.getRole());
+
         // Generate a JWT token for the new user.
-        var jwtToken = jwtService.generateToken(user);
+        var jwtToken = jwtService.generateToken(extraClaims, user);
         return new AuthResponse(
                 jwtToken,
                 user.getId(),
@@ -93,8 +102,13 @@ public class AuthService {
         var user = repository.findByEmail(request.email())
                 .orElseThrow(); // Throws an exception if the user is not found.
 
+        // Create extra claims
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("userId", user.getId().toString()); // or however you get user ID
+        extraClaims.put("role", user.getRole());
+
         // Generate a new JWT token for the authenticated user.
-        var jwtToken = jwtService.generateToken(user);
+        var jwtToken = jwtService.generateToken(extraClaims, user);
         return new AuthResponse(
                 jwtToken,
                 user.getId(),

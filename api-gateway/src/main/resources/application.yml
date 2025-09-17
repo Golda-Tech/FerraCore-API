@@ -18,6 +18,7 @@ spring:
                 - Path=/auth-service-docs/**
               filters:
                 - RewritePath=/auth-service-docs/(?<segment>.*), /${segment}
+                - PreserveHostHeader
 
                 # Proxy Collections Service OpenAPI docs
             - id: collections-service-docs

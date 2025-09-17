@@ -5,6 +5,7 @@ import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -23,6 +24,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final URI CONFLICT_TYPE = URI.create("https://api.rexpayapi.com/errors/conflict");
     private static final String SERVICE_NAME = "payment-service";
 
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    ProblemDetail handleMissingRequestHeader(MissingRequestHeaderException e) {
+        String message = String.format("Required header '%s' is missing", e.getHeaderName());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, message);
+        problemDetail.setTitle("Missing Required Header");
+        problemDetail.setType(BAD_REQUEST_TYPE);
+        problemDetail.setProperty("service", SERVICE_NAME);
+        problemDetail.setProperty("error_category", "Validation");
+        problemDetail.setProperty("missing_header", e.getHeaderName());
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
 
     @ExceptionHandler(Exception.class)
     ProblemDetail handleUnhandledException(Exception e) {
@@ -48,7 +61,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return problemDetail;
     }
 
-
     @Override
     @Nullable
     protected ResponseEntity<Object> handleHttpMessageNotReadable(
@@ -63,7 +75,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         problemDetail.setProperty("timestamp", Instant.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
-
 
     @Override
     @Nullable
@@ -88,4 +99,3 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
 }
-
