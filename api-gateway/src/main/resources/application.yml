@@ -28,12 +28,12 @@ spring:
                 - RewritePath=/collections-service-docs/(?<segment>.*), /${segment}
 
                 # Proxy Payments Service OpenAPI docs
-            - id: payment-service-docs
+            - id: payments-service-docs
               uri: ${PAYMENTS_SERVICE_URL:http://localhost:8083}
               predicates:
-                - Path=/payment-service-docs/**
+                - Path=/payments-service-docs/**
               filters:
-                - RewritePath=/payment-service-docs/(?<segment>.*), /${segment}
+                - RewritePath=/payments-service-docs/(?<segment>.*), /${segment}
 
             # Auth service routes - NO authentication required
             - id: auth-service
@@ -53,7 +53,7 @@ spring:
 
 
             #Payment service routes - authentication required
-            - id: payment-service
+            - id: payments-service
               uri: ${PAYMENTS_SERVICE_URL:http://localhost:8083}
               predicates:
                 - Path=/api/v1/payments/**
@@ -99,4 +99,4 @@ springdoc:
       - name: Collections Service
         url: /collections-service-docs/v3/api-docs
       - name: Payments Service
-        url: /payment-service-docs/v3/api-docs
+        url: /payments-service-docs/v3/api-docs

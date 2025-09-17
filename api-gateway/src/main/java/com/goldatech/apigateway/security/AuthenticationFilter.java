@@ -36,7 +36,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             // Proxied Swagger docs through gateway
             "/auth-service-docs/**",
             "/collections-service-docs/**",
-            "/payment-service-docs/**"
+            "/payments-service-docs/**"
     );
 
 
