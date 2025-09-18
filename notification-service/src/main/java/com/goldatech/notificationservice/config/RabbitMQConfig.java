@@ -29,6 +29,11 @@ public class RabbitMQConfig {
     @Value("${notification.auth.routing-key}")
     private String authRoutingKey;
 
+    @Value("${notification.otp.queue}")
+    private String otpQueueName;
+    @Value("${notification.otp.routing-key}")
+    private String otpRoutingKey;
+
     @Bean
     DirectExchange notificationExchange() {
         return new DirectExchange(notificationExchangeName);
@@ -50,6 +55,11 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    Queue otpQueue() {
+        return QueueBuilder.durable(otpQueueName).build();
+    }
+
+    @Bean
     Binding paymentBinding(DirectExchange notificationExchange, Queue paymentQueue) {
         return BindingBuilder.bind(paymentQueue).to(notificationExchange).with(paymentRoutingKey);
     }
@@ -62,6 +72,11 @@ public class RabbitMQConfig {
     @Bean
     Binding authBinding(DirectExchange notificationExchange, Queue authQueue) {
         return BindingBuilder.bind(authQueue).to(notificationExchange).with(authRoutingKey);
+    }
+
+    @Bean
+    Binding otpBinding(DirectExchange notificationExchange, Queue otpQueue) {
+        return BindingBuilder.bind(otpQueue).to(notificationExchange).with(otpRoutingKey);
     }
 
     @Bean

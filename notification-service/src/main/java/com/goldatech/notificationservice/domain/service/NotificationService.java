@@ -40,6 +40,21 @@ public class NotificationService {
             emailChannel.sendNotification(new NotificationEvent(
                     "PAYMENT_SUCCESS_EMAIL", "EMAIL", event.email(), event.userId(), "Payment Success", emailBody, null
             ));
+
+        }else if ("PENDING".equalsIgnoreCase(event.status())) {
+            NotificationChannel smsChannel = channelFactory.getChannel("SMS");
+            String messageBody = String.format("Your payment of %s %s is currently pending. Ref: %s",
+                    event.amount(), event.currency(), event.transactionRef());
+            smsChannel.sendNotification(new NotificationEvent(
+                    "PAYMENT_PENDING", "SMS", event.mobileNumber(), event.userId(), "Payment Pending", messageBody, null
+            ));
+
+            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
+            String emailBody = String.format("Dear User,\n\nYour payment of %s %s is currently pending.\nTransaction Reference: %s\n\nWe will notify you once the status changes.\n\nBest regards,\nYour Company",
+                    event.amount(), event.currency(), event.transactionRef());
+            emailChannel.sendNotification(new NotificationEvent(
+                    "PAYMENT_PENDING_EMAIL", "EMAIL", event.email(), event.userId(), "Payment Pending", emailBody, null
+            ));
         } else if ("FAILED".equalsIgnoreCase(event.status())) {
             NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
             String messageBody = String.format("Payment failed for transaction ref %s. Reason: %s",
@@ -83,6 +98,15 @@ public class NotificationService {
                     event.username());
             emailChannel.sendNotification(new NotificationEvent(
                     "USER_CREATED", "EMAIL", event.email(), event.userId(), "Welcome!", messageBody, null
+            ));
+
+        }else if ("USER_LOGIN".equalsIgnoreCase(event.eventAction())) {
+            //send otp to email for login
+            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
+            String messageBody = String.format("Your login OTP is: %s. It is valid for 10 minutes.",
+                    event.message());
+            emailChannel.sendNotification(new NotificationEvent(
+                    "USER_LOGIN_OTP", "EMAIL", event.email(), event.userId(), "Login OTP", messageBody, null
             ));
         } else if ("PASSWORD_RESET".equalsIgnoreCase(event.eventAction())) {
             NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
