@@ -80,4 +80,17 @@ public class PaymentController {
 
     }
 
+    // Verify OTP
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestParam String mobileNumber, @RequestParam String otp) {
+        log.info("Received request to verify OTP for mobile number: {}", mobileNumber);
+        boolean otpValid = paymentService.verifyOtp(mobileNumber, otp);
+        if (otpValid) {
+            return ResponseEntity.ok("OTP verified successfully");
+        } else {
+            return ResponseEntity.status(400).body("Invalid OTP");
+        }
+
+    }
+
 }

@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -109,48 +110,52 @@ public class PaymentService {
 
 
     //OTP before payment
-    public boolean sendOtp(String mobileNumber) {
-        log.info("Sending OTP to mobile number: {}", mobileNumber);
-        //Publish OTP event to RabbitMQ for asynchronous processing
-
-        //Generate OTP
+    public boolean sendOtp(String destination, String channel, String type) {
         String generatedOtp = otpGenerator();
-        log.info("Generated OTP: {} for mobile number: {}", generatedOtp, mobileNumber);
 
-        //Save OTP to database with expiry
         Otp otp = Otp.builder()
-                .mobileNumber(mobileNumber)
                 .otpCode(generatedOtp)
-                .type("PAYMENT_OTP")
+                .type(type)
                 .message("Your OTP code is " + generatedOtp)
-                .channel("SMS")
-                .subject("Payment OTP Verification")
+                .channel(channel)
+                .subject(type + " Verification")
                 .used(false)
                 .build();
+
+        if ("SMS".equals(channel)) {
+            otp.setMobileNumber(destination);
+        } else if ("EMAIL".equals(channel)) {
+            otp.setEmail(destination);
+        }
 
         otpRepository.save(otp);
 
         OtpEvent event = new OtpEvent(
-                mobileNumber,
-                null,
+                "SMS".equals(channel) ? destination : null,
+                "EMAIL".equals(channel) ? destination : null,
                 generatedOtp,
                 null,
-                "PAYMENT",
-                "Your payment OTP is: " + generatedOtp + ". It is valid for 5 minutes.",
-                "SMS",
-                "Payment OTP"
+                type,
+                otp.getMessage(),
+                channel,
+                otp.getSubject()
         );
 
         rabbitTemplate.convertAndSend(notificationExchange, otpRoutingKey, event);
-        log.info("Published OTP event to RabbitMQ for mobile number: {}", mobileNumber);
 
         return true;
     }
 
+
+
     //Verify OTP
     public boolean verifyOtp(String mobileNumber, String otp) {
         log.info("Verifying OTP for mobile number: {}", mobileNumber);
-        Optional<Otp> otpRecordOpt = otpRepository.findTopByMobileNumberAndOtpCodeOrderByCreatedAtDesc(mobileNumber, otp);
+        Optional<Otp> otpRecordOpt = otpRepository
+                .findTopByMobileNumberAndOtpCodeAndExpiresAtAfterAndUsedFalseOrderByCreatedAtDesc(
+                        mobileNumber, otp, LocalDateTime.now()
+                );
+
         if (otpRecordOpt.isEmpty()) {
             log.warn("No OTP record found for mobile number: {}", mobileNumber);
             return false;
@@ -174,9 +179,9 @@ public class PaymentService {
     }
 
 
-    public String otpGenerator(){
-        //Generate a random 6-digit OTP
-        int otp = (int)(Math.random() * 900000) + 100000;
+    private String otpGenerator() {
+        int otp = ThreadLocalRandom.current().nextInt(100000, 999999); // 6 digits
         return String.valueOf(otp);
     }
+
 }
