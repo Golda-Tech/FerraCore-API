@@ -2,10 +2,7 @@ package com.goldatech.notificationservice.domain.service;
 
 import com.goldatech.notificationservice.domain.strategy.NotificationChannel;
 import com.goldatech.notificationservice.domain.strategy.NotificationChannelFactory;
-import com.goldatech.notificationservice.web.dto.AuthEvent;
-import com.goldatech.notificationservice.web.dto.CollectionEvent;
-import com.goldatech.notificationservice.web.dto.NotificationEvent;
-import com.goldatech.notificationservice.web.dto.PaymentEvent;
+import com.goldatech.notificationservice.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -99,20 +96,49 @@ public class NotificationService {
             emailChannel.sendNotification(new NotificationEvent(
                     "USER_CREATED", "EMAIL", event.email(), event.userId(), "Welcome!", messageBody, null
             ));
-
-        }else if ("USER_LOGIN".equalsIgnoreCase(event.eventAction())) {
-            //send otp to email for login
-            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
-            String messageBody = String.format("Your login OTP is: %s. It is valid for 10 minutes.",
-                    event.message());
-            emailChannel.sendNotification(new NotificationEvent(
-                    "USER_LOGIN_OTP", "EMAIL", event.email(), event.userId(), "Login OTP", messageBody, null
-            ));
         } else if ("PASSWORD_RESET".equalsIgnoreCase(event.eventAction())) {
             NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
             String messageBody = String.format("A password reset has been requested for your account.");
             emailChannel.sendNotification(new NotificationEvent(
                     "PASSWORD_RESET", "EMAIL", event.email(), event.userId(), "Password Reset", messageBody, null
+            ));
+        }
+    }
+
+
+    @RabbitListener(queues = "${notification.otp.queue}")
+    @Transactional
+    public void handleOtpEvent(OtpEvent event) {
+        log.info("Received OtpEvent for userId: {}", event.userId());
+
+        //Send OTP based on the type of OTP - PAYMENT, LOGIN
+        if ("PAYMENT".equalsIgnoreCase(event.type())) {
+            NotificationChannel smsChannel = channelFactory.getChannel("SMS");
+            String messageBody = String.format("Your payment OTP is: %s. It is valid for 10 minutes.",
+                    event.otpCode());
+            smsChannel.sendNotification(new NotificationEvent(
+                    "PAYMENT_OTP", "SMS", event.mobileNumber(), event.userId(), "Payment OTP", messageBody, null
+            ));
+
+            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
+            String emailBody = String.format("Your payment OTP is: %s. It is valid for 10 minutes.",
+                    event.otpCode());
+            emailChannel.sendNotification(new NotificationEvent(
+                    "PAYMENT_OTP_EMAIL", "EMAIL", event.email(), event.userId(), "Payment OTP", emailBody, null
+            ));
+        } else if ("LOGIN".equalsIgnoreCase(event.type())) {
+            NotificationChannel smsChannel = channelFactory.getChannel("SMS");
+            String messageBody = String.format("Your login OTP is: %s. It is valid for 10 minutes.",
+                    event.otpCode());
+            smsChannel.sendNotification(new NotificationEvent(
+                    "LOGIN_OTP", "SMS", event.mobileNumber(), event.userId(), "Login OTP", messageBody, null
+            ));
+
+            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
+            String emailBody = String.format("Your login OTP is: %s. It is valid for 10 minutes.",
+                    event.otpCode());
+            emailChannel.sendNotification(new NotificationEvent(
+                    "LOGIN_OTP_EMAIL", "EMAIL", event.email(), event.userId(), "Login OTP", emailBody, null
             ));
         }
     }
