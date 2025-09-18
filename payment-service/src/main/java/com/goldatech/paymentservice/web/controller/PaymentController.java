@@ -68,9 +68,9 @@ public class PaymentController {
 
     //OTP before payment
     @PostMapping("/send-otp")
-    public ResponseEntity<String> sendOtp(@RequestParam String mobileNumber, @RequestParam String channel, @RequestParam String type) {
-        log.info("Received request to send OTP to mobile number: {}", mobileNumber);
-        boolean otpSent = paymentService.sendOtp(mobileNumber, channel, type);
+    public ResponseEntity<String> sendOtp(@RequestParam String destination, @RequestParam String channel, @RequestParam String type) {
+        log.info("Received request to send OTP to destination: {}", destination);
+        boolean otpSent = paymentService.sendOtp(destination, channel, type);
         if (otpSent) {
             return ResponseEntity.ok("OTP sent successfully");
         } else {
@@ -82,9 +82,9 @@ public class PaymentController {
 
     // Verify OTP
     @PostMapping("/verify-otp")
-    public ResponseEntity<String> verifyOtp(@RequestParam String mobileNumber, @RequestParam String otp) {
-        log.info("Received request to verify OTP for mobile number: {}", mobileNumber);
-        boolean otpValid = paymentService.verifyOtp(mobileNumber, otp);
+    public ResponseEntity<String> verifyOtp(@RequestParam String identifier, @RequestParam String otp, @RequestParam String channel) {
+        log.info("Received request to verify OTP for identifier: {}", identifier);
+        boolean otpValid = paymentService.verifyOtp(identifier, otp, channel);
         if (otpValid) {
             return ResponseEntity.ok("OTP verified successfully");
         } else {

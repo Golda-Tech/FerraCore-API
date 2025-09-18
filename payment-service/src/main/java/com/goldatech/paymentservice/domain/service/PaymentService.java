@@ -149,34 +149,53 @@ public class PaymentService {
 
 
     //Verify OTP
-    public boolean verifyOtp(String mobileNumber, String otp) {
-        log.info("Verifying OTP for mobile number: {}", mobileNumber);
-        Optional<Otp> otpRecordOpt = otpRepository
-                .findTopByMobileNumberAndOtpCodeAndExpiresAtAfterAndUsedFalseOrderByCreatedAtDesc(
-                        mobileNumber, otp, LocalDateTime.now()
-                );
+    @Transactional
+    public boolean verifyOtp(String identifier, String otp, String channel) {
+        log.info("Verifying OTP for {}: {}", channel, identifier);
+
+        Optional<Otp> otpRecordOpt;
+
+        if ("SMS".equalsIgnoreCase(channel)) {
+            otpRecordOpt = otpRepository
+                    .findTopByMobileNumberAndOtpCodeAndExpiresAtAfterAndUsedFalseOrderByCreatedAtDesc(
+                            identifier, otp, LocalDateTime.now()
+                    );
+        } else if ("EMAIL".equalsIgnoreCase(channel)) {
+            otpRecordOpt = otpRepository
+                    .findTopByEmailAndOtpCodeAndExpiresAtAfterAndUsedFalseOrderByCreatedAtDesc(
+                            identifier, otp, LocalDateTime.now()
+                    );
+        } else {
+            log.error("Unsupported OTP channel: {}", channel);
+            throw new IllegalArgumentException("Unsupported OTP channel: " + channel);
+        }
 
         if (otpRecordOpt.isEmpty()) {
-            log.warn("No OTP record found for mobile number: {}", mobileNumber);
+            log.warn("No valid OTP found for {}: {}", channel, identifier);
             return false;
         }
+
         Otp otpRecord = otpRecordOpt.get();
+
+        // Extra defensive checks (even though query excludes expired/used)
         if (otpRecord.isUsed()) {
-            log.warn("OTP already used for mobile number: {}", mobileNumber);
+            log.warn("OTP already used for {}: {}", channel, identifier);
             return false;
         }
 
         if (otpRecord.isExpired()) {
-            log.warn("OTP expired for mobile number: {}", mobileNumber);
+            log.warn("OTP expired for {}: {}", channel, identifier);
             return false;
         }
 
-        //Mark OTP as used
+        // Mark OTP as used
         otpRecord.setUsed(true);
         otpRepository.save(otpRecord);
-        log.info("OTP verified successfully for mobile number: {}", mobileNumber);
+
+        log.info("OTP verified successfully for {}: {}", channel, identifier);
         return true;
     }
+
 
 
     private String otpGenerator() {

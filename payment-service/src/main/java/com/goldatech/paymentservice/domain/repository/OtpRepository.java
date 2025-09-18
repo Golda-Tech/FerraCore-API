@@ -25,4 +25,8 @@ public interface OtpRepository extends JpaRepository<Otp, Long> {
             String mobileNumber, String otp, LocalDateTime now
     );
 
+    Optional<Otp> findTopByEmailAndOtpCodeAndExpiresAtAfterAndUsedFalseOrderByCreatedAtDesc(
+            String email, String otp, LocalDateTime now
+    );
+
 }
