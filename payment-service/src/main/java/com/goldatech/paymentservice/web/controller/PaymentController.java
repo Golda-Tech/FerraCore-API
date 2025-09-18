@@ -68,9 +68,9 @@ public class PaymentController {
 
     //OTP before payment
     @PostMapping("/send-otp")
-    public ResponseEntity<String> sendOtp(@RequestParam String mobileNumber) {
+    public ResponseEntity<String> sendOtp(@RequestParam String mobileNumber, @RequestParam String channel, @RequestParam String type) {
         log.info("Received request to send OTP to mobile number: {}", mobileNumber);
-        boolean otpSent = paymentService.sendOtp(mobileNumber);
+        boolean otpSent = paymentService.sendOtp(mobileNumber, channel, type);
         if (otpSent) {
             return ResponseEntity.ok("OTP sent successfully");
         } else {
