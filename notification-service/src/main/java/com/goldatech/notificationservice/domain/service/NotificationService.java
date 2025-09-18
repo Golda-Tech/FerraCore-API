@@ -31,14 +31,14 @@ public class NotificationService {
             ));
 
             //Send email to user
-            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
-            String emailBody = String.format("Dear User,\n\nYour payment of %s %s has been successfully processed.\nTransaction Reference: %s\n\nThank you for using our services.\n\nBest regards,\nYour Company",
-                    event.amount(), event.currency(), event.transactionRef());
-            emailChannel.sendNotification(new NotificationEvent(
-                    "PAYMENT_SUCCESS_EMAIL", "EMAIL", event.email(), event.userId(), "Payment Success", emailBody, null
-            ));
+//            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
+//            String emailBody = String.format("Dear User,\n\nYour payment of %s %s has been successfully processed.\nTransaction Reference: %s\n\nThank you for using our services.\n\nBest regards,\nYour Company",
+//                    event.amount(), event.currency(), event.transactionRef());
+//            emailChannel.sendNotification(new NotificationEvent(
+//                    "PAYMENT_SUCCESS_EMAIL", "EMAIL", event.email(), event.userId(), "Payment Success", emailBody, null
+//            ));
 
-        }else if ("PENDING".equalsIgnoreCase(event.status())) {
+        } else if ("PENDING".equalsIgnoreCase(event.status())) {
             NotificationChannel smsChannel = channelFactory.getChannel("SMS");
             String messageBody = String.format("Your payment of %s %s is currently pending. Ref: %s",
                     event.amount(), event.currency(), event.transactionRef());
@@ -46,12 +46,12 @@ public class NotificationService {
                     "PAYMENT_PENDING", "SMS", event.mobileNumber(), event.userId(), "Payment Pending", messageBody, null
             ));
 
-            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
-            String emailBody = String.format("Dear User,\n\nYour payment of %s %s is currently pending.\nTransaction Reference: %s\n\nWe will notify you once the status changes.\n\nBest regards,\nYour Company",
-                    event.amount(), event.currency(), event.transactionRef());
-            emailChannel.sendNotification(new NotificationEvent(
-                    "PAYMENT_PENDING_EMAIL", "EMAIL", event.email(), event.userId(), "Payment Pending", emailBody, null
-            ));
+//            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
+//            String emailBody = String.format("Dear User,\n\nYour payment of %s %s is currently pending.\nTransaction Reference: %s\n\nWe will notify you once the status changes.\n\nBest regards,\nYour Company",
+//                    event.amount(), event.currency(), event.transactionRef());
+//            emailChannel.sendNotification(new NotificationEvent(
+//                    "PAYMENT_PENDING_EMAIL", "EMAIL", event.email(), event.userId(), "Payment Pending", emailBody, null
+//            ));
         } else if ("FAILED".equalsIgnoreCase(event.status())) {
             NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
             String messageBody = String.format("Payment failed for transaction ref %s. Reason: %s",
@@ -111,35 +111,46 @@ public class NotificationService {
     public void handleOtpEvent(OtpEvent event) {
         log.info("Received OtpEvent for userId: {}", event.userId());
 
-        //Send OTP based on the type of OTP - PAYMENT, LOGIN
+
         if ("PAYMENT".equalsIgnoreCase(event.type())) {
-            NotificationChannel smsChannel = channelFactory.getChannel("SMS");
-            String messageBody = String.format("Your payment OTP is: %s. It is valid for 10 minutes.",
-                    event.otpCode());
-            smsChannel.sendNotification(new NotificationEvent(
-                    "PAYMENT_OTP", "SMS", event.mobileNumber(), event.userId(), "Payment OTP", messageBody, null
-            ));
 
-            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
-            String emailBody = String.format("Your payment OTP is: %s. It is valid for 10 minutes.",
-                    event.otpCode());
-            emailChannel.sendNotification(new NotificationEvent(
-                    "PAYMENT_OTP_EMAIL", "EMAIL", event.email(), event.userId(), "Payment OTP", emailBody, null
-            ));
+            if ("SMS".equalsIgnoreCase(event.channel())) {
+                NotificationChannel smsChannel = channelFactory.getChannel("SMS");
+                String messageBody = String.format("Your payment OTP is: %s. It is valid for 10 minutes.",
+                        event.otpCode());
+                smsChannel.sendNotification(new NotificationEvent(
+                        "PAYMENT_OTP", "SMS", event.mobileNumber(), event.userId(),
+                        "Payment OTP", messageBody, null
+                ));
+            } else if ("EMAIL".equalsIgnoreCase(event.channel())) {
+                NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
+                String emailBody = String.format("Your payment OTP is: %s. It is valid for 10 minutes.",
+                        event.otpCode());
+                emailChannel.sendNotification(new NotificationEvent(
+                        "PAYMENT_OTP_EMAIL", "EMAIL", event.email(), event.userId(),
+                        "Payment OTP", emailBody, null
+                ));
+            }
+
+
         } else if ("LOGIN".equalsIgnoreCase(event.type())) {
-            NotificationChannel smsChannel = channelFactory.getChannel("SMS");
-            String messageBody = String.format("Your login OTP is: %s. It is valid for 10 minutes.",
-                    event.otpCode());
-            smsChannel.sendNotification(new NotificationEvent(
-                    "LOGIN_OTP", "SMS", event.mobileNumber(), event.userId(), "Login OTP", messageBody, null
-            ));
+            if (event.channel().equals("EMAIL")) {
+                NotificationChannel smsChannel = channelFactory.getChannel("SMS");
+                String messageBody = String.format("Your login OTP is: %s. It is valid for 10 minutes.",
+                        event.otpCode());
+                smsChannel.sendNotification(new NotificationEvent(
+                        "LOGIN_OTP", "SMS", event.mobileNumber(), event.userId(), "Login OTP", messageBody, null
+                ));
+            } else {
+                NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
+                String emailBody = String.format("Your login OTP is: %s. It is valid for 10 minutes.",
+                        event.otpCode());
+                emailChannel.sendNotification(new NotificationEvent(
+                        "LOGIN_OTP_EMAIL", "EMAIL", event.email(), event.userId(), "Login OTP", emailBody, null
+                ));
+            }
 
-            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
-            String emailBody = String.format("Your login OTP is: %s. It is valid for 10 minutes.",
-                    event.otpCode());
-            emailChannel.sendNotification(new NotificationEvent(
-                    "LOGIN_OTP_EMAIL", "EMAIL", event.email(), event.userId(), "Login OTP", emailBody, null
-            ));
+
         }
     }
 }

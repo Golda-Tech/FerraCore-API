@@ -3,6 +3,7 @@ package com.goldatech.paymentservice.domain.service;
 import com.goldatech.paymentservice.domain.repository.OtpRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -17,6 +18,7 @@ public class OtpCleanupService {
 
     // Run every 5 minutes
     @Scheduled(fixedRate = 300000)
+    @Transactional
     public void deleteExpiredOtps() {
         otpRepository.deleteByExpiresAtBefore(LocalDateTime.now());
     }
