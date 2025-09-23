@@ -52,9 +52,9 @@ public class AuthController {
 
     /** * Endpoint to verify a user's OTP.
      *
-     * @param identifer the email of the user to verify.
-     * @param channel   the OTP to verify.
-     * @param otp
+     * @param identifier the email of the user to verify.
+     * @param channel   the channel through which the OTP was sent (e.g., EMAIL, SMS).
+     * @param otp the OTP code to verify.
      * @return a ResponseEntity with a success message if verification is successful.
      */
     @GetMapping("/verify-otp")
