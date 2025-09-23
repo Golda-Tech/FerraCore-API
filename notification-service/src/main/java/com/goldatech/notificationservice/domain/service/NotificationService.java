@@ -134,14 +134,14 @@ public class NotificationService {
 
 
         } else if ("LOGIN".equalsIgnoreCase(event.type())) {
-            if (event.channel().equals("EMAIL")) {
+            if (event.channel().equals("SMS")) {
                 NotificationChannel smsChannel = channelFactory.getChannel("SMS");
                 String messageBody = String.format("Your login OTP is: %s. It is valid for 10 minutes.",
                         event.otpCode());
                 smsChannel.sendNotification(new NotificationEvent(
                         "LOGIN_OTP", "SMS", event.mobileNumber(), event.userId(), "Login OTP", messageBody, null
                 ));
-            } else {
+            } else if( event.channel().equals("EMAIL")) {
                 NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
                 String emailBody = String.format("Your login OTP is: %s. It is valid for 10 minutes.",
                         event.otpCode());

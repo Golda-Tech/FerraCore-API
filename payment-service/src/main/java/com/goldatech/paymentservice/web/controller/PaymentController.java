@@ -67,7 +67,7 @@ public class PaymentController {
 
 
     //OTP before payment
-    @PostMapping("/send-otp")
+    @GetMapping("/send-otp")
     public ResponseEntity<String> sendOtp(@RequestParam String destination, @RequestParam String channel, @RequestParam String type) {
         log.info("Received request to send OTP to destination: {}", destination);
         boolean otpSent = paymentService.sendOtp(destination, channel, type);
@@ -81,7 +81,7 @@ public class PaymentController {
     }
 
     // Verify OTP
-    @PostMapping("/verify-otp")
+    @GetMapping("/verify-otp")
     public ResponseEntity<String> verifyOtp(@RequestParam String identifier, @RequestParam String otp, @RequestParam String channel) {
         log.info("Received request to verify OTP for identifier: {}", identifier);
         boolean otpValid = paymentService.verifyOtp(identifier, otp, channel);
