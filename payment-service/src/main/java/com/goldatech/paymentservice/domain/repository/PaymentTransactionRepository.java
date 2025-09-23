@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface PaymentTransactionRepository extends JpaRepository<PaymentTransaction, Long> {
     Optional<PaymentTransaction> findByTransactionRef(String transactionRef);
     Optional<PaymentTransaction> findByExternalRef(String externalRef);
+
+    //Find all
 }

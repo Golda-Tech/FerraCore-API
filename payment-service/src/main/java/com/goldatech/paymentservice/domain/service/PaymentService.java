@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,7 +99,7 @@ public class PaymentService {
     //Get all payments
     public Iterable<PaymentTransaction> getAllPayments() {
         log.info("Getting all payment transactions");
-        return transactionRepository.findAll();
+        return transactionRepository.findAll(Sort.by(Sort.Direction.DESC, "initiatedAt"));
     }
 
     //Get payment by transaction reference
