@@ -222,8 +222,22 @@ public class AuthService {
         otpRepository.save(otpRecord);
 
         // Fetch the user by email
+//        var user = repository.findByEmail(identifier)
+//                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + identifier));
+
+        //allow login from any user so that new users can be created on the fly
         var user = repository.findByEmail(identifier)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + identifier));
+                .orElseGet(() -> {
+                    User newUser = User.builder()
+                            //Extract name from email prefix or set default names
+                            .firstname(identifier.contains("@") ? identifier.substring(0, identifier.indexOf("@")) : "User")
+                            .lastname(" ") // Default last name
+                            .email(identifier)
+                            .password(passwordEncoder.encode(otpGenerator())) // Random password
+                            .role(Role.USER) // Default role
+                            .build();
+                    return repository.save(newUser);
+                });
 
         // Create extra claims
         Map<String, Object> extraClaims = new HashMap<>();
