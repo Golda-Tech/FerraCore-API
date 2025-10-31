@@ -6,11 +6,18 @@ import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
 import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
 import com.goldatech.paymentservice.web.dto.response.NameEnquiryResponse;
 import com.goldatech.paymentservice.web.dto.response.PaymentResponse;
+import com.goldatech.paymentservice.web.dto.response.PaymentTrendDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -91,6 +98,32 @@ public class PaymentController {
             return ResponseEntity.status(400).body("Invalid OTP");
         }
 
+    }
+
+    @GetMapping("/status-summary")
+    public ResponseEntity<Map<String, Long>> getCollectionStatusSummary() {
+        try {
+            return ResponseEntity.ok(paymentService.getPaymentStatusSummary());
+        } catch (Exception e) {
+            log.error("Error getting collection status summary: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/trends")
+    public ResponseEntity<List<PaymentTrendDTO>> getTrends(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(defaultValue = "DAILY") PaymentService.Interval interval
+
+    ) {
+        try {
+            List<PaymentTrendDTO> trends = paymentService.getPaymentTrends(startDate, endDate, interval);
+            return ResponseEntity.ok(trends);
+        } catch (Exception e) {
+            log.error("Error fetching trends: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 }

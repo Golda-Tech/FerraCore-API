@@ -12,6 +12,7 @@ import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
 import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
 import com.goldatech.paymentservice.web.dto.response.NameEnquiryResponse;
 import com.goldatech.paymentservice.web.dto.response.PaymentResponse;
+import com.goldatech.paymentservice.web.dto.response.PaymentTrendDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -20,9 +21,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +48,10 @@ public class PaymentService {
 
     @Value("${notification.otp.routing-key}")
     private String otpRoutingKey;
+
+    public enum Interval {
+        DAILY, WEEKLY, MONTHLY
+    }
 
     @Transactional
     public PaymentResponse initiatePayment(PaymentRequest request, String userId, String email) {
@@ -107,6 +117,51 @@ public class PaymentService {
         log.info("Getting payment transaction by reference: {}", transactionRef);
         return transactionRepository.findByTransactionRef(transactionRef);
 
+    }
+
+
+    public Map<String, Long> getPaymentStatusSummary() {
+        log.info("Getting payment status summary");
+        return transactionRepository.findAll().stream()
+                .collect(Collectors.groupingBy(t -> t.getStatus().name(), Collectors.counting()));
+    }
+
+    public List<PaymentTrendDTO> getPaymentTrends(LocalDateTime start, LocalDateTime end, Interval interval) {
+        List<PaymentTransaction> transactions = transactionRepository.findByInitiatedAtBetween(start, end);
+
+        // Choose grouping function
+        java.util.function.Function<PaymentTransaction, java.time.LocalDate> groupingFn = switch (interval) {
+            case DAILY -> t -> t.getInitiatedAt().toLocalDate();
+            case WEEKLY -> t -> t.getInitiatedAt().toLocalDate()
+                    .with(java.time.DayOfWeek.MONDAY); // start of week
+            case MONTHLY -> t -> t.getInitiatedAt().toLocalDate()
+                    .withDayOfMonth(1); // start of month
+        };
+
+        // Group by interval
+        Map<java.time.LocalDate, List<PaymentTransaction>> grouped = transactions.stream()
+                .collect(Collectors.groupingBy(groupingFn));
+
+        return grouped.entrySet().stream()
+                .map(entry -> {
+                    java.time.LocalDate period = entry.getKey();
+                    List<PaymentTransaction> groupTransactions = entry.getValue();
+
+                    long totalCount = groupTransactions.size();
+                    double totalAmount = groupTransactions.stream()
+                            .mapToDouble(t -> t.getAmount().doubleValue())
+                            .sum();
+
+                    Map<String, Long> statusCounts = groupTransactions.stream()
+                            .collect(Collectors.groupingBy(
+                                    t -> t.getStatus().name(),
+                                    Collectors.counting()
+                            ));
+
+                    return new PaymentTrendDTO(period, totalCount, new BigDecimal(totalAmount), new HashMap<>(), statusCounts);
+                })
+                .sorted(java.util.Comparator.comparing(PaymentTrendDTO::date))
+                .toList();
     }
 
 
