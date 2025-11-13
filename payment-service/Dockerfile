@@ -6,5 +6,5 @@ RUN mvn clean package -DskipTests -Dspotless.check.skip=true
 FROM openjdk:21-slim
 WORKDIR /app
 COPY --from=builder /app/target/payment-service-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE ${PORT:-8080}
+EXPOSE ${PORT:-8083}
 ENTRYPOINT ["java", "-jar", "app.jar"]
