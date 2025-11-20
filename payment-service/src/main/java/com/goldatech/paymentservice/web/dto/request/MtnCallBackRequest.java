@@ -6,7 +6,7 @@ public record MtnCallBackRequest(
         String externalId,
         String amount,
         String currency,
-        Map<String, String> payer,
+        Payer payer,
         String payerMessage,
         String payeeNote,
         String status,
