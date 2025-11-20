@@ -6,11 +6,20 @@ spring:
     name: api-gateway
   main:
     web-application-type: reactive
+  web:
+    resources:
+      add-mappings: false
   cloud:
     gateway:
       server:
         webflux:
           routes:
+            - id: security-probes
+              uri: no://op
+              predicates:
+                - Path=/.git/**,/.env,/.config,/config,/robots.txt,/.aws/**,/.docker/**,/.svn/**
+              filters:
+                - SetStatus=404
             # Auth service routes - NO authentication required
             - id: auth-service-docs
               uri: ${AUTH_SERVICE_URL:http://localhost:8081}
