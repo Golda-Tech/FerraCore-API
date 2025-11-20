@@ -2,6 +2,7 @@ package com.goldatech.paymentservice.web.controller;
 
 import com.goldatech.paymentservice.domain.model.PaymentTransaction;
 import com.goldatech.paymentservice.domain.service.PaymentService;
+import com.goldatech.paymentservice.web.dto.request.MtnCallBackRequest;
 import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
 import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
 import com.goldatech.paymentservice.web.dto.response.NameEnquiryResponse;
@@ -124,6 +125,14 @@ public class PaymentController {
             log.error("Error fetching trends: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+
+    @PostMapping("/mtn/callback")
+    public ResponseEntity<String> handleMtnCallback(@RequestBody MtnCallBackRequest mtnCallBackRequest) {
+        log.info("Received MTN callback for externalId: {}", mtnCallBackRequest.externalId());
+        paymentService.processMtnCallback(mtnCallBackRequest);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Callback processed successfully");
     }
 
 

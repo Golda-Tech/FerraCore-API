@@ -2,12 +2,14 @@ package com.goldatech.paymentservice.domain.service;
 
 import com.goldatech.paymentservice.domain.model.Otp;
 import com.goldatech.paymentservice.domain.model.PaymentTransaction;
+import com.goldatech.paymentservice.domain.model.TransactionStatus;
 import com.goldatech.paymentservice.domain.model.events.OtpEvent;
 import com.goldatech.paymentservice.domain.model.events.PaymentEvent;
 import com.goldatech.paymentservice.domain.repository.OtpRepository;
 import com.goldatech.paymentservice.domain.repository.PaymentTransactionRepository;
 import com.goldatech.paymentservice.domain.strategy.PaymentProvider;
 import com.goldatech.paymentservice.domain.strategy.PaymentProviderFactory;
+import com.goldatech.paymentservice.web.dto.request.MtnCallBackRequest;
 import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
 import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
 import com.goldatech.paymentservice.web.dto.response.NameEnquiryResponse;
@@ -48,6 +50,7 @@ public class PaymentService {
 
     @Value("${notification.otp.routing-key}")
     private String otpRoutingKey;
+
 
     public enum Interval {
         DAILY, WEEKLY, MONTHLY
@@ -250,6 +253,33 @@ public class PaymentService {
 
         log.info("OTP verified successfully for {}: {}", channel, identifier);
         return true;
+    }
+
+
+
+    public void processMtnCallback(MtnCallBackRequest mtnCallBackRequest) {
+
+        //If financialTransactionId field is present in the request then it is a successs, otherwise check for reason and others and store them
+        if(mtnCallBackRequest.financialTransactionId() != null && !mtnCallBackRequest.financialTransactionId().isEmpty()){
+            log.info("Processing successful MTN callback for externalId: {}", mtnCallBackRequest.externalId());
+            PaymentTransaction transaction = transactionRepository.findByExternalRef(mtnCallBackRequest.externalId())
+                    .orElseThrow(() -> new IllegalArgumentException("Transaction not found for externalId: " + mtnCallBackRequest.externalId()));
+
+            transaction.setStatus(TransactionStatus.SUCCESSFUL);
+            transaction.setMessage("Payment successful");
+            transaction.setCompletedAt(LocalDateTime.now());
+            transaction.setMtnFinancialTransactionId(mtnCallBackRequest.financialTransactionId());
+            transactionRepository.save(transaction);
+        } else {
+            log.info("Processing failed MTN callback for externalId: {}", mtnCallBackRequest.externalId());
+            PaymentTransaction transaction = transactionRepository.findByExternalRef(mtnCallBackRequest.externalId())
+                    .orElseThrow(() -> new IllegalArgumentException("Transaction not found for externalId: " + mtnCallBackRequest.externalId()));
+
+            transaction.setStatus(TransactionStatus.FAILED);
+            transaction.setMessage("Payment failed: " + mtnCallBackRequest.reason());
+            transaction.setCompletedAt(LocalDateTime.now());
+            transactionRepository.save(transaction);
+        }
     }
 
 
