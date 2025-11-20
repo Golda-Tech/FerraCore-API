@@ -29,8 +29,8 @@ public class MtnTokenScheduler {
             var collectionToken = mtnMomoService.getCollectionToken();
             saveToken("COLLECTION", collectionToken.accessToken(), collectionToken.expiresIn());
 
-            var disbursementToken = mtnMomoService.getDisbursementToken();
-            saveToken("DISBURSEMENT", disbursementToken.accessToken(), disbursementToken.expiresIn());
+//            var disbursementToken = mtnMomoService.getDisbursementToken();
+//            saveToken("DISBURSEMENT", disbursementToken.accessToken(), disbursementToken.expiresIn());
 
             log.info("MTN MoMo tokens refreshed successfully.");
         } catch (Exception e) {
