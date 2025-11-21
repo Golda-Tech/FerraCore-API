@@ -37,6 +37,9 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/auth-service-docs/**",
             "/collections-service-docs/**",
             "/payments-service-docs/**"
+
+            //Mtn callback endpoint in the payment service
+            ,"/api/v1/payments/mtn/callback/**"
     );
 
     @Override
