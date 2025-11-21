@@ -18,10 +18,10 @@ import java.util.List;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-    private static final URI NOT_FOUND_TYPE = URI.create("https://api.rexpayapi.com/errors/not-found");
-    private static final URI ISE_FOUND_TYPE = URI.create("https://api.rexpayapi.com/errors/server-error");
-    private static final URI BAD_REQUEST_TYPE = URI.create("https://api.rexpayapi.com/errors/bad-request");
-    private static final URI CONFLICT_TYPE = URI.create("https://api.rexpayapi.com/errors/conflict");
+    private static final URI NOT_FOUND_TYPE = URI.create("https://ferracore.tech/errors/not-found");
+    private static final URI ISE_FOUND_TYPE = URI.create("https://ferracore.tech/errors/server-error");
+    private static final URI BAD_REQUEST_TYPE = URI.create("https://ferracore.tech/errors/bad-request");
+    private static final URI CONFLICT_TYPE = URI.create("https://ferracore.tech/errors/conflict");
     private static final String SERVICE_NAME = "payment-service";
 
     @ExceptionHandler(MissingRequestHeaderException.class)

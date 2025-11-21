@@ -260,26 +260,46 @@ public class PaymentService {
     public void processMtnCallback(MtnCallBackRequest mtnCallBackRequest) {
 
         //If financialTransactionId field is present in the request then it is a successs, otherwise check for reason and others and store them
-        if(mtnCallBackRequest.financialTransactionId() != null && !mtnCallBackRequest.financialTransactionId().isEmpty()){
-            log.info("Processing successful MTN callback for externalId: {}", mtnCallBackRequest.externalId());
-            PaymentTransaction transaction = transactionRepository.findByExternalRef(mtnCallBackRequest.externalId())
-                    .orElseThrow(() -> new IllegalArgumentException("Transaction not found for externalId: " + mtnCallBackRequest.externalId()));
+        // First fetch the transaction. If it does not exist log and return otherise then we proceed with updating status if it is a success or not and co
+        // Do not throw error if transaction not found, just log it
 
+        Optional<PaymentTransaction> transactionOpt = transactionRepository.findByExternalRef(mtnCallBackRequest.externalId());
+        if (transactionOpt.isEmpty()) {
+            log.warn("No transaction found for MTN callback with externalId: {}", mtnCallBackRequest.externalId());
+            return;
+        }
+
+        PaymentTransaction transaction = transactionOpt.get();
+        //What shows success is the presence of financialTransactionId
+        if (mtnCallBackRequest.financialTransactionId() != null && !mtnCallBackRequest.financialTransactionId().isEmpty()) {
             transaction.setStatus(TransactionStatus.SUCCESSFUL);
             transaction.setMessage("Payment successful");
             transaction.setCompletedAt(LocalDateTime.now());
-            transaction.setMtnFinancialTransactionId(mtnCallBackRequest.financialTransactionId());
-            transactionRepository.save(transaction);
-        } else {
-            log.info("Processing failed MTN callback for externalId: {}", mtnCallBackRequest.externalId());
-            PaymentTransaction transaction = transactionRepository.findByExternalRef(mtnCallBackRequest.externalId())
-                    .orElseThrow(() -> new IllegalArgumentException("Transaction not found for externalId: " + mtnCallBackRequest.externalId()));
 
+            transaction.setMtnFinancialTransactionId(mtnCallBackRequest.financialTransactionId());
+            transaction.setMtnExternalId(mtnCallBackRequest.externalId());
+            transaction.setMtnPayerPartyIdType(mtnCallBackRequest.payer().partyIdType());
+            transaction.setMtnPayerPartyId(mtnCallBackRequest.payer().partyId());
+            transaction.setMtnPayerMessage(mtnCallBackRequest.payerMessage());
+            transaction.setMtnPayeeNote(mtnCallBackRequest.payeeNote());
+
+        } else {
             transaction.setStatus(TransactionStatus.FAILED);
-            transaction.setMessage("Payment failed: " + mtnCallBackRequest.reason());
+            transaction.setMessage(mtnCallBackRequest.reason() != null ? mtnCallBackRequest.reason() : "Payment failed");
             transaction.setCompletedAt(LocalDateTime.now());
-            transactionRepository.save(transaction);
+
+            transaction.setMtnFinancialTransactionId(null);
+            transaction.setMtnExternalId(mtnCallBackRequest.externalId());
+            transaction.setMtnPayerPartyIdType(mtnCallBackRequest.payer().partyIdType());
+            transaction.setMtnPayerPartyId(mtnCallBackRequest.payer().partyId());
+            transaction.setMtnPayerMessage(mtnCallBackRequest.payerMessage());
+            transaction.setMtnPayeeNote(mtnCallBackRequest.payeeNote());
+
         }
+
+        transactionRepository.save(transaction);
+        log.info("Processed MTN callback for transaction: {}, new status: {}", transaction.getTransactionRef(), transaction.getStatus());
+
     }
 
 
