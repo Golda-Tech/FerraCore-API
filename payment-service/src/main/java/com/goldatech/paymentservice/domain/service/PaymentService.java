@@ -1,10 +1,12 @@
 package com.goldatech.paymentservice.domain.service;
 
+import com.goldatech.paymentservice.domain.model.MtnCallback;
 import com.goldatech.paymentservice.domain.model.Otp;
 import com.goldatech.paymentservice.domain.model.PaymentTransaction;
 import com.goldatech.paymentservice.domain.model.TransactionStatus;
 import com.goldatech.paymentservice.domain.model.events.OtpEvent;
 import com.goldatech.paymentservice.domain.model.events.PaymentEvent;
+import com.goldatech.paymentservice.domain.repository.MtnCallbackRepository;
 import com.goldatech.paymentservice.domain.repository.OtpRepository;
 import com.goldatech.paymentservice.domain.repository.PaymentTransactionRepository;
 import com.goldatech.paymentservice.domain.strategy.PaymentProvider;
@@ -41,6 +43,7 @@ public class PaymentService {
     private final PaymentTransactionRepository transactionRepository;
     private final OtpRepository otpRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final MtnCallbackRepository callbackRepository;
 
     @Value("${notification.exchange}")
     private String notificationExchange;
@@ -258,6 +261,26 @@ public class PaymentService {
 
 
     public void processMtnCallback(MtnCallBackRequest mtnCallBackRequest) {
+
+        //Log the callback received
+        log.info("Processing MTN callback for externalId: {}", mtnCallBackRequest.externalId());
+
+        //Build MtnCallback entity using builder pattern
+        MtnCallback callback = MtnCallback.builder()
+                .financialTransactionId(mtnCallBackRequest.financialTransactionId() != null ? mtnCallBackRequest.financialTransactionId() : "")
+                .externalId(mtnCallBackRequest.externalId())
+                .partyIdType(mtnCallBackRequest.payer().partyIdType())
+                .partyId(mtnCallBackRequest.payer().partyId())
+                .payerMessage(mtnCallBackRequest.payerMessage())
+                .payeeNote(mtnCallBackRequest.payeeNote())
+                .status(mtnCallBackRequest.status())
+                .reason(mtnCallBackRequest.reason())
+                .amount(mtnCallBackRequest.amount())
+                .currency(mtnCallBackRequest.currency())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        callbackRepository.save(callback);
 
         //If financialTransactionId field is present in the request then it is a successs, otherwise check for reason and others and store them
         // First fetch the transaction. If it does not exist log and return otherise then we proceed with updating status if it is a success or not and co
