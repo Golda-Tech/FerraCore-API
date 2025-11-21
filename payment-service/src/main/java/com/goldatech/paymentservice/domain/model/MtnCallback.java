@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 public class MtnCallback {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String externalId;
     private String amount;
     private String currency;
