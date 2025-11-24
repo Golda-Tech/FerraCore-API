@@ -45,7 +45,7 @@ public class MtnMomoService {
 //    @Value("${mtn.momo.api-key}")
 //    private String apiKey;
 
-    @Value("${mtn.momo.environment:sandbox}")
+    @Value("${mtn.momo.environment:production}")
     private String environment;
 
     @Value("${mtn.momo.basic-auth-token}")
