@@ -10,6 +10,7 @@ public class MomoProperties {
     // getters and setters
     private String provider;
     private String baseUrl;
+    private String callBackUrl;
     private String collectionSubscriptionKey;
     private String disbursementSubscriptionKey;
     private String apiUser;

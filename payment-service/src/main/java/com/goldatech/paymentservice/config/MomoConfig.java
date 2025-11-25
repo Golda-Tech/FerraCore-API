@@ -34,6 +34,10 @@ public class MomoConfig {
                     env.getProperty("momo." + providerKey + ".base-url",
                             env.getProperty("momo.defaults.base-url", "<default-url>"))));
 
+            props.setBaseUrl(firstNonNull(row.getCallBackUrl(),
+                    env.getProperty("momo." + providerKey + ".callback-url",
+                            env.getProperty("momo.defaults.callback-url", "<default-callback-url>"))));
+
             props.setCollectionSubscriptionKey(firstNonNull(row.getCollectionSubscriptionKey(),
                     env.getProperty("momo." + providerKey + ".collection-subscription-key",
                             env.getProperty("momo.defaults.collection-subscription-key", "<default-collections-sub-key>"))));
