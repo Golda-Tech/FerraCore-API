@@ -34,7 +34,7 @@ public class MomoConfig {
                     env.getProperty("momo." + providerKey + ".base-url",
                             env.getProperty("momo.defaults.base-url", "<default-url>"))));
 
-            props.setBaseUrl(firstNonNull(row.getCallBackUrl(),
+            props.setCallBackUrl(firstNonNull(row.getCallBackUrl(),
                     env.getProperty("momo." + providerKey + ".callback-url",
                             env.getProperty("momo.defaults.callback-url", "<default-callback-url>"))));
 
