@@ -108,7 +108,7 @@ public class MtnMomoService {
      */
     public String requestToPay(RequestToPayRequest request, String referenceId) {
         String url = mtnProps().getBaseUrl() + "/collection/v1_0/requesttopay";
-        String xRef = (referenceId == null || referenceId.isBlank()) ? UUID.randomUUID().toString() : referenceId;
+        String xRef = UUID.randomUUID().toString();
         log.info("RequestToPay payload - request params={}", request);
 
         try {
@@ -120,6 +120,8 @@ public class MtnMomoService {
             HttpEntity<RequestToPayRequest> entity = new HttpEntity<>(request, headers);
 
             ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
+
+
             if (!response.getStatusCode().is2xxSuccessful() && response.getStatusCode() != HttpStatus.ACCEPTED) {
                 throw new PaymentGatewayException("Unexpected status from requestToPay: " + response.getStatusCode());
             }
