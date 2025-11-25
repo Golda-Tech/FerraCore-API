@@ -49,6 +49,8 @@ public class MtnPaymentProvider implements PaymentProvider{
                 request.payeeNote()
         );
         String referenceId = UUID.randomUUID().toString().toLowerCase();
+        //TODO: Recreate ReferenceID using -- [client Initials]-[random sequence of numbers]-[Julian date]
+        //TODO: Use same ReferenceID as payerMessage and externalRef to help with reconciliation
 
         String xRef = mtnMomoService.requestToPay(mtnRequest, referenceId);
 
@@ -62,7 +64,7 @@ public class MtnPaymentProvider implements PaymentProvider{
                 .provider("MTN")
                 .mobileNumber(request.mobileNumber())
                 .amount(request.amount())
-                .currency(request.currency())
+                .currency("GHS")
                 .status(TransactionStatus.PENDING)
                 .message("Payment request sent to MTN.")
                 .initiatedAt(LocalDateTime.now())
