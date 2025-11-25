@@ -25,6 +25,9 @@ public class MomoConfigEntity {
     @Column(name = "base_url")
     private String baseUrl;
 
+    @Column(name = "call_back_url")
+    private String callBackUrl;
+
     @Column(name = "collection_subscription_key")
     private String collectionSubscriptionKey;
 

@@ -114,7 +114,7 @@ public class MtnMomoService {
         try {
             String token = getStoredToken("COLLECTION");
             HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
-            headers.set("X-Callback-Url", "https://ferracore.tech/api/v1/payments/mtn/callback");
+            headers.set("X-Callback-Url", mtnProps().getCallBackUrl());
             headers.set("X-Reference-Id", xRef);
 
             HttpEntity<RequestToPayRequest> entity = new HttpEntity<>(request, headers);
@@ -127,7 +127,7 @@ public class MtnMomoService {
             }
 
             log.info("RequestToPay initiated - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
-            return xRef;
+            return referenceId;
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("requestToPay failed for reference {}: status={}, body={}", xRef, e.getStatusCode(), e.getResponseBodyAsString());
