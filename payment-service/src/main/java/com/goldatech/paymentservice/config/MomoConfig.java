@@ -8,17 +8,20 @@ import com.goldatech.paymentservice.domain.model.MomoConfigEntity;
 import com.goldatech.paymentservice.domain.model.MomoProperties;
 import com.goldatech.paymentservice.domain.model.TelcoProvider;
 import com.goldatech.paymentservice.domain.service.MomoConfigService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 
 @Configuration
+@Slf4j
 public class MomoConfig {
     @Bean
     public Map<TelcoProvider, MomoProperties> momoPropertiesByProvider(MomoConfigService svc, Environment env) {
         Map<TelcoProvider, MomoProperties> result = new HashMap<>();
         List<MomoConfigEntity> rows = svc.loadAllConfigs();
+        log.info("Loaded Momo Config rows from DB: {} ", rows);
 
         for (MomoConfigEntity row : rows) {
             TelcoProvider provider = row.getProvider();
@@ -57,6 +60,7 @@ public class MomoConfig {
 
             result.put(provider, props);
         }
+        log.info("Config details: {} ", result);
 
         return result;
     }
