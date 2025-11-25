@@ -1,7 +1,9 @@
+// java
 package com.goldatech.paymentservice.domain.service;
 
-
 import com.goldatech.paymentservice.domain.exception.PaymentGatewayException;
+import com.goldatech.paymentservice.domain.model.MomoProperties;
+import com.goldatech.paymentservice.domain.model.TelcoProvider;
 import com.goldatech.paymentservice.domain.model.momo.MtnToken;
 import com.goldatech.paymentservice.domain.repository.MtnTokenRepository;
 import com.goldatech.paymentservice.web.dto.request.momo.RequestToPayRequest;
@@ -10,7 +12,6 @@ import com.goldatech.paymentservice.web.dto.response.momo.RequestToPayStatusResp
 import com.goldatech.paymentservice.web.dto.response.momo.TokenResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -20,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -29,28 +31,7 @@ public class MtnMomoService {
 
     private final RestTemplate restTemplate;
     private final MtnTokenRepository tokenRepository;
-
-    @Value("${mtn.momo.base-url}")
-    private String momoBaseUrl;
-
-    @Value("${mtn.momo.collection.subscription-key}")
-    private String collectionSubscriptionKey;
-
-    @Value("${mtn.momo.disbursement.subscription-key}")
-    private String disbursementSubscriptionKey;
-
-//    @Value("${mtn.momo.api-user}")
-//    private String apiUser;
-//
-//    @Value("${mtn.momo.api-key}")
-//    private String apiKey;
-
-    @Value("${mtn.momo.environment:sandbox}")
-    private String environment;
-
-    @Value("${mtn.momo.basic-auth-token}")
-    private String basicAuthToken;
-
+    private final Map<TelcoProvider, MomoProperties> momoPropertiesByProvider;
 
     /* -------------------- Token endpoints -------------------- */
 
@@ -59,8 +40,8 @@ public class MtnMomoService {
      */
     public TokenResponse getCollectionToken() {
         log.debug("Requesting collection token...");
-        String url = momoBaseUrl + "/collection/token/";
-        HttpHeaders headers = createBasicAuthHeaders(collectionSubscriptionKey, false);
+        String url = mtnProps().getBaseUrl() + "/collection/token/";
+        HttpHeaders headers = createBasicAuthHeaders(mtnProps().getCollectionSubscriptionKey(), false);
 
         try {
 
@@ -92,8 +73,8 @@ public class MtnMomoService {
      * Retrieve a disbursement access token (calls /disbursement/token/).
      */
     public TokenResponse getDisbursementToken() {
-        String url = momoBaseUrl + "/disbursement/token/";
-        HttpHeaders headers = createBasicAuthHeaders(disbursementSubscriptionKey, true);
+        String url = mtnProps().getBaseUrl() + "/disbursement/token/";
+        HttpHeaders headers = createBasicAuthHeaders(mtnProps().getDisbursementSubscriptionKey(), true);
 
         try {
             ResponseEntity<TokenResponse> response = restTemplate.exchange(
@@ -126,12 +107,12 @@ public class MtnMomoService {
      * @return the X-Reference-Id used for the Request To Pay
      */
     public String requestToPay(RequestToPayRequest request, String referenceId) {
-        String url = momoBaseUrl + "/collection/v1_0/requesttopay";
+        String url = mtnProps().getBaseUrl() + "/collection/v1_0/requesttopay";
         String xRef = (referenceId == null || referenceId.isBlank()) ? UUID.randomUUID().toString() : referenceId;
 
         try {
             String token = getStoredToken("COLLECTION");
-            HttpHeaders headers = createBearerHeaders(token, collectionSubscriptionKey);
+            HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
             headers.set("X-Reference-Id", xRef);
 
             HttpEntity<RequestToPayRequest> entity = new HttpEntity<>(request, headers);
@@ -158,11 +139,11 @@ public class MtnMomoService {
      * Get status of a RequestToPay using the X-Reference-Id.
      */
     public RequestToPayStatusResponse getRequestToPayStatus(String referenceId) {
-        String url = momoBaseUrl + "/collection/v1_0/requesttopay/" + referenceId;
+        String url = mtnProps().getBaseUrl() + "/collection/v1_0/requesttopay/" + referenceId;
 
         try {
             String token = getStoredToken("COLLECTION");
-            HttpHeaders headers = createBearerHeaders(token, collectionSubscriptionKey);
+            HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
             ResponseEntity<RequestToPayStatusResponse> response =
@@ -191,11 +172,11 @@ public class MtnMomoService {
      */
     public BasicUserInfoResponse getBasicUserInfo(String msisdn) {
         String path = "/collection/v1_0/accountholder/MSISDN/" + msisdn + "/basicuserinfo";
-        String url = momoBaseUrl + path;
+        String url = mtnProps().getBaseUrl() + path;
 
         try {
             String token = getStoredToken("COLLECTION");
-            HttpHeaders headers = createBearerHeaders(token, collectionSubscriptionKey);
+            HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
             ResponseEntity<BasicUserInfoResponse> response =
@@ -229,10 +210,10 @@ public class MtnMomoService {
 
         String auth = subscriptionKey + ":" + UUID.randomUUID().toString().toLowerCase();
         String encoded = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
-        headers.set(HttpHeaders.AUTHORIZATION, "Basic " + basicAuthToken);
+        headers.set(HttpHeaders.AUTHORIZATION, "Basic " + mtnProps().getBasicAuthToken());
 
-        if (includeEnv && environment != null && !environment.isBlank()) {
-            headers.set("X-Target-Environment", environment);
+        if (includeEnv && mtnProps().getEnvironment() != null && !mtnProps().getEnvironment().isBlank()) {
+            headers.set("X-Target-Environment", mtnProps().getEnvironment());
         }
 
         return headers;
@@ -243,8 +224,8 @@ public class MtnMomoService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Ocp-Apim-Subscription-Key", subscriptionKey);
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
-        if (environment != null && !environment.isBlank()) {
-            headers.set("X-Target-Environment", environment);
+        if (mtnProps().getEnvironment() != null && !mtnProps().getEnvironment().isBlank()) {
+            headers.set("X-Target-Environment", mtnProps().getEnvironment());
         }
         return headers;
     }
@@ -254,6 +235,14 @@ public class MtnMomoService {
                 .filter(token -> token.getExpiresAt().isAfter(LocalDateTime.now()))
                 .map(MtnToken::getAccessToken)
                 .orElseThrow(() -> new PaymentGatewayException("No valid " + type + " token found. Run scheduler first."));
+    }
+
+    private MomoProperties mtnProps() {
+        MomoProperties props = momoPropertiesByProvider.get(TelcoProvider.MTN);
+        if (props == null) {
+            throw new PaymentGatewayException("MTN configuration not available");
+        }
+        return props;
     }
 
 }
