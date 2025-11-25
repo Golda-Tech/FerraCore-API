@@ -4,6 +4,7 @@ import com.goldatech.paymentservice.domain.model.PaymentTransaction;
 import com.goldatech.paymentservice.domain.model.TransactionStatus;
 import com.goldatech.paymentservice.domain.repository.PaymentTransactionRepository;
 import com.goldatech.paymentservice.domain.service.MtnMomoService;
+import com.goldatech.paymentservice.util.ReferenceIdGenerator;
 import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
 import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.Payer;
@@ -40,17 +41,22 @@ public class MtnPaymentProvider implements PaymentProvider{
         String payerMessage,
         String payeeNote
          */
+
+        // Generate reference id using injected generator. Fall back to "FPG" if collectionRef is null.
+        //TODO: CollectionRef should always contain client initials. User table should have Organization name/initials and also Organization logo
+
+        String referenceId = ReferenceIdGenerator.generate(
+                request.collectionRef() != null ? request.collectionRef() : "FPG"
+        );
+
         RequestToPayRequest mtnRequest = new RequestToPayRequest(
                 request.amount().toString(),
-                request.currency(),
+                "GHS",
                 request.mobileNumber(),
                 new Payer("MSISDN", request.mobileNumber()),
-                request.payerMessage(),
+                referenceId,//referenceId used as payerMessage to aid in reconciliation
                 request.payeeNote()
         );
-        String referenceId = UUID.randomUUID().toString().toLowerCase();
-        //TODO: Recreate ReferenceID using -- [client Initials]-[random sequence of numbers]-[Julian date]
-        //TODO: Use same ReferenceID as payerMessage and externalRef to help with reconciliation
 
         String xRef = mtnMomoService.requestToPay(mtnRequest, referenceId);
 
