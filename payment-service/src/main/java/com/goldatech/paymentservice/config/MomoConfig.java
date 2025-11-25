@@ -29,15 +29,15 @@ public class MomoConfig {
             MomoProperties props = new MomoProperties();
             props.setBaseUrl(firstNonNull(row.getBaseUrl(),
                     env.getProperty("momo." + providerKey + ".base-url",
-                            env.getProperty("momo.defaults.base-url", "https://proxy.momoapi.MTN.com"))));
+                            env.getProperty("momo.defaults.base-url", "<default-url>"))));
 
             props.setCollectionSubscriptionKey(firstNonNull(row.getCollectionSubscriptionKey(),
                     env.getProperty("momo." + providerKey + ".collection-subscription-key",
-                            env.getProperty("momo.defaults.collection-subscription-key", "d79ac4e645854c3aa80b53f08e512eff"))));
+                            env.getProperty("momo.defaults.collection-subscription-key", "<default-collections-sub-key>"))));
 
             props.setDisbursementSubscriptionKey(firstNonNull(row.getDisbursementSubscriptionKey(),
                     env.getProperty("momo." + providerKey + ".disbursement-subscription-key",
-                            env.getProperty("momo.defaults.disbursement-subscription-key", "9db1d12c4c524dd69d710652d8eff65b"))));
+                            env.getProperty("momo.defaults.disbursement-subscription-key", "<default-disbursement-sub-key>"))));
 
             props.setApiUser(firstNonNull(row.getApiUser(),
                     env.getProperty("momo." + providerKey + ".api-user",
@@ -49,7 +49,7 @@ public class MomoConfig {
 
             props.setEnvironment(firstNonNull(row.getEnvironment(),
                     env.getProperty("momo." + providerKey + ".environment",
-                            env.getProperty("momo.defaults.environment", "mtnghana"))));
+                            env.getProperty("momo.defaults.environment", "<default-environment>"))));
 
             props.setBasicAuthToken(firstNonNull(row.getBasicAuthToken(),
                     env.getProperty("momo." + providerKey + ".basic-auth-token",
