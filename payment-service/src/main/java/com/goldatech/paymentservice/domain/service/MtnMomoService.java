@@ -109,6 +109,7 @@ public class MtnMomoService {
     public String requestToPay(RequestToPayRequest request, String referenceId) {
         String url = mtnProps().getBaseUrl() + "/collection/v1_0/requesttopay";
         String xRef = (referenceId == null || referenceId.isBlank()) ? UUID.randomUUID().toString() : referenceId;
+        log.info("RequestToPay payload - request params={}", request);
 
         try {
             String token = getStoredToken("COLLECTION");

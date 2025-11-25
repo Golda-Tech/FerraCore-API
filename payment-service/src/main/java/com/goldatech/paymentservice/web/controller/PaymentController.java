@@ -17,8 +17,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -29,13 +32,38 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
-    public ResponseEntity<PaymentResponse> initiatePayment(@Valid @RequestBody PaymentRequest request,
+    public ResponseEntity<Object> initiatePayment(@Valid @RequestBody PaymentRequest request,
                                                            @RequestHeader("X-User-Email") String email,
                                                            @RequestHeader("X-User-Id") String userId) {
         log.info("Received payment initiation request for provider: {}", request.provider());
         log.info("Request initiated by user: {} with email: {}", userId, email);
+
+        try{
         PaymentResponse response = paymentService.initiatePayment(request, userId, email);
         return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            log.error("Bad request while initiating payment: {}", e.getMessage(), e);
+            Map<String, Object> body = new HashMap<>();
+            body.put("error", "Bad Request");
+            body.put("message", e.getMessage());
+            body.put("type", e.getClass().getSimpleName());
+            body.put("sampleStack", Arrays.stream(e.getStackTrace())
+                    .limit(5)
+                    .map(StackTraceElement::toString)
+                    .collect(Collectors.joining("\n")));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        }catch (Exception e) {
+            log.error("Unexpected error while initiating payment: {}", e.getMessage(), e);
+            Map<String, Object> body = new HashMap<>();
+            body.put("error", "Internal Server Error");
+            body.put("message", e.getMessage());
+            body.put("type", e.getClass().getSimpleName());
+            body.put("sampleStack", Arrays.stream(e.getStackTrace())
+                    .limit(10)
+                    .map(StackTraceElement::toString)
+                    .collect(Collectors.joining("\n")));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+        }
     }
 
     @GetMapping("/status")

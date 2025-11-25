@@ -52,7 +52,7 @@ public class MtnPaymentProvider implements PaymentProvider{
         RequestToPayRequest mtnRequest = new RequestToPayRequest(
                 request.amount().toString(),
                 "GHS",
-                request.mobileNumber(),
+                referenceId,//externalId
                 new Payer("MSISDN", request.mobileNumber()),
                 referenceId,//referenceId used as payerMessage to aid in reconciliation
                 request.payeeNote()
