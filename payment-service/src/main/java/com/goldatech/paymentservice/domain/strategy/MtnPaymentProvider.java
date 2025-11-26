@@ -65,8 +65,8 @@ public class MtnPaymentProvider implements PaymentProvider{
 //        String externalRef = "mtn-" + UUID.randomUUID().toString();
         PaymentTransaction transaction = PaymentTransaction.builder()
                 .collectionRef(request.collectionRef())
-                .transactionRef(UUID.randomUUID().toString())
-                .externalRef(xRef)
+                .transactionRef(xRef)
+                .externalRef(referenceId)
                 .provider("MTN")
                 .mobileNumber(request.mobileNumber())
                 .amount(request.amount())

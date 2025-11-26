@@ -127,7 +127,7 @@ public class MtnMomoService {
             }
 
             log.info("RequestToPay initiated - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
-            return referenceId;
+            return xRef;
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("requestToPay failed for reference {}: status={}, body={}", xRef, e.getStatusCode(), e.getResponseBodyAsString());
