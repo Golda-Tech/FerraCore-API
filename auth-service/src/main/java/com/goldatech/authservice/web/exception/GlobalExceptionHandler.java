@@ -2,6 +2,7 @@ package com.goldatech.authservice.web.exception;
 
 import com.goldatech.authservice.domain.exception.UserAlreadyExistsException;
 import com.goldatech.authservice.domain.exception.UserNotFoundException;
+import com.goldatech.authservice.web.dto.response.ErrorResponse;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.Nullable;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -17,12 +19,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-    private static final URI NOT_FOUND_TYPE = URI.create("https://api.rexpayapi.com/errors/not-found");
-    private static final URI ISE_FOUND_TYPE = URI.create("https://api.rexpayapi.com/errors/server-error");
-    private static final URI BAD_REQUEST_TYPE = URI.create("https://api.rexpayapi.com/errors/bad-request");
-    private static final URI CONFLICT_TYPE = URI.create("https://api.rexpayapi.com/errors/conflict");
+    private static final URI NOT_FOUND_TYPE = URI.create("https://app.ferracore.tech/errors/not-found");
+    private static final URI ISE_FOUND_TYPE = URI.create("https://app.ferracore.tech/errors/server-error");
+    private static final URI BAD_REQUEST_TYPE = URI.create("https://app.ferracore.tech/errors/bad-request");
+    private static final URI CONFLICT_TYPE = URI.create("https://app.ferracore.tech/errors/conflict");
     private static final String SERVICE_NAME = "auth-service";
 
     @ExceptionHandler(Exception.class)
@@ -98,5 +100,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         problemDetail.setProperty("error_category", "Generic");
         problemDetail.setProperty("timestamp", Instant.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        ErrorResponse body = new ErrorResponse(ex.getMessage());
+        return ResponseEntity.badRequest().body(body);
     }
 }
