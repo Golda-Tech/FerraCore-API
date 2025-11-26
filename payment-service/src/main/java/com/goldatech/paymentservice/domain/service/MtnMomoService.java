@@ -144,6 +144,7 @@ public class MtnMomoService {
      */
     public RequestToPayStatusResponse getRequestToPayStatus(String referenceId) {
         String url = mtnProps().getBaseUrl() + "/collection/v1_0/requesttopay/" + referenceId;
+        log.info("RequestToPay url ={}", url);
 
         try {
             String token = getStoredToken("COLLECTION");

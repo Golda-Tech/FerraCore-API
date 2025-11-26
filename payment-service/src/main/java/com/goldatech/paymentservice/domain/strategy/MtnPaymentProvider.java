@@ -93,7 +93,7 @@ public class MtnPaymentProvider implements PaymentProvider{
         // Simulate a response from the MTN API.
         log.info("Simulating MTN status check. For a real system, a call to the MTN API would go here.");
         //Call the MTN Momo service to check payment status
-        RequestToPayStatusResponse statusResponse = mtnMomoService.getRequestToPayStatus(transactionRef);
+        RequestToPayStatusResponse statusResponse = mtnMomoService.getRequestToPayStatus(transaction.getExternalRef());
 
         transaction.setStatus(TransactionStatus.valueOf(statusResponse.status()));
         transaction.setMessage(statusResponse.reason());
