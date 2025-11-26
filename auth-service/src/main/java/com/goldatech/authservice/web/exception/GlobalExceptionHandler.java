@@ -19,7 +19,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-@RestControllerAdvice
+@ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final URI NOT_FOUND_TYPE = URI.create("https://app.ferracore.tech/errors/not-found");
     private static final URI ISE_FOUND_TYPE = URI.create("https://app.ferracore.tech/errors/server-error");
