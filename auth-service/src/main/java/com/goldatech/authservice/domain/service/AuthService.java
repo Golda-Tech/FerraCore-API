@@ -148,7 +148,18 @@ public class AuthService {
      * @return true if OTP sent successfully, false otherwise.
      */
 
-    public boolean loginWithOtp(String destination, String channel, String type) {
+    public boolean loginWithOtp(String destination, String password, String channel, String type) {
+        //First check if user exists with the email
+        Optional<User> userOpt = repository.findByEmail(destination);
+        if (userOpt.isEmpty()) {
+            throw new IllegalArgumentException("User not found with email: " + destination);
+        }
+        //Also check if password matches
+        User user = userOpt.get();
+        if (user.getPassword() == null || !passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("Invalid password for email: " + destination);
+        }
+
         String generatedOtp = otpGenerator();
 
         Otp otp = Otp.builder()

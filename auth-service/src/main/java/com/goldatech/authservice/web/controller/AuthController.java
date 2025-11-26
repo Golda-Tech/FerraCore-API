@@ -71,8 +71,8 @@ public class AuthController {
      * @return a ResponseEntity with a success message if the OTP was sent successfully.
      */
     @GetMapping("/send-login-otp")
-    public ResponseEntity<String> sendLoginOtp(@RequestParam String destination, @RequestParam String channel, @RequestParam String type) {
-        authService.loginWithOtp(destination, channel, type);
+    public ResponseEntity<String> sendLoginOtp(@RequestParam String destination,@RequestParam String password, @RequestParam String channel, @RequestParam String type) {
+        authService.loginWithOtp(destination, password, channel, type);
         return ResponseEntity.ok("Login OTP sent successfully.");
         }
 }
