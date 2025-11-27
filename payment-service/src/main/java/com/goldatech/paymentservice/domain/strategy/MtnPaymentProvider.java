@@ -8,9 +8,11 @@ import com.goldatech.paymentservice.util.ReferenceIdGenerator;
 import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
 import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.Payer;
+import com.goldatech.paymentservice.web.dto.request.momo.PreApprovalRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.RequestToPayRequest;
 import com.goldatech.paymentservice.web.dto.response.NameEnquiryResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.BasicUserInfoResponse;
+import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.RequestToPayStatusResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -127,5 +129,19 @@ public class MtnPaymentProvider implements PaymentProvider{
         }
 
         return Optional.empty();
+    }
+
+
+    public Optional<PreApprovalResponse> preApproval(PreApprovalRequest request) {
+        log.info("Requesting pre-approval for MTN mobile number: {}", request.payer().partyId());
+
+        // Simulate a call to the MTN pre-approval API.
+        if (!request.payer().partyId().startsWith("233")) {
+            log.warn("Invalid mobile number format for MTN: {}", request.payer().partyId());
+            return Optional.empty();
+        }
+
+        PreApprovalResponse preApprovalResponse = mtnMomoService.createPreApprovalMandate(request);
+        return Optional.ofNullable(preApprovalResponse);
     }
 }

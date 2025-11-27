@@ -316,6 +316,39 @@ public class MtnMomoService {
         }
     }
 
+    /**
+     * Cancel a preapproval mandate
+     * collection/v1_0/preapproval/{preapprovalid}
+     * DELETE
+     */
+    public void cancelPreapprovalMandate(String preapprovalId) {
+        String url = mtnProps().getBaseUrl() + "/collection/v1_0/preapproval/" + preapprovalId;
+        log.info("CancelPreapprovalMandate url={}", url);
+
+        try {
+            String token = getStoredToken("COLLECTION");
+            HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<Void> response =
+                    restTemplate.exchange(url, HttpMethod.DELETE, entity, Void.class);
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new PaymentGatewayException("Unexpected status from cancelPreapprovalMandate: " + response.getStatusCode());
+            }
+
+            log.info("PreapprovalMandate {} cancelled successfully, status={}", preapprovalId, response.getStatusCode());
+
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            log.error("cancelPreapprovalMandate failed for {}: status={}, body={}", preapprovalId, e.getStatusCode(), e.getResponseBodyAsString());
+            boolean isFatal = e.getStatusCode().is4xxClientError();
+            throw new PaymentGatewayException("cancelPreapprovalMandate failed: " + e.getResponseBodyAsString(), e, isFatal);
+        } catch (Exception e) {
+            log.error("Unexpected error in cancelPreapprovalMandate for {}: {}", preapprovalId, e.getMessage(), e);
+            throw new PaymentGatewayException("Unexpected error in cancelPreapprovalMandate", e);
+        }
+    }
+
 
 
 

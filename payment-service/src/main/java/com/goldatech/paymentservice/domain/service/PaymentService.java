@@ -14,9 +14,11 @@ import com.goldatech.paymentservice.domain.strategy.PaymentProviderFactory;
 import com.goldatech.paymentservice.web.dto.request.MtnCallBackRequest;
 import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
 import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
+import com.goldatech.paymentservice.web.dto.request.momo.PreApprovalRequest;
 import com.goldatech.paymentservice.web.dto.response.NameEnquiryResponse;
 import com.goldatech.paymentservice.web.dto.response.PaymentResponse;
 import com.goldatech.paymentservice.web.dto.response.PaymentTrendDTO;
+import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -323,6 +325,12 @@ public class PaymentService {
         transactionRepository.save(transaction);
         log.info("Processed MTN callback for transaction: {}, new status: {}", transaction.getTransactionRef(), transaction.getStatus());
 
+    }
+
+    public PreApprovalResponse createPerApproval(String providerName, PreApprovalRequest preApprovalRequest) {
+        log.info("Creating pre-approval for provider: {}", providerName);
+        PaymentProvider provider = providerFactory.getProvider(providerName);
+        return provider.createPreApproval(preApprovalRequest);
     }
 
 
