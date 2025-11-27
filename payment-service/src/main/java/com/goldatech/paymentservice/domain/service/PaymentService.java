@@ -327,11 +327,11 @@ public class PaymentService {
 
     }
 
-    public PreApprovalResponse createPerApproval(String providerName, PreApprovalRequest preApprovalRequest) {
-        log.info("Creating pre-approval for provider: {}", providerName);
-        PaymentProvider provider = providerFactory.getProvider(providerName);
-        return provider.createPreApproval(preApprovalRequest);
-    }
+//    public PreApprovalResponse createPerApproval(String providerName, PreApprovalRequest preApprovalRequest) {
+//        log.info("Creating pre-approval for provider: {}", providerName);
+//        PaymentProvider provider = providerFactory.getProvider(providerName);
+//        return provider.createPreApproval(preApprovalRequest);
+//    }
 
 
 

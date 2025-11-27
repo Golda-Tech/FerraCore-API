@@ -3,6 +3,7 @@ package com.goldatech.paymentservice.domain.strategy;
 import com.goldatech.paymentservice.domain.model.PaymentTransaction;
 import com.goldatech.paymentservice.domain.model.TransactionStatus;
 import com.goldatech.paymentservice.domain.repository.PaymentTransactionRepository;
+import com.goldatech.paymentservice.domain.repository.PreApprovalTransactionRepository;
 import com.goldatech.paymentservice.domain.service.MtnMomoService;
 import com.goldatech.paymentservice.util.ReferenceIdGenerator;
 import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
@@ -27,6 +28,7 @@ import java.util.UUID;
 @Slf4j
 public class MtnPaymentProvider implements PaymentProvider{
     private final PaymentTransactionRepository transactionRepository;
+    private final PreApprovalTransactionRepository preApprovalTransactionRepository;
     private final MtnMomoService mtnMomoService;
 
     @Override
@@ -132,16 +134,21 @@ public class MtnPaymentProvider implements PaymentProvider{
     }
 
 
-    public Optional<PreApprovalResponse> preApproval(PreApprovalRequest request) {
-        log.info("Requesting pre-approval for MTN mobile number: {}", request.payer().partyId());
-
-        // Simulate a call to the MTN pre-approval API.
-        if (!request.payer().partyId().startsWith("233")) {
-            log.warn("Invalid mobile number format for MTN: {}", request.payer().partyId());
-            return Optional.empty();
-        }
-
-        PreApprovalResponse preApprovalResponse = mtnMomoService.createPreApprovalMandate(request);
-        return Optional.ofNullable(preApprovalResponse);
-    }
+//    public Optional<PreApprovalResponse> preApproval(PreApprovalRequest request) {
+//        log.info("Initiating pre-approval with MTN for mobile number: {}", request.mobileNumber());
+//
+//        // Generate reference id using injected generator. Fall back to "FPG" if collectionRef is null.
+//        String referenceId = ReferenceIdGenerator.generate(
+//                request.() != null ? request.collectionRef() : "FPG"
+//        );
+//
+//        String xRef = mtnMomoService.requestPreApproval(request, referenceId);
+//
+//        PreApprovalResponse response = new PreApprovalResponse(
+//                xRef,
+//                "Pre-approval request sent to MTN."
+//        );
+//
+//        return Optional.of(response);
+//    }
 }
