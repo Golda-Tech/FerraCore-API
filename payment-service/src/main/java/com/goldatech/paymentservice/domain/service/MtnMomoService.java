@@ -6,12 +6,12 @@ import com.goldatech.paymentservice.domain.model.MomoProperties;
 import com.goldatech.paymentservice.domain.model.TelcoProvider;
 import com.goldatech.paymentservice.domain.model.momo.MtnToken;
 import com.goldatech.paymentservice.domain.repository.MtnTokenRepository;
+import com.goldatech.paymentservice.web.dto.request.momo.PreApprovalRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.RequestToPayRequest;
-import com.goldatech.paymentservice.web.dto.response.momo.BasicUserInfoResponse;
-import com.goldatech.paymentservice.web.dto.response.momo.RequestToPayStatusResponse;
-import com.goldatech.paymentservice.web.dto.response.momo.TokenResponse;
+import com.goldatech.paymentservice.web.dto.response.momo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -21,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -205,6 +206,116 @@ public class MtnMomoService {
     }
 
     /* -------------------- Pre-approval Endpoints -------------------- */
+
+    /**
+     * Preapproval mandate creation endpoint
+     * POST /collection/v2_0/preapproval
+     */
+    public PreApprovalResponse createPreApprovalMandate(PreApprovalRequest request) {
+        String url = mtnProps().getBaseUrl() + "/collection/v2_0/preapproval";
+        log.info("CreatePreApprovalMandate payload - request params={}", request);
+        try {
+            String token = getStoredToken("COLLECTION");
+            HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
+            headers.set("X-Callback-Url", mtnProps().getCallBackUrl());
+            String xRef = UUID.randomUUID().toString();
+            headers.set("X-Reference-Id", xRef);
+
+            HttpEntity<PreApprovalRequest> entity = new HttpEntity<>(request, headers);
+
+            ResponseEntity<PreApprovalResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, PreApprovalResponse.class);
+            // Response body is expected to be null with 202 Accepted
+            if (response.getStatusCode() != HttpStatus.ACCEPTED) {
+                throw new PaymentGatewayException("Unexpected status from createPreApprovalMandate: " + response.getStatusCode());
+            }
+
+            log.info("PreApprovalMandate created - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
+            return response.getBody();
+
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            log.error("createPreApprovalMandate failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            boolean isFatal = e.getStatusCode().is4xxClientError();
+            throw new PaymentGatewayException("createPreApprovalMandate failed: " + e.getResponseBodyAsString(), e, isFatal);
+        } catch (Exception e) {
+            log.error("Unexpected error in createPreApprovalMandate: {}", e.getMessage(), e);
+            throw new PaymentGatewayException("Unexpected error in createPreApprovalMandate", e);
+        }
+
+    }
+
+    /**
+     * Preapproval mandate status endpoint
+     * GET /collection/v2_0/preapproval/{referenceId}
+     */
+    public PreApprovalStatusResponse getPreApprovalStatus(String referenceId) {
+        String url = mtnProps().getBaseUrl() + "/collection/v2_0/preapproval/" + referenceId;
+        log.info("GetPreApprovalStatus url={}", url);
+
+        try {
+            String token = getStoredToken("COLLECTION");
+            HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<PreApprovalStatusResponse> response =
+                    restTemplate.exchange(url, HttpMethod.GET, entity, PreApprovalStatusResponse.class);
+
+            if (response.getBody() == null) {
+                throw new PaymentGatewayException("Null response from GetPreApprovalStatus for " + referenceId);
+            }
+
+            log.debug("PreApprovalStatus for {}: {}", referenceId, response.getBody());
+            return response.getBody();
+
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            log.error("getPreApprovalStatus failed for {}: status={}, body={}", referenceId, e.getStatusCode(), e.getResponseBodyAsString());
+            boolean isFatal = e.getStatusCode().is4xxClientError();
+            throw new PaymentGatewayException("getPreApprovalStatus failed: " + e.getResponseBodyAsString(), e, isFatal);
+        } catch (Exception e) {
+            log.error("Unexpected error in getPreApprovalStatus for {}: {}", referenceId, e.getMessage(), e);
+            throw new PaymentGatewayException("Unexpected error in getPreApprovalStatus", e);
+        }
+    }
+
+    /**
+     * Fetch all approved preapproval mandates
+     * GET collection/v1_0/preapprovals/{accountHolderIdType}/{accountHolderId}
+     */
+    public List<ApprovedPreapproval> getApprovedPreapprovals(String accountHolderIdType, String accountHolderId) {
+        String url = mtnProps().getBaseUrl() + "/collection/v1_0/preapprovals/" + accountHolderIdType + "/" + accountHolderId;
+        log.info("GetApprovedPreapprovals url={}", url);
+
+        ParameterizedTypeReference<List<ApprovedPreapproval>> responseType =
+                new ParameterizedTypeReference<List<ApprovedPreapproval>>() {};
+
+        try {
+            String token = getStoredToken("COLLECTION");
+            HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<List<ApprovedPreapproval>> response =
+                    restTemplate.exchange(url, HttpMethod.GET, entity, responseType);
+
+            List<ApprovedPreapproval> approvedList = response.getBody();
+
+            if (approvedList == null) {
+                // Handle cases where the body might be null (e.g., if the status is 204 No Content)
+                log.warn("Null or empty response body from GetApprovedPreapprovals for {}", accountHolderId);
+                return List.of(); // Return an empty list instead of null
+            }
+
+            log.debug("ApprovedPreapprovals for {}: {}", accountHolderId, approvedList);
+            return approvedList;
+
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            log.error("getApprovedPreapprovals failed for {}: status={}, body={}", accountHolderId, e.getStatusCode(), e.getResponseBodyAsString());
+            boolean isFatal = e.getStatusCode().is4xxClientError();
+            throw new PaymentGatewayException("getApprovedPreapprovals failed: " + e.getResponseBodyAsString(), e, isFatal);
+        } catch (Exception e) {
+            log.error("Unexpected error in getApprovedPreapprovals for {}: {}", accountHolderId, e.getMessage(), e);
+            throw new PaymentGatewayException("Unexpected error in getApprovedPreapprovals", e);
+        }
+    }
+
 
 
 
