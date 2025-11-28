@@ -21,6 +21,8 @@ public class RabbitMQConfig {
     private String collectionQueueName;
     @Value("${notification.auth.queue}")
     private String authQueueName;
+    @Value("${notification.preapproval.queue}")
+    private String preapprovalQueueName;
 
     @Value("${notification.payment.routing-key}")
     private String paymentRoutingKey;
@@ -28,6 +30,8 @@ public class RabbitMQConfig {
     private String collectionRoutingKey;
     @Value("${notification.auth.routing-key}")
     private String authRoutingKey;
+    @Value("${notification.preapproval.routing-key}")
+    private String preapprovalRoutingKey;
 
     @Bean
     DirectExchange notificationExchange() {
@@ -50,6 +54,11 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    Queue preapprovalQueue() {
+        return QueueBuilder.durable(preapprovalQueueName).build();
+    }
+
+    @Bean
     Binding paymentBinding(DirectExchange notificationExchange, Queue paymentQueue) {
         return BindingBuilder.bind(paymentQueue).to(notificationExchange).with(paymentRoutingKey);
     }
@@ -62,6 +71,11 @@ public class RabbitMQConfig {
     @Bean
     Binding authBinding(DirectExchange notificationExchange, Queue authQueue) {
         return BindingBuilder.bind(authQueue).to(notificationExchange).with(authRoutingKey);
+    }
+
+    @Bean
+    Binding preapprovalBinding(DirectExchange notificationExchange, Queue preapprovalQueue) {
+        return BindingBuilder.bind(preapprovalQueue).to(notificationExchange).with(preapprovalRoutingKey);
     }
 
     @Bean

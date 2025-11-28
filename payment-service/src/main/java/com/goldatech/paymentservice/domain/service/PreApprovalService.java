@@ -18,6 +18,7 @@ import com.goldatech.paymentservice.web.dto.request.momo.PreApprovalRequest;
 import com.goldatech.paymentservice.web.dto.response.PaymentResponse;
 import com.goldatech.paymentservice.web.dto.response.PreApprovalMandateResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalResponse;
+import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalStatusResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -123,5 +124,45 @@ public class PreApprovalService {
                 null,
                 null
         );
+    }
+
+
+    //Check pre-approval status
+    public PreApprovalStatusResponse checkPreApprovalStatus(String providerName, String mandateId) {
+        log.info("Checking pre-approval status for provider: {} and mandateId: {}", providerName, mandateId);
+
+        PaymentProvider provider = providerFactory.getProvider(providerName);
+
+        //If instance of MTN, cast to MtnPaymentProvider to access specific methods
+        if (!(provider instanceof com.goldatech.paymentservice.domain.strategy.MtnPaymentProvider)) {
+            throw new IllegalArgumentException("Pre-approval mandates are only supported for MTN provider at the moment.");
+        }
+
+        Optional<PreApprovalStatusResponse> response = ((MtnPaymentProvider) provider)
+                .checkPreApprovalStatus(mandateId);
+
+        if (response.isEmpty()) {
+            log.error("Failed to check pre-approval status with MTN for mandate id: {}", mandateId);
+            throw new PreApprovalException("Failed to check pre-approval status with MTN.");
+        }
+
+        return response.get();
+    }
+
+
+    //Cancel pre-approval mandate
+    public boolean cancelPreApprovalMandate(String providerName, String mandateId) {
+        log.info("Cancelling pre-approval mandate for provider: {} and mandateId: {}", providerName, mandateId);
+
+        PaymentProvider provider = providerFactory.getProvider(providerName);
+
+        //If instance of MTN, cast to MtnPaymentProvider to access specific methods
+        if (!(provider instanceof com.goldatech.paymentservice.domain.strategy.MtnPaymentProvider)) {
+            throw new IllegalArgumentException("Pre-approval mandates are only supported for MTN provider at the moment.");
+        }
+
+        return ((MtnPaymentProvider) provider)
+                .cancelPreApproval(mandateId);
+
     }
 }
