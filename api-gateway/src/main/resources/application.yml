@@ -70,6 +70,13 @@ spring:
               filters:
                 - AddRequestHeader=X-Gateway-Verified,true
 
+            - id: payments-service-mandates
+              uri: ${PAYMENTS_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/v1/mandates/**
+              filters:
+                - AddRequestHeader=X-Gateway-Verified,true
+
             # Fallback for any other /api/v1/** paths to collections service
           httpclient:
             connect-timeout: 5000
