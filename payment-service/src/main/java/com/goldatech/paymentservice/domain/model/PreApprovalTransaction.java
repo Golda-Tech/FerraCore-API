@@ -26,9 +26,11 @@ public class PreApprovalTransaction {
     private String mobileNumber;
     private BigDecimal amount;
     private String currency;
-    private TransactionStatus status;
+    private MandateStatus status;
+    private TransactionStatus lastPaymentStatus;
     private String message;
     private String validityTime; //in seconds stored as string
+    private Frequency frequency;
     private LocalDateTime initiatedAt;
     private LocalDateTime completedAt;
     private String mtnFinancialTransactionId; // MTN specific field
