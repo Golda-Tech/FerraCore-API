@@ -50,7 +50,7 @@ public class PreApprovalService {
     private String otpRoutingKey;
 
     @Transactional
-    public PreApprovalMandateResponse creatPreApprovalMandate(PreApprovalMandateRequest request, String userId, String email) {
+    public PreApprovalMandateResponse creatPreApprovalMandate(PreApprovalMandateRequest request) {
         log.info("Initiating payment request for provider: {}", request.provider());
 
         //Create PreApprovalTransaction in DB with PENDING status

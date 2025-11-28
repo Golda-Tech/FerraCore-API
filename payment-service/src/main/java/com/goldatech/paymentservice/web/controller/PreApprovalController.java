@@ -24,11 +24,9 @@ public class PreApprovalController {
     private final PreApprovalService preApprovalService;
 
     @PostMapping
-    public ResponseEntity<PreApprovalMandateResponse> createPreApproval(@Valid @RequestBody PreApprovalMandateRequest request,
-                                                                      @RequestHeader("X-User-Email") String email,
-                                                                      @RequestHeader("X-User-Id") String userId){
+    public ResponseEntity<PreApprovalMandateResponse> createPreApproval(@Valid @RequestBody PreApprovalMandateRequest request){
         log.info("Received pre-approval mandate creation request for provider: {}", request.provider());
-        PreApprovalMandateResponse response = preApprovalService.creatPreApprovalMandate(request, userId, email);
+        PreApprovalMandateResponse response = preApprovalService.creatPreApprovalMandate(request);
         return ResponseEntity.ok(response);
     }
 
