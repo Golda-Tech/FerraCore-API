@@ -14,5 +14,6 @@ public record PreApprovalMandateRequest (
     @NotBlank String mobileNumber,
     @NotBlank Frequency frequency,
     @NotBlank Long duration,//Duration of mandate in seconds. e.g. "86400" for 1 day
-    @NotBlank Boolean reminders
+    @NotBlank Boolean reminders,
+    @NotBlank String message
 ) {}

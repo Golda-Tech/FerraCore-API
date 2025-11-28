@@ -8,12 +8,15 @@ import com.goldatech.paymentservice.domain.service.MtnMomoService;
 import com.goldatech.paymentservice.util.ReferenceIdGenerator;
 import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
 import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
+import com.goldatech.paymentservice.web.dto.request.PreApprovalMandateRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.Payer;
 import com.goldatech.paymentservice.web.dto.request.momo.PreApprovalRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.RequestToPayRequest;
 import com.goldatech.paymentservice.web.dto.response.NameEnquiryResponse;
+import com.goldatech.paymentservice.web.dto.response.PreApprovalMandateResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.BasicUserInfoResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalResponse;
+import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalStatusResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.RequestToPayStatusResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -134,21 +137,31 @@ public class MtnPaymentProvider implements PaymentProvider{
     }
 
 
-//    public Optional<PreApprovalResponse> preApproval(PreApprovalRequest request) {
-//        log.info("Initiating pre-approval with MTN for mobile number: {}", request.mobileNumber());
-//
-//        // Generate reference id using injected generator. Fall back to "FPG" if collectionRef is null.
-//        String referenceId = ReferenceIdGenerator.generate(
-//                request.() != null ? request.collectionRef() : "FPG"
-//        );
-//
-//        String xRef = mtnMomoService.requestPreApproval(request, referenceId);
-//
-//        PreApprovalResponse response = new PreApprovalResponse(
-//                xRef,
-//                "Pre-approval request sent to MTN."
-//        );
-//
-//        return Optional.of(response);
-//    }
+    public Optional<PreApprovalResponse> preApproval(PreApprovalRequest request) {
+        log.info("Initiating pre-approval with MTN for mobile number: {}", request.payer().partyId());
+
+        //Call the MTN Momo service to initiate pre-approval
+        PreApprovalResponse preApprovalResponse = mtnMomoService.createPreApprovalMandate(request);
+
+        return Optional.ofNullable(preApprovalResponse);
+
+    }
+
+    //check pre-approval status
+    public Optional<PreApprovalStatusResponse> checkPreApprovalStatus(String mandateId) {
+        log.info("Checking pre-approval status with MTN for mandate id: {}", mandateId);
+
+        PreApprovalStatusResponse preApprovalStatusResponse = mtnMomoService.getPreApprovalStatus(mandateId);
+
+        return Optional.ofNullable(preApprovalStatusResponse);
+
+    }
+
+    //Cancel pre-approval
+    public boolean cancelPreApproval(String mandateId) {
+        log.info("Cancelling pre-approval with MTN for mandate id: {}", mandateId);
+
+        return mtnMomoService.cancelPreapprovalMandate(mandateId);
+
+    }
 }

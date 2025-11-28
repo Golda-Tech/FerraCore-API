@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "pre_approval_transactions")
@@ -39,6 +40,8 @@ public class PreApprovalTransaction {
     private String mtnPayerPartyId; // MTN specific field
     private String mtnPayerMessage; // MTN specific field
     private String mtnPayeeNote; // MTN specific field
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 
 

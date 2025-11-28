@@ -321,7 +321,7 @@ public class MtnMomoService {
      * collection/v1_0/preapproval/{preapprovalid}
      * DELETE
      */
-    public void cancelPreapprovalMandate(String preapprovalId) {
+    public boolean cancelPreapprovalMandate(String preapprovalId) {
         String url = mtnProps().getBaseUrl() + "/collection/v1_0/preapproval/" + preapprovalId;
         log.info("CancelPreapprovalMandate url={}", url);
 
@@ -338,6 +338,7 @@ public class MtnMomoService {
             }
 
             log.info("PreapprovalMandate {} cancelled successfully, status={}", preapprovalId, response.getStatusCode());
+            return true;
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("cancelPreapprovalMandate failed for {}: status={}, body={}", preapprovalId, e.getStatusCode(), e.getResponseBodyAsString());
