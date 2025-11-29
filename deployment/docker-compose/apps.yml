@@ -30,8 +30,11 @@ services:
       - SPRING_DATASOURCE_PASSWORD=rexpaypass
       - APPLICATION_SECURITY_JWT_SECRET_KEY=v9m2W+q4zF7tPjK6dR8hQsB2yX1nV0eZ4HcP7sLq9FwT3XyK5J8bV6pQ0rN2uM1a
       - APPLICATION_SECURITY_JWT_EXPIRATION_MS=86400000
+      - REX_URL
+      - REX_USERNAME
+      - REX_PASSWORD
     ports:
-      - "8081:8081"
+      - "8082:8082"
     restart: unless-stopped
     deploy:
       resources:
@@ -45,10 +48,67 @@ services:
     container_name: api-gateway
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - CATALOG_SERVICE_URL=http://catalog-service:8081
-      - ORDER_SERVICE_URL=http://order-service:8082
+      - AUTH_SERVICE_URL=http://auth-service:8081
+      - COLLECTIONS_SERVICE_URL=http://collections-service:8082
+      - NOTIFICATIONS_SERVICE_URL=http://notifications-service:8084
+      - PAYMENTS_SERVICE_URL=http://payments-service:8083
+      - JWT_SECRET_KEY=v9m2W+q4zF7tPjK6dR8hQsB2yX1nV0eZ4HcP7sLq9FwT3XyK5J8bV6pQ0rN2uM1a
+      - SERVER_PORT=8080
     ports:
       - "8080:8080"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+
+
+  notifications-service:
+    image: atomarkin/rexpay-notifications-service
+    container_name: notifications-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres.soluxcknwrhdmygsbxsh
+      - SPRING_DATASOURCE_PASSWORD=rexpaypass
+      - RABBITMQ_HOST=kangaroo.rmq.cloudamqp.com
+      - RABBITMQ_PORT=5671
+      - RABBITMQ_USERNAME=jbkywnak
+      - RABBITMQ_PASSWORD=9FLlz50CQRyX01liqSvSbSUdFlCOr0xs
+      - RABBITMQ_VIRTUAL_HOST=jbkywnak
+      - RABBITMQ_SSL_ENABLED=true
+      - RESEND_API_KEY=re_4Ph9AgVX_N98FE67XEvAqjxz2vE1b3W2J
+    ports:
+      - "8084:8084"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+
+  payments-service:
+    image: atomarkin/rexpay-payments-service
+    container_name: payments-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres.soluxcknwrhdmygsbxsh
+      - SPRING_DATASOURCE_PASSWORD=rexpaypass
+      - RABBITMQ_HOST=kangaroo.rmq.cloudamqp.com
+      - RABBITMQ_PORT=5671
+      - RABBITMQ_USERNAME=jbkywnak
+      - RABBITMQ_PASSWORD=9FLlz50CQRyX01liqSvSbSUdFlCOr0xs
+      - RABBITMQ_VIRTUAL_HOST=jbkywnak
+      - RABBITMQ_SSL_ENABLED=true
+      - MTN_MOMO_BASE_URL=https://sandbox.momodeveloper.mtn.com
+      - MTN_MOMO_COLLECTION_SUBSCRIPTION_KEY=04c94985127d40b7849942089d9d0fda
+      - MTN_MOMO_DISBURSEMENT_SUBSCRIPTION_KEY=9db1d12c4c524dd69d710652d8eff65b
+      - MTN_MOMO_API_USER=PLACEHOLDER
+      - MTN_MOMO_API_KEY=PLACEHOLDER
+      - MTN_MOMO_ENVIRONMENT=sandbox
+      - MTN_MOMO_BASIC_AUTH_TOKEN=MWNjZDNhNDYtMDI3NS00YjZjLTlkN2EtOWIyOGM2NzIzY2I5OjUzOWI4NDJmM2JhMDQyNjY4NmM4NDg3MDQ2NGQxYzNi
+    ports:
+      - "8083:8083"
     restart: unless-stopped
     deploy:
       resources:

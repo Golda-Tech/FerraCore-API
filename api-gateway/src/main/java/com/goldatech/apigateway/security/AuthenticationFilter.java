@@ -35,9 +35,12 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
             // Proxied Swagger docs through gateway
             "/auth-service-docs/**",
-            "/collections-service-docs/**"
-    );
+            "/collections-service-docs/**",
+            "/payments-service-docs/**"
 
+            //Mtn callback endpoint in the payment service
+            ,"/api/v1/payments/mtn/callback/**"
+    );
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -61,11 +64,13 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         String jwt = authHeader.substring(7);
+        log.debug("Extracted JWT token for validation");
 
         // Validate token and extract user info
         return jwtService.validateTokenAndExtractInfo(jwt)
                 .flatMap(tokenInfo -> {
-                    log.debug("Token validated successfully for user: {}", tokenInfo.getUsername());
+                    log.info("Token validated successfully for user: {} with ID: {}",
+                            tokenInfo.getUsername(), tokenInfo.getUserId());
 
                     // Add user info headers to the request
                     ServerHttpRequest mutatedRequest = request.mutate()
@@ -74,6 +79,17 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                             .header("X-User-Id", tokenInfo.getUserId())
                             .header("X-Gateway-Verified", "true")
                             .build();
+
+                    // Debug: Log the headers being added
+                    log.info("Adding headers - X-User-Email: {}, X-User-Id: {}, X-User-Roles: {}",
+                            tokenInfo.getUsername(), tokenInfo.getUserId(), tokenInfo.getRoles());
+
+                    // Debug: Log all headers in the mutated request
+                    mutatedRequest.getHeaders().forEach((key, values) -> {
+                        if (key.startsWith("X-")) {
+                            log.debug("Final header: {} = {}", key, values);
+                        }
+                    });
 
                     return chain.filter(exchange.mutate().request(mutatedRequest).build());
                 })

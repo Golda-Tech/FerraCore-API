@@ -1,1 +1,1 @@
-# RexPay-API
+# FerraCore-API

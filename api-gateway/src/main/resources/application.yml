@@ -6,30 +6,48 @@ spring:
     name: api-gateway
   main:
     web-application-type: reactive
+  web:
+    resources:
+      add-mappings: false
   cloud:
     gateway:
       server:
         webflux:
           routes:
+            - id: security-probes
+              uri: no://op
+              predicates:
+                - Path=/.git/**,/.env,/.config,/config,/robots.txt,/.aws/**,/.docker/**,/.svn/**
+              filters:
+                - SetStatus=404
             # Auth service routes - NO authentication required
             - id: auth-service-docs
-              uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/auth-service-docs/**
               filters:
                 - RewritePath=/auth-service-docs/(?<segment>.*), /${segment}
+                - PreserveHostHeader
 
                 # Proxy Collections Service OpenAPI docs
             - id: collections-service-docs
-              uri: ${COLLECTIONS_SERVICE_URL:http://collections-service:8082}
+              uri: ${COLLECTIONS_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/collections-service-docs/**
               filters:
                 - RewritePath=/collections-service-docs/(?<segment>.*), /${segment}
 
+                # Proxy Payments Service OpenAPI docs
+            - id: payments-service-docs
+              uri: ${PAYMENTS_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/payments-service-docs/**
+              filters:
+                - RewritePath=/payments-service-docs/(?<segment>.*), /${segment}
+
             # Auth service routes - NO authentication required
             - id: auth-service
-              uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/api/v1/auth/**
               filters:
@@ -37,9 +55,25 @@ spring:
 
             # Collections service routes - authentication required
             - id: collections-service
-              uri: ${COLLECTIONS_SERVICE_URL:http://collections-service:8082}
+              uri: ${COLLECTIONS_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/api/v1/collections/**
+              filters:
+                - AddRequestHeader=X-Gateway-Verified,true
+
+
+            #Payment service routes - authentication required
+            - id: payments-service
+              uri: ${PAYMENTS_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/v1/payments/**
+              filters:
+                - AddRequestHeader=X-Gateway-Verified,true
+
+            - id: payments-service-mandates
+              uri: ${PAYMENTS_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/v1/mandates/**
               filters:
                 - AddRequestHeader=X-Gateway-Verified,true
 
@@ -81,3 +115,5 @@ springdoc:
         url: /auth-service-docs/v3/api-docs
       - name: Collections Service
         url: /collections-service-docs/v3/api-docs
+      - name: Payments Service
+        url: /payments-service-docs/v3/api-docs

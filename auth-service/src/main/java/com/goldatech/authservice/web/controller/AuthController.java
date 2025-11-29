@@ -50,4 +50,31 @@ public class AuthController {
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("Auth service is up and running.");
     }
+
+
+    /** * Endpoint to verify a user's OTP.
+     *
+     * @param identifier the email of the user to verify.
+     * @param channel   the channel through which the OTP was sent (e.g., EMAIL, SMS).
+     * @param otp the OTP code to verify.
+     * @return a ResponseEntity with a success message if verification is successful.
+     */
+    @GetMapping("/verify-otp")
+    public ResponseEntity<AuthResponse> verifyOtp(@RequestParam String identifier, @RequestParam String channel, @RequestParam String otp) {
+        AuthResponse authResponse  = authService.verifyLoginOtp(identifier, otp, channel);
+        return ResponseEntity.ok(authResponse);
+    }
+
+    /**
+     * Endpoint to send a login OTP to the user via the specified channel.
+     * @param destination the email or phone number to send the OTP to.
+     * @param channel the channel to send the OTP through (e.g., EMAIL, SMS
+     * @param type the type of OTP (e.g., LOGIN, RESET_PASSWORD)
+     * @return a ResponseEntity with a success message if the OTP was sent successfully.
+     */
+    @GetMapping("/send-login-otp")
+    public ResponseEntity<String> sendLoginOtp(@RequestParam String destination,@RequestParam String password, @RequestParam String channel, @RequestParam String type) {
+        authService.loginWithOtp(destination, password, channel, type);
+        return ResponseEntity.ok("Login OTP sent successfully.");
+        }
 }
