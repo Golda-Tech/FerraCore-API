@@ -8,10 +8,11 @@ import com.goldatech.authservice.security.JwtService;
 import com.goldatech.authservice.web.dto.request.SubscriptionCreateRequest;
 import com.goldatech.authservice.web.dto.request.SubscriptionLoginRequest;
 import com.goldatech.authservice.web.dto.request.SubscriptionUpdateRequest;
-import com.goldatech.authservice.web.dto.response.AuthResponse;
+import com.goldatech.authservice.web.dto.response.Organization;
 import com.goldatech.authservice.web.dto.response.SubscriptionAuthResponse;
 import com.goldatech.authservice.web.dto.response.SubscriptionResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,9 @@ public class SubscriptionService {
 
     private final SubscriptionRepository repository;
     private final JwtService jwtService;
+
+    @Value("${application.security.jwt.expiration}")
+    private long jwtExpiration;
 
     public SubscriptionService(SubscriptionRepository repository, JwtService jwtService) {
         this.repository = repository;
@@ -53,8 +57,24 @@ public class SubscriptionService {
     }
 
 
-    public SubscriptionAuthResponse authenticate(SubscriptionLoginRequest request) {
+    public SubscriptionAuthResponse authorize(SubscriptionLoginRequest request, String authorization) {
         log.info("Authenticating subscription with key: {}", request.subscriptionKey());
+
+        //verify authorization header - a basic auth header
+        if (authorization == null || !authorization.startsWith("Basic ")) {
+            log.error("Missing or invalid Authorization header");
+            throw new RuntimeException("Missing or invalid Authorization header");
+        }
+        //validate authorization token by decoding the Base 64 basic auth token
+        String base64Credentials = authorization.substring("Basic ".length());
+        byte[] credDecoded = Base64.getDecoder().decode(base64Credentials);
+        String credentials = new String(credDecoded);
+        //credentials = subscriptionKey:subscriptionSecret
+        String[] values = credentials.split(":", 2);
+        if (values.length != 2 || !values[0].equals(request.subscriptionKey()) || !values[1].equals(request.subscriptionSecret())) {
+            log.error("Authorization header does not match provided subscription credentials");
+            throw new RuntimeException("Authorization header does not match provided subscription credentials");
+        }
 
         var subscription = repository.findBySubscriptionKey(request.subscriptionKey())
                 .filter(sub -> sub.getSubscriptionSecret().equals(request.subscriptionSecret()))
@@ -64,12 +84,11 @@ public class SubscriptionService {
 
         return new SubscriptionAuthResponse(
                 jwtToken,
+                (int) jwtExpiration,
                 subscription.getId(),
-                subscription.getOrganizationName(),
-                subscription.getPlanType(),
-                subscription.getStatus(),
-                subscription.getContactEmail(),
-                "Subscription authenticated successfully."
+                new Organization(subscription.getOrganizationName(), subscription.getContactEmail(), subscription.getPlanType(),
+                        subscription.getStatus(), "", ""),
+                "Subscription authorized successfully."
         );
     }
 
@@ -108,7 +127,8 @@ public class SubscriptionService {
 
 
     private String generateRandomKey() {
-        return "sub_" + randomString(24);
+        // generate an alphanumeric string of length 24
+        return  randomString(24);
     }
 
     private String generateRandomSecret() {

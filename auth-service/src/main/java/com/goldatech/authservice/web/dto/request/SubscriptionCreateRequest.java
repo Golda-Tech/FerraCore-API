@@ -5,6 +5,8 @@ import com.goldatech.authservice.domain.model.PlanType;
 public record SubscriptionCreateRequest(
         String organizationName,
         PlanType planType,
-        String contactEmail
+        String contactEmail,
+        String contactNumber,
+        String address
 ) {}
 

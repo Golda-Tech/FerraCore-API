@@ -35,6 +35,12 @@ public class Subscription {
     @Column(name = "contact_email")
     private String contactEmail;
 
+    @Column(name = "contact_address")
+    private String contactAddress;
+
+    @Column(name = "contact_number")
+    private String contactNumber;
+
     @Column(name = "status")
     private SubscriptionStatus status;
 

@@ -1,6 +1,5 @@
 package com.goldatech.authservice.web.controller;
 
-import com.goldatech.authservice.domain.model.Subscription;
 import com.goldatech.authservice.domain.service.SubscriptionService;
 import com.goldatech.authservice.web.dto.request.SubscriptionCreateRequest;
 import com.goldatech.authservice.web.dto.request.SubscriptionLoginRequest;
@@ -11,9 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -26,7 +22,7 @@ public class SubscriptionController {
         this.service = service;
     }
 
-    @PostMapping
+    @PostMapping("/initiate")
     public SubscriptionResponse create(@RequestBody SubscriptionCreateRequest request) {
         log.info("Received request to create subscription for org: {}", request.organizationName());
         return service.createSubscription(request);
@@ -38,10 +34,10 @@ public class SubscriptionController {
         return service.getAllSubscriptions();
     }
 
-    @PostMapping("/authenticate")
-    public SubscriptionAuthResponse authenticate(@RequestBody SubscriptionLoginRequest request) {
+    @PostMapping("/authorize/access_token")
+    public SubscriptionAuthResponse authenticate(@RequestBody SubscriptionLoginRequest request , @RequestHeader("Authorization") String authorization) {
         log.info("Received subscription auth request with key: {}", request.subscriptionKey());
-        return service.authenticate(request);
+        return service.authorize(request, authorization);
     }
 
     @GetMapping("/{key}")
