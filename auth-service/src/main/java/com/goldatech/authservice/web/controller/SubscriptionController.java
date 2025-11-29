@@ -38,7 +38,7 @@ public class SubscriptionController {
         return service.getAllSubscriptions();
     }
 
-    @PostMapping("/auth")
+    @PostMapping("/authenticate")
     public SubscriptionAuthResponse authenticate(@RequestBody SubscriptionLoginRequest request) {
         log.info("Received subscription auth request with key: {}", request.subscriptionKey());
         return service.authenticate(request);

@@ -2,6 +2,7 @@ package com.goldatech.authservice.domain.service;
 
 import com.goldatech.authservice.domain.mapper.SubscriptionMapper;
 import com.goldatech.authservice.domain.model.Subscription;
+import com.goldatech.authservice.domain.model.SubscriptionStatus;
 import com.goldatech.authservice.domain.repository.SubscriptionRepository;
 import com.goldatech.authservice.security.JwtService;
 import com.goldatech.authservice.web.dto.request.SubscriptionCreateRequest;
@@ -14,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,11 +34,24 @@ public class SubscriptionService {
     }
 
     public SubscriptionResponse createSubscription(SubscriptionCreateRequest request) {
-        log.info("Creating subscription for organization: {}", request.organizationName());
-        Subscription entity = SubscriptionMapper.toEntity(request);
-        Subscription saved = repository.save(entity);
+        log.info("Creating subscription for org: {}", request.organizationName());
+
+        String generatedKey = generateRandomKey();
+        String generatedSecret = generateRandomSecret();
+
+        Subscription subscription = Subscription.builder()
+                .organizationName(request.organizationName())
+                .planType(request.planType())
+                .contactEmail(request.contactEmail())
+                .subscriptionKey(generatedKey)
+                .subscriptionSecret(generatedSecret)
+                .status(SubscriptionStatus.valueOf("ACTIVE"))
+                .build();
+
+        Subscription saved = repository.save(subscription);
         return SubscriptionMapper.toResponse(saved);
     }
+
 
     public SubscriptionAuthResponse authenticate(SubscriptionLoginRequest request) {
         log.info("Authenticating subscription with key: {}", request.subscriptionKey());
@@ -88,5 +104,21 @@ public class SubscriptionService {
     public void deleteSubscription(Long id) {
         log.warn("Deleting subscription with id: {}", id);
         repository.deleteById(id);
+    }
+
+
+    private String generateRandomKey() {
+        return "sub_" + randomString(24);
+    }
+
+    private String generateRandomSecret() {
+        return randomString(48);
+    }
+
+    private String randomString(int length) {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[length];
+        random.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }

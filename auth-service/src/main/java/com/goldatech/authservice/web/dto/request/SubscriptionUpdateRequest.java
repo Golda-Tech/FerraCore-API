@@ -5,7 +5,6 @@ import com.goldatech.authservice.domain.model.SubscriptionStatus;
 
 public record SubscriptionUpdateRequest(
         String organizationName,
-        String subscriptionSecret,
         PlanType planType,
         SubscriptionStatus status,
         String contactEmail

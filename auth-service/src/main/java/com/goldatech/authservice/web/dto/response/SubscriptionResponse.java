@@ -16,3 +16,4 @@ public record SubscriptionResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}
+

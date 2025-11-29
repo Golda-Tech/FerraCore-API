@@ -1,6 +1,7 @@
 package com.goldatech.authservice.domain.mapper;
 
 import com.goldatech.authservice.domain.model.Subscription;
+import com.goldatech.authservice.domain.model.SubscriptionStatus;
 import com.goldatech.authservice.web.dto.request.SubscriptionCreateRequest;
 import com.goldatech.authservice.web.dto.request.SubscriptionUpdateRequest;
 import com.goldatech.authservice.web.dto.response.SubscriptionResponse;
@@ -12,7 +13,7 @@ public class SubscriptionMapper {
                 entity.getId(),
                 entity.getOrganizationName(),
                 entity.getSubscriptionKey(),
-                entity.getSubscriptionSecret(),
+                entity.getSubscriptionSecret(), // include only if you want to expose it
                 entity.getPlanType(),
                 entity.getStatus(),
                 entity.getContactEmail(),
@@ -24,19 +25,17 @@ public class SubscriptionMapper {
     public static Subscription toEntity(SubscriptionCreateRequest request) {
         return Subscription.builder()
                 .organizationName(request.organizationName())
-                .subscriptionKey(request.subscriptionKey())
-                .subscriptionSecret(request.subscriptionSecret())
                 .planType(request.planType())
                 .contactEmail(request.contactEmail())
-                .status("ACTIVE")
+                .status(SubscriptionStatus.valueOf("ACTIVE"))
                 .build();
     }
 
     public static void updateEntity(Subscription entity, SubscriptionUpdateRequest request) {
         entity.setOrganizationName(request.organizationName());
-        entity.setSubscriptionSecret(request.subscriptionSecret());
         entity.setPlanType(request.planType());
         entity.setStatus(request.status());
         entity.setContactEmail(request.contactEmail());
     }
 }
+
