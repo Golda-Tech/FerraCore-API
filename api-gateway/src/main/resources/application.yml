@@ -53,6 +53,13 @@ spring:
               filters:
                 - AddRequestHeader=X-Gateway-Source,api-gateway
 
+            - id: auth-service-subscriptions
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/v1/subscriptions/**
+              filters:
+                - AddRequestHeader=X-Gateway-Source,api-gateway
+
             # Collections service routes - authentication required
             - id: collections-service
               uri: ${COLLECTIONS_SERVICE_URL:http://localhost:8082}
