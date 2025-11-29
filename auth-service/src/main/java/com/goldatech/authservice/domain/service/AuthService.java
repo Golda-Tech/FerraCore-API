@@ -73,6 +73,8 @@ public class AuthService {
                 "User registered successfully."
         );
     }
+    
+
 
     /**
      * Authenticates a user and generates a JWT token upon successful login.

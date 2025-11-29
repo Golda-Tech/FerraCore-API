@@ -1,5 +1,6 @@
 package com.goldatech.authservice.security;
 
+import com.goldatech.authservice.domain.model.Subscription;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -73,6 +74,29 @@ public class JwtService {
                 .signWith(getSignInKey(), Jwts.SIG.HS256)
                 .compact();
     }
+
+
+    /**
+     * Generates a JWT token for a Subscription.
+     *
+     * @param subscription The subscription entity.
+     * @return The generated JWT token.
+     */
+    public String generateToken(Subscription subscription) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("username", subscription.getOrganizationName());
+        extraClaims.put("roles", "SUBSCRIBER");
+        extraClaims.put("userId", subscription.getId());
+
+        return Jwts.builder()
+                .claims(extraClaims)
+                .subject(subscription.getOrganizationName())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
 
     /**
      * Validates if the token is valid for the given user.

@@ -39,6 +39,8 @@ public class AuthController {
     }
 
 
+
+
     /**
      * Health check endpoint to verify the service is running.
      *
