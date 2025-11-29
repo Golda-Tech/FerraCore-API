@@ -40,6 +40,11 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
             //Mtn callback endpoint in the payment service
             ,"/api/v1/payments/mtn/callback/**"
+
+
+            //subscription initiation endpoint in the auth service
+            ,"/api/v1/subscriptions/initiate/**"
+
     );
 
     @Override
