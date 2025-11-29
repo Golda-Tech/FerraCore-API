@@ -1,7 +1,7 @@
 package com.goldatech.authservice.domain.model;
 
 public enum PlanType {
-    FREE,
-    BASIC,
-    PREMIUM
+    COLLECTIONS,
+    DISBURSEMENTS,
+    PREAPPROVALS
 }

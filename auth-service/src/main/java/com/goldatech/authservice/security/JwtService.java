@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.security.Key;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -92,7 +94,7 @@ public class JwtService {
                 .claims(extraClaims)
                 .subject(subscription.getOrganizationName())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration)) //30 minutes
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

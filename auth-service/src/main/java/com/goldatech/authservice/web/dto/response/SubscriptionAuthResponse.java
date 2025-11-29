@@ -4,12 +4,10 @@ import com.goldatech.authservice.domain.model.PlanType;
 import com.goldatech.authservice.domain.model.SubscriptionStatus;
 
 public record SubscriptionAuthResponse(
-        String token,
+        String access_token,
+        Integer expires_in,
         Long subscriptionId,
-        String organizationName,
-        PlanType planType,
-        SubscriptionStatus status,
-        String contactEmail,
+        Organization organization_info,
         String message
 ) {}
 
