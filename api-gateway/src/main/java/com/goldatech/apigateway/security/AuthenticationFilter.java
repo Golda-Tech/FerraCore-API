@@ -122,11 +122,27 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         org.springframework.core.io.buffer.DataBuffer buffer = response.bufferFactory().wrap(errorResponse.getBytes());
         return response.writeWith(Mono.just(buffer));
     }
+//
+//    private boolean isPublicEndpoint(String path) {
+//        return PUBLIC_ENDPOINTS.stream()
+//                .anyMatch(pattern -> pathMatcher.match(pattern, path));
+//    }
 
+
+    // Updated isPublicEndpoint with prefix-tolerant matching and debug logging
     private boolean isPublicEndpoint(String path) {
-        return PUBLIC_ENDPOINTS.stream()
-                .anyMatch(pattern -> pathMatcher.match(pattern, path));
+        for (String pattern : PUBLIC_ENDPOINTS) {
+            // direct match or allow any prefix before the declared pattern
+            boolean match = pathMatcher.match(pattern, path) || pathMatcher.match("/**" + pattern, path);
+            if (match) {
+                log.debug("Public endpoint matched: path='{}' pattern='{}'", path, pattern);
+                return true;
+            }
+        }
+        log.debug("No public endpoint match for path='{}' (checked {} patterns)", path, PUBLIC_ENDPOINTS.size());
+        return false;
     }
+
 
     @Override
     public int getOrder() {
