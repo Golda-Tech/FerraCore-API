@@ -46,7 +46,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             ,"/api/v1/subscriptions/initiate/**"
 
             //subscription authorization endpoint in the auth service
-            ,"/api/v1/subscriptions/access_token/**"
+            ,"/api/v1/subscriptions/token/**"
 
     );
 
