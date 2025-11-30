@@ -85,10 +85,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                             tokenInfo.getUsername(), tokenInfo.getUserId());
 
                     //Verify that X-Target-Environment is either "sandbox","poc" or "production" and matches the application environment
-                    if (!tokenInfo.getUsername().equalsIgnoreCase("sandbox") &&
-                            !tokenInfo.getUsername().equalsIgnoreCase("poc") &&
-                            !tokenInfo.getUsername().equalsIgnoreCase("production") &&
-                            !tokenInfo.getUsername().equalsIgnoreCase(applicationEnvironment)) {
+                    if (!tokenInfo.getUsername().equalsIgnoreCase(applicationEnvironment)) {
                         log.warn("Invalid X-Target-Environment value: {} for user: {}", tokenInfo.getUsername(), tokenInfo.getUserId());
                         return handleUnauthorized(exchange, "Invalid Target Environment");
                     }
