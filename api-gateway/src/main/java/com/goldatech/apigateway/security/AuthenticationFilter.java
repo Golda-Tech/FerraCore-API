@@ -2,6 +2,7 @@ package com.goldatech.apigateway.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -22,6 +23,9 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
     private final JwtService jwtService;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    @Value("${spring.application.environment:poc}")
+    private String applicationEnvironment;
 
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
             "/api/v1/auth/**",
@@ -80,16 +84,30 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                     log.info("Token validated successfully for user: {} with ID: {}",
                             tokenInfo.getUsername(), tokenInfo.getUserId());
 
+                    //Verify that X-Target-Environment is either "sandbox","poc" or "production" and matches the application environment
+                    if (!tokenInfo.getUsername().equalsIgnoreCase("sandbox") &&
+                            !tokenInfo.getUsername().equalsIgnoreCase("poc") &&
+                            !tokenInfo.getUsername().equalsIgnoreCase("production") &&
+                            !tokenInfo.getUsername().equalsIgnoreCase(applicationEnvironment)) {
+                        log.warn("Invalid X-Target-Environment value: {} for user: {}", tokenInfo.getUsername(), tokenInfo.getUserId());
+                        return handleUnauthorized(exchange, "Invalid Target Environment");
+                    }
+                    //Verify that X-Reference-Id is a valid UUID
+                    if (!tokenInfo.getUserId().matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
+                        log.warn("Invalid X-Reference-Id value: {} for user: {}", tokenInfo.getUserId(), tokenInfo.getUsername());
+                        return handleUnauthorized(exchange, "Invalid Reference ID format");
+                    }
+
                     // Add user info headers to the request
                     ServerHttpRequest mutatedRequest = request.mutate()
-                            .header("X-User-Email", tokenInfo.getUsername())
-                            .header("X-User-Roles", tokenInfo.getRoles())
-                            .header("X-User-Id", tokenInfo.getUserId())
+                            .header("X-Target-Environment", tokenInfo.getUsername())
+                            .header("X-Callback-Url", tokenInfo.getRoles())
+                            .header("X-Reference-Id", tokenInfo.getUserId())
                             .header("X-Gateway-Verified", "true")
                             .build();
 
                     // Debug: Log the headers being added
-                    log.info("Adding headers - X-User-Email: {}, X-User-Id: {}, X-User-Roles: {}",
+                    log.info("Adding headers - X-Reference-Id: {}, X-Reference-Id: {}, X-Target-Environment: {}",
                             tokenInfo.getUsername(), tokenInfo.getUserId(), tokenInfo.getRoles());
 
                     // Debug: Log all headers in the mutated request
