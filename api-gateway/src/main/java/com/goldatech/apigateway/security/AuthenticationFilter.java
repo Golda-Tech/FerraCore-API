@@ -84,11 +84,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                     log.info("Token validated successfully for user: {} with ID: {}",
                             tokenInfo.getUsername(), tokenInfo.getUserId());
 
-                    //Verify that X-Target-Environment is either "sandbox","poc" or "production" and matches the application environment
-                    if (!tokenInfo.getUsername().equalsIgnoreCase(applicationEnvironment)) {
-                        log.warn("Invalid X-Target-Environment value: {} for user: {}", tokenInfo.getUsername(), tokenInfo.getUserId());
-                        return handleUnauthorized(exchange, "Invalid Target Environment");
-                    }
+
                     //Verify that X-Reference-Id is a valid UUID
                     if (!tokenInfo.getUserId().matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
                         log.warn("Invalid X-Reference-Id value: {} for user: {}", tokenInfo.getUserId(), tokenInfo.getUsername());
