@@ -36,7 +36,7 @@ public class SubscriptionController {
         return service.getAllSubscriptions();
     }
 
-    @PostMapping("/authorize/access-token")
+    @PostMapping("/access-token")
     public SubscriptionAuthResponse authorizeAccessToken(@RequestHeader("Authorization") String authorization, @RequestBody SubscriptionLoginRequest request) {
         log.info("Received subscription auth request with key: {}", request.subscriptionKey());
         return service.authorize(request, authorization);
