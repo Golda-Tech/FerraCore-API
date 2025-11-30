@@ -4,6 +4,7 @@ server:
 spring:
   application:
     name: api-gateway
+    environment: poc
   main:
     web-application-type: reactive
   web:
