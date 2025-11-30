@@ -45,6 +45,9 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             //subscription initiation endpoint in the auth service
             ,"/api/v1/subscriptions/initiate/**"
 
+            //subscription authorization endpoint in the auth service
+            ,"/api/v1/subscriptions/authorize/access_token/**"
+
     );
 
     @Override
