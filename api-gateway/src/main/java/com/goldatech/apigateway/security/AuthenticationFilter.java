@@ -85,11 +85,6 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                             tokenInfo.getUsername(), tokenInfo.getUserId());
 
 
-                    //Verify that X-Reference-Id is a valid UUID
-                    if (!tokenInfo.getUserId().matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
-                        log.warn("Invalid X-Reference-Id value: {} for user: {}", tokenInfo.getUserId(), tokenInfo.getUsername());
-                        return handleUnauthorized(exchange, "Invalid Reference ID format");
-                    }
 
                     // Add user info headers to the request
                     ServerHttpRequest mutatedRequest = request.mutate()
