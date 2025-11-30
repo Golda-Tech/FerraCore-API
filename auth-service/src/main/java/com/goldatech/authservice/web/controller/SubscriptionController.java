@@ -8,6 +8,7 @@ import com.goldatech.authservice.web.dto.response.SubscriptionAuthResponse;
 import com.goldatech.authservice.web.dto.response.SubscriptionResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ public class SubscriptionController {
     }
 
     @PostMapping("/initiate")
-    public SubscriptionResponse create(@Valid  @RequestBody SubscriptionCreateRequest request) {
+    public SubscriptionResponse create(@Valid @RequestBody SubscriptionCreateRequest request) {
         log.info("Received request to create subscription for org: {}", request.organizationName());
         return service.createSubscription(request);
     }
@@ -35,8 +36,8 @@ public class SubscriptionController {
         return service.getAllSubscriptions();
     }
 
-    @PostMapping("/authorize/access_token")
-    public SubscriptionAuthResponse authenticate(@RequestBody SubscriptionLoginRequest request , @RequestHeader("Authorization") String authorization) {
+    @PostMapping("/authorize/access-token")
+    public SubscriptionAuthResponse authorizeAccessToken(@RequestHeader("Authorization") String authorization, @RequestBody SubscriptionLoginRequest request) {
         log.info("Received subscription auth request with key: {}", request.subscriptionKey());
         return service.authorize(request, authorization);
     }
