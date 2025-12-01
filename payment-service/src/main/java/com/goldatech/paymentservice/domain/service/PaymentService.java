@@ -29,10 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -56,16 +53,47 @@ public class PaymentService {
     @Value("${notification.otp.routing-key}")
     private String otpRoutingKey;
 
+    @Value("${spring.application.environment}")
+    private String environment;
+
 
     public enum Interval {
         DAILY, WEEKLY, MONTHLY
     }
 
     @Transactional
-    public PaymentResponse initiatePayment(PaymentRequest request, String userId, String email) {
+    public PaymentResponse initiatePayment(PaymentRequest request, String callbackUrl, String xRef,  String targetEnvironment) {
         log.info("Initiating payment request for provider: {}", request.provider());
         PaymentProvider provider = providerFactory.getProvider(request.provider());
-        PaymentTransaction transaction = provider.initiatePayment(request);
+
+        //verify if environment from header matches application environment
+        if (!this.environment.equalsIgnoreCase(targetEnvironment)) {
+            log.error("Target environment {} does not match application environment {}", targetEnvironment, this.environment);
+            throw new IllegalArgumentException("Target environment does not match application environment");
+        }
+
+        //verify if xRef is not null or empty
+        if (xRef == null || xRef.isEmpty()) {
+            log.error("X-Reference-Id header is missing or empty");
+            throw new IllegalArgumentException("X-Reference-Id header is required");
+        }
+
+        //verify if xRef is an actual UUID
+        try {
+            UUID.fromString(xRef);
+        } catch (IllegalArgumentException e) {
+            log.error("X-Reference-Id {} is not a valid UUID", xRef);
+            throw new IllegalArgumentException("X-Reference-Id must be a valid UUID");
+        }
+
+        //verify if callbackUrl is a valid URL and starts with http or https
+        if (callbackUrl == null || (!callbackUrl.startsWith("http://") && !callbackUrl.startsWith("https://"))) {
+            log.error("Callback URL {} is not valid", callbackUrl);
+            throw new IllegalArgumentException("Callback URL must be a valid URL starting with http:// or https://");
+        }
+
+
+        PaymentTransaction transaction = provider.initiatePayment(request, callbackUrl, xRef);
 
 
         //Publish event to RabbitMQ for asynchronous processing
@@ -78,8 +106,6 @@ public class PaymentService {
                 transaction.getCurrency(),
                 transaction.getStatus().toString(),
                 transaction.getMessage(),
-                userId,
-                email,
                 LocalDateTime.now()
         );
 

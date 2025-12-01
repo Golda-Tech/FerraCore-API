@@ -104,19 +104,19 @@ public class MtnMomoService {
      * Initiates a Request to Pay. Returns the X-Reference-Id used (either passed or generated).
      *
      * @param request     request payload (record)
-     * @param referenceId optional X-Reference-Id; if null a new UUID will be generated
+     * @param xReferenceId optional X-Reference-Id; if null a new UUID will be generated
      * @return the X-Reference-Id used for the Request To Pay
      */
-    public String requestToPay(RequestToPayRequest request, String referenceId) {
+    public String requestToPay(RequestToPayRequest request, String xReferenceId) {
         String url = mtnProps().getBaseUrl() + "/collection/v1_0/requesttopay";
-        String xRef = UUID.randomUUID().toString();
+//        String xRef = UUID.randomUUID().toString();
         log.info("RequestToPay payload - request params={}", request);
 
         try {
             String token = getStoredToken("COLLECTION");
             HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
             headers.set("X-Callback-Url", mtnProps().getCallBackUrl());
-            headers.set("X-Reference-Id", xRef);
+            headers.set("X-Reference-Id", xReferenceId);
 
             HttpEntity<RequestToPayRequest> entity = new HttpEntity<>(request, headers);
 
@@ -127,15 +127,15 @@ public class MtnMomoService {
                 throw new PaymentGatewayException("Unexpected status from requestToPay: " + response.getStatusCode());
             }
 
-            log.info("RequestToPay initiated - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
-            return xRef;
+            log.info("RequestToPay initiated - X-Reference-Id={}, status={}", xReferenceId, response.getStatusCode());
+            return xReferenceId;
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            log.error("requestToPay failed for reference {}: status={}, body={}", xRef, e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("requestToPay failed for reference {}: status={}, body={}", xReferenceId, e.getStatusCode(), e.getResponseBodyAsString());
             boolean isFatal = e.getStatusCode().is4xxClientError();
             throw new PaymentGatewayException("requestToPay failed: " + e.getResponseBodyAsString(), e, isFatal);
         } catch (Exception e) {
-            log.error("Unexpected error in requestToPay for {}: {}", xRef, e.getMessage(), e);
+            log.error("Unexpected error in requestToPay for {}: {}", xReferenceId, e.getMessage(), e);
             throw new PaymentGatewayException("Unexpected error in requestToPay", e);
         }
     }

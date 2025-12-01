@@ -35,7 +35,7 @@ public class MtnPaymentProvider implements PaymentProvider{
     private final MtnMomoService mtnMomoService;
 
     @Override
-    public PaymentTransaction initiatePayment(PaymentRequest request) {
+    public PaymentTransaction initiatePayment(PaymentRequest request, String callbackUrl, String xReferenceId) {
         log.info("Initiating payment with MTN for mobile number: {}", request.mobileNumber());
         // In a real scenario, this is where you would call the MTN API.
         //Call the MTN Momo service to initiate payment
@@ -65,7 +65,7 @@ public class MtnPaymentProvider implements PaymentProvider{
                 request.payeeNote()
         );
 
-        String xRef = mtnMomoService.requestToPay(mtnRequest, referenceId);
+        String xRef = mtnMomoService.requestToPay(mtnRequest, xReferenceId);
 
 
         // For now, we'll simulate a successful transaction.

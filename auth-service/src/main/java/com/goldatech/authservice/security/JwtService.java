@@ -87,7 +87,7 @@ public class JwtService {
     public String generateToken(Subscription subscription) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("username", subscription.getOrganizationName());
-        extraClaims.put("userId", subscription.getSubscriptionKey());
+        extraClaims.put("userId", subscription.getId());
         extraClaims.put("roles", "SUBSCRIBER");
 
         return Jwts.builder()

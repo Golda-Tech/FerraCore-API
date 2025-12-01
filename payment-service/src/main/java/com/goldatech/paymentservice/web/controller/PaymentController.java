@@ -33,14 +33,14 @@ public class PaymentController {
 
     @PostMapping
     public ResponseEntity<Object> initiatePayment(@Valid @RequestBody PaymentRequest request,
-                                                           @RequestHeader("X-User-Email") String email,
-                                                           @RequestHeader("X-User-Id") String userId) {
+                                                  @RequestHeader("X-Callback-Url") String callbackUrl,
+                                                   @RequestHeader("X-Reference-Id") String referenceId,
+                                                  @RequestHeader("X-Target-Environment") String env) {
         log.info("Received payment initiation request for provider: {}", request.provider());
-        log.info("Request initiated by user: {} with email: {}", userId, email);
 
-        try{
-        PaymentResponse response = paymentService.initiatePayment(request, userId, email);
-        return ResponseEntity.ok(response);
+        try {
+            PaymentResponse response = paymentService.initiatePayment(request, callbackUrl, referenceId, env);
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             log.error("Bad request while initiating payment: {}", e.getMessage(), e);
             Map<String, Object> body = new HashMap<>();
@@ -52,7 +52,7 @@ public class PaymentController {
                     .map(StackTraceElement::toString)
                     .collect(Collectors.joining("\n")));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("Unexpected error while initiating payment: {}", e.getMessage(), e);
             Map<String, Object> body = new HashMap<>();
             body.put("error", "Internal Server Error");
@@ -162,9 +162,6 @@ public class PaymentController {
         paymentService.processMtnCallback(mtnCallBackRequest);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Callback processed successfully");
     }
-
-
-
 
 
 }

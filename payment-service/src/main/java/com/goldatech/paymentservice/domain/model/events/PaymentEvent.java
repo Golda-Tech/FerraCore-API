@@ -16,7 +16,5 @@ public record PaymentEvent(
         String currency,
         String status,
         String message,
-        String userId,
-        String email,
         LocalDateTime timestamp
 ) {}
