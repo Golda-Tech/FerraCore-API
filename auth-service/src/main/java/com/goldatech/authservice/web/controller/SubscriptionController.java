@@ -7,6 +7,7 @@ import com.goldatech.authservice.web.dto.request.SubscriptionUpdateRequest;
 import com.goldatech.authservice.web.dto.response.SubscriptionAuthResponse;
 import com.goldatech.authservice.web.dto.response.SubscriptionResponse;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/v1/subscriptions")
 public class SubscriptionController {
+
+
 
     private final SubscriptionService service;
 
@@ -36,7 +39,7 @@ public class SubscriptionController {
         return service.getAllSubscriptions();
     }
 
-    @PostMapping("/tokens")
+    @PostMapping("/access-token")
     public SubscriptionAuthResponse authorizeAccessToken(@RequestHeader("Authorization") String authorization, @RequestBody SubscriptionLoginRequest request) {
         log.info("Received subscription auth request with key: {}", request.subscriptionKey());
         return service.authorize(request, authorization);

@@ -2,7 +2,6 @@ package com.goldatech.apigateway.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -23,9 +22,6 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
     private final JwtService jwtService;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
-
-    @Value("${spring.application.environment:poc}")
-    private String applicationEnvironment;
 
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
             "/api/v1/auth/**",
@@ -50,7 +46,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             ,"/api/v1/subscriptions/initiate/**"
 
             //subscription authorization endpoint in the auth service
-            ,"/api/v1/subscriptions/tokens/**"
+            ,"/api/v1/subscriptions/access-token/**"
 
     );
 
@@ -84,18 +80,16 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                     log.info("Token validated successfully for user: {} with ID: {}",
                             tokenInfo.getUsername(), tokenInfo.getUserId());
 
-
-
                     // Add user info headers to the request
                     ServerHttpRequest mutatedRequest = request.mutate()
-                            .header("X-Target-Environment", tokenInfo.getUsername())
-                            .header("X-Callback-Url", tokenInfo.getRoles())
-                            .header("X-Reference-Id", tokenInfo.getUserId())
+                            .header("X-User-Email", tokenInfo.getUsername())
+                            .header("X-User-Roles", tokenInfo.getRoles())
+                            .header("X-User-Id", tokenInfo.getUserId())
                             .header("X-Gateway-Verified", "true")
                             .build();
 
                     // Debug: Log the headers being added
-                    log.info("Adding headers - X-Reference-Id: {}, X-Reference-Id: {}, X-Target-Environment: {}",
+                    log.info("Adding headers - X-User-Email: {}, X-User-Id: {}, X-User-Roles: {}",
                             tokenInfo.getUsername(), tokenInfo.getUserId(), tokenInfo.getRoles());
 
                     // Debug: Log all headers in the mutated request

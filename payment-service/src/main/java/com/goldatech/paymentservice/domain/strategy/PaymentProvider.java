@@ -13,7 +13,7 @@ public interface PaymentProvider {
      * @param request The payment request details.
      * @return The updated PaymentTransaction model after initiating.
      */
-    PaymentTransaction initiatePayment(PaymentRequest request);
+    PaymentTransaction initiatePayment(PaymentRequest request, String callbackUrl, String referenceId);
 
     /**
      * Checks the status of a payment transaction with a third-party provider.
