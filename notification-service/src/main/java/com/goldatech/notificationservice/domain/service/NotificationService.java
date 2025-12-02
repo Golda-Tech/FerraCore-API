@@ -102,7 +102,57 @@ public class NotificationService {
             emailChannel.sendNotification(new NotificationEvent(
                     "PASSWORD_RESET", "EMAIL", event.email(), event.userId(), "Password Reset", messageBody, null
             ));
+        } else if ("ORG_REGISTERED".equalsIgnoreCase(event.eventAction())) {
+            NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
+            //Message must be a well structured html content with organization details and link to login and change paassword and set up profile
+            String messageBody = String.format("""
+                            <html>
+                              <body style="font-family: Arial, sans-serif; line-height:1.6; color:#333;">
+                                <h2 style="color:#2c3e50;">Welcome to FerraCore, %s!</h2>
+                                <p>Congratulations! Your organization <strong>%s</strong> has been successfully registered.</p>
+                            
+                                <h3>Organization Details</h3>
+                                <ul>
+                                  <li><strong>Organization:</strong> %s</li>
+                                  <li><strong>Plan:</strong> %s</li>
+                                  <li><strong>Contact Email:</strong> %s</li>
+                                </ul>
+                            
+                                <p>We’ve created a temporary password for your account. Please use the link below to log in, 
+                                change your password, and complete your profile setup:</p>
+                            
+                                <p style="margin:20px 0;">
+                                  <a href="https://app.ferracore.tech/login" 
+                                     style="background-color:#3498db; color:#fff; padding:12px 20px; text-decoration:none; border-radius:5px;">
+                                     Log in & Change Password
+                                  </a>
+                                </p>
+                            
+                                <p>Once logged in, you can:</p>
+                                <ul>
+                                  <li>Update your organization profile</li>
+                                  <li>Generate API keys</li>
+                                  <li>Manage subscriptions and users</li>
+                                </ul>
+                            
+                                <p>If you have any questions, feel free to reach out to our support team.</p>
+                            
+                                <p style="color:#888; font-size:12px;">This is an automated message. Please do not reply directly.</p>
+                              </body>
+                            </html>
+                            """,
+                    event.username(),
+                    event.username(),
+                    event.username(),
+                    event.userId(),
+                    event.email());
+
+
+            emailChannel.sendNotification(new NotificationEvent(
+                    "ORG_REGISTERED", "EMAIL", event.email(), event.userId(), "Organization Registered", messageBody, null
+            ));
         }
+
     }
 
 
@@ -141,7 +191,7 @@ public class NotificationService {
                 smsChannel.sendNotification(new NotificationEvent(
                         "LOGIN_OTP", "SMS", event.mobileNumber(), event.userId(), "Login OTP", messageBody, null
                 ));
-            } else if( event.channel().equals("EMAIL")) {
+            } else if (event.channel().equals("EMAIL")) {
                 NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
                 String emailBody = String.format("Your login OTP is: %s. It is valid for 10 minutes.",
                         event.otpCode());

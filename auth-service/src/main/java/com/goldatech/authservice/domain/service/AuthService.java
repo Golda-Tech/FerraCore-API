@@ -114,6 +114,8 @@ public class AuthService {
         var jwtToken = jwtService.generateToken(extraClaims, user);
         // always true for new registrations
 
+        //Send registration notification
+
         return new RegistrationResponse(
                 jwtToken,
                 request.email(),
