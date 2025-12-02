@@ -23,10 +23,10 @@ public class Subscription {
     @Column(name = "organization_name", nullable = false)
     private String organizationName;
 
-    @Column(name = "subscription_key", nullable = false, unique = true)
+    @Column(name = "subscription_key", unique = true)
     private String subscriptionKey;
 
-    @Column(name = "subscription_secret", nullable = false)
+    @Column(name = "subscription_secret", unique = true)
     private String subscriptionSecret;
 
     @Column(name = "plan_type")

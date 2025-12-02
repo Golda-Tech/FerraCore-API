@@ -67,13 +67,16 @@ public class AuthService {
         }
 
 
+        //Create temporary password for user
+        String tempPassword = generateRandomPassword(10);
+
 
         // Build a new User object from the registration request.
         var user = User.builder()
                 .firstname(request.firstname())
                 .lastname(request.lastname())
                 .email(request.email())
-                .password(passwordEncoder.encode(request.password()))
+                .password(passwordEncoder.encode(tempPassword)) // Encode the password
                 .role(Role.USER) // Assign a default role
                 .build();
 
@@ -101,7 +104,7 @@ public class AuthService {
                 user.getLastname(),
                 user.getEmail(),
                 user.getRole(),
-                "User registered successfully."
+                "Organization registered successfully. Temporary password sent to email with login instructions."
         );
     }
     
@@ -276,5 +279,13 @@ public class AuthService {
     private String otpGenerator() {
         int otp = ThreadLocalRandom.current().nextInt(100000, 999999); // 6 digits
         return String.valueOf(otp);
+    }
+
+    private String generateRandomPassword(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*!";
+        return ThreadLocalRandom.current()
+                .ints(length, 0, chars.length())
+                .mapToObj(i -> String.valueOf(chars.charAt(i)))
+                .collect(Collectors.joining());
     }
 }
