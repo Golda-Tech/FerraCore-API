@@ -1,16 +1,16 @@
 package com.goldatech.authservice.domain.service;
 
 import com.goldatech.authservice.domain.exception.UserAlreadyExistsException;
-import com.goldatech.authservice.domain.model.Otp;
-import com.goldatech.authservice.domain.model.OtpEvent;
-import com.goldatech.authservice.domain.model.Role;
-import com.goldatech.authservice.domain.model.User;
+import com.goldatech.authservice.domain.model.*;
 import com.goldatech.authservice.domain.repository.OtpRepository;
 import com.goldatech.authservice.domain.repository.UserRepository;
 import com.goldatech.authservice.security.JwtService;
 import com.goldatech.authservice.web.dto.request.LoginRequest;
 import com.goldatech.authservice.web.dto.request.RegisterRequest;
+import com.goldatech.authservice.web.dto.request.SubscriptionCreateRequest;
 import com.goldatech.authservice.web.dto.response.AuthResponse;
+import com.goldatech.authservice.web.dto.response.RegistrationResponse;
+import com.goldatech.authservice.web.dto.response.SubscriptionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +38,7 @@ public class AuthService {
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final SubscriptionService subscriptionService;
     private final AuthenticationManager authenticationManager;
     private final OtpRepository otpRepository;
     private final RabbitTemplate rabbitTemplate;
@@ -60,12 +61,23 @@ public class AuthService {
      * @throws UserAlreadyExistsException if a user with the given email already exists.
      */
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public RegistrationResponse register(RegisterRequest request) {
         // Check if user already exists
         if (repository.existsByEmail(request.email())) {
             throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
         }
 
+        // Build a new Subscription object for the user.
+        var subscription = new SubscriptionCreateRequest(
+                request.organizationName(),
+                request.planType(),
+                request.email(),
+                "",
+                ""
+        );
+
+
+        SubscriptionResponse subscriptionResponse = subscriptionService.createSubscription(subscription);
 
         //Create temporary password for user
         String tempPassword = generateRandomPassword(10);
@@ -80,8 +92,11 @@ public class AuthService {
                 .role(Role.USER) // Assign a default role
                 .build();
 
+
+
         try {
             repository.save(user);
+            //generate subscription key and secret
         } catch (Exception e) {
             // Handle potential database constraint violations (race condition fallback)
             if (e.getMessage().contains("email") || e.getMessage().contains("unique")) {
@@ -97,13 +112,13 @@ public class AuthService {
 
         // Generate a JWT token for the new user.
         var jwtToken = jwtService.generateToken(extraClaims, user);
-        return new AuthResponse(
+        // always true for new registrations
+
+        return new RegistrationResponse(
                 jwtToken,
-                user.getId(),
-                user.getFirstname(),
-                user.getLastname(),
-                user.getEmail(),
-                user.getRole(),
+                request.email(),
+                true, // always true for new registrations
+                subscriptionResponse,
                 "Organization registered successfully. Temporary password sent to email with login instructions."
         );
     }

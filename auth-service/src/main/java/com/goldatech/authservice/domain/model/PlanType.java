@@ -3,5 +3,6 @@ package com.goldatech.authservice.domain.model;
 public enum PlanType {
     COLLECTIONS,
     DISBURSEMENTS,
-    PREAPPROVALS
+    PREAPPROVALS,
+    ALL_INCLUSIVE
 }

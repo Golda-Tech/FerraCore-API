@@ -1,5 +1,6 @@
 package com.goldatech.authservice.web.dto.request;
 
+import com.goldatech.authservice.domain.model.PlanType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -16,5 +17,6 @@ public record RegisterRequest(
         @NotBlank  String firstname,
         @NotBlank String lastname,
         @Email String email,
-        @NotBlank String organizationName
+        @NotBlank String organizationName,
+        PlanType planType
 ) {}

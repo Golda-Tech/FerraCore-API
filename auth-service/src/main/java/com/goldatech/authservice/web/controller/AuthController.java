@@ -4,6 +4,7 @@ import com.goldatech.authservice.domain.service.AuthService;
 import com.goldatech.authservice.web.dto.request.LoginRequest;
 import com.goldatech.authservice.web.dto.request.RegisterRequest;
 import com.goldatech.authservice.web.dto.response.AuthResponse;
+import com.goldatech.authservice.web.dto.response.RegistrationResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class AuthController {
      * @return a ResponseEntity with an AuthResponse containing a JWT token.
      */
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<RegistrationResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
