@@ -7,9 +7,11 @@ import com.goldatech.authservice.domain.repository.UserRepository;
 import com.goldatech.authservice.security.JwtService;
 import com.goldatech.authservice.web.dto.request.LoginRequest;
 import com.goldatech.authservice.web.dto.request.RegisterRequest;
+import com.goldatech.authservice.web.dto.request.ResetPasswordRequest;
 import com.goldatech.authservice.web.dto.request.SubscriptionCreateRequest;
 import com.goldatech.authservice.web.dto.response.AuthResponse;
 import com.goldatech.authservice.web.dto.response.RegistrationResponse;
+import com.goldatech.authservice.web.dto.response.ResetPasswordResponse;
 import com.goldatech.authservice.web.dto.response.SubscriptionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -37,7 +39,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final SubscriptionService subscriptionService;
@@ -67,7 +69,7 @@ public class AuthService {
      */
     @Transactional
     public RegistrationResponse register(RegisterRequest request) {
-        if (repository.existsByEmail(request.email())) {
+        if (userRepository.existsByEmail(request.email())) {
             throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
         }
 
@@ -90,7 +92,7 @@ public class AuthService {
                 .role(Role.USER)
                 .build();
 
-        repository.save(user);
+        userRepository.save(user);
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("userId", user.getId().toString());
@@ -144,7 +146,7 @@ public class AuthService {
         );
 
         // Find the user by email from the repository.
-        var user = repository.findByEmail(request.email())
+        var user = userRepository.findByEmail(request.email())
                 .orElseThrow(); // Throws an exception if the user is not found.
 
         // Create extra claims
@@ -176,7 +178,7 @@ public class AuthService {
 
     public boolean loginWithOtp(String destination, String password, String channel, String type) {
         //First check if user exists with the email
-        Optional<User> userOpt = repository.findByEmail(destination);
+        Optional<User> userOpt = userRepository.findByEmail(destination);
         if (userOpt.isEmpty()) {
             throw new IllegalArgumentException("User not found with email: " + destination);
         }
@@ -263,7 +265,7 @@ public class AuthService {
 //                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + identifier));
 
         //allow login from any user so that new users can be created on the fly
-        var user = repository.findByEmail(identifier)
+        var user = userRepository.findByEmail(identifier)
                 .orElseGet(() -> {
                     User newUser = User.builder()
                             //Extract name from email prefix or set default names
@@ -273,7 +275,7 @@ public class AuthService {
                             .password(passwordEncoder.encode(otpGenerator())) // Random password
                             .role(Role.USER) // Default role
                             .build();
-                    return repository.save(newUser);
+                    return userRepository.save(newUser);
                 });
 
         // Create extra claims
@@ -295,6 +297,22 @@ public class AuthService {
         );
 
     }
+
+    public ResetPasswordResponse resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(request.tempPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid temporary password");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        user.setFirstTimeUser(false);
+        userRepository.save(user);
+
+        return new ResetPasswordResponse("Password reset successfully.");
+    }
+
 
     private String otpGenerator() {
         int otp = ThreadLocalRandom.current().nextInt(100000, 999999); // 6 digits

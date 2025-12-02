@@ -3,8 +3,10 @@ package com.goldatech.authservice.web.controller;
 import com.goldatech.authservice.domain.service.AuthService;
 import com.goldatech.authservice.web.dto.request.LoginRequest;
 import com.goldatech.authservice.web.dto.request.RegisterRequest;
+import com.goldatech.authservice.web.dto.request.ResetPasswordRequest;
 import com.goldatech.authservice.web.dto.response.AuthResponse;
 import com.goldatech.authservice.web.dto.response.RegistrationResponse;
+import com.goldatech.authservice.web.dto.response.ResetPasswordResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -77,5 +79,13 @@ public class AuthController {
     public ResponseEntity<String> sendLoginOtp(@RequestParam String destination,@RequestParam String password, @RequestParam String channel, @RequestParam String type) {
         authService.loginWithOtp(destination, password, channel, type);
         return ResponseEntity.ok("Login OTP sent successfully.");
-        }
+    }
+
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ResetPasswordResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        ResetPasswordResponse response =  authService.resetPassword(request);
+        return ResponseEntity.ok(response);
+    }
+
 }
