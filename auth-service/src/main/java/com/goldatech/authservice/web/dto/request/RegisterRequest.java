@@ -1,6 +1,7 @@
 package com.goldatech.authservice.web.dto.request;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * Data Transfer Object (DTO) for registration requests.
@@ -9,11 +10,11 @@ import jakarta.validation.constraints.Email;
  * @param firstname the new user's first name
  * @param lastname the new user's last name
  * @param email the new user's email
- * @param password the new user's password
+ * @param organizationName the new user's password
  */
 public record RegisterRequest(
-        String firstname,
-        String lastname,
+        @NotBlank  String firstname,
+        @NotBlank String lastname,
         @Email String email,
-        String password
+        @NotBlank String organizationName
 ) {}
