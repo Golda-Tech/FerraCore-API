@@ -141,10 +141,10 @@ public class NotificationService {
                               </body>
                             </html>
                             """,
-                    event.username(),
-                    event.username(),
-                    event.username(),
-                    event.userId(),
+                    event.username(), //Organization Name
+                    event.username(), //Organization Name
+                    event.username(), //Organization Name
+                    event.userId(), //Plan
                     event.email());
 
 

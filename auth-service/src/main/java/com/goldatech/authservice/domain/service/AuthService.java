@@ -19,6 +19,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -53,6 +55,9 @@ public class AuthService {
     @Value("${notification.otp.routing-key}")
     private String otpRoutingKey;
 
+    @Value("auth-events")
+    private String authRoutingKey;
+
     /**
      * Registers a new user.
      *
@@ -62,12 +67,10 @@ public class AuthService {
      */
     @Transactional
     public RegistrationResponse register(RegisterRequest request) {
-        // Check if user already exists
         if (repository.existsByEmail(request.email())) {
             throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
         }
 
-        // Build a new Subscription object for the user.
         var subscription = new SubscriptionCreateRequest(
                 request.organizationName(),
                 request.planType(),
@@ -75,56 +78,54 @@ public class AuthService {
                 "",
                 ""
         );
-
-
         SubscriptionResponse subscriptionResponse = subscriptionService.createSubscription(subscription);
 
-        //Create temporary password for user
         String tempPassword = generateRandomPassword(10);
 
-
-        // Build a new User object from the registration request.
         var user = User.builder()
                 .firstname(request.firstname())
                 .lastname(request.lastname())
                 .email(request.email())
-                .password(passwordEncoder.encode(tempPassword)) // Encode the password
-                .role(Role.USER) // Assign a default role
+                .password(passwordEncoder.encode(tempPassword))
+                .role(Role.USER)
                 .build();
 
+        repository.save(user);
 
-
-        try {
-            repository.save(user);
-            //generate subscription key and secret
-        } catch (Exception e) {
-            // Handle potential database constraint violations (race condition fallback)
-            if (e.getMessage().contains("email") || e.getMessage().contains("unique")) {
-                throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
-            }
-            throw e;
-        }
-
-        // Create extra claims
         Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("userId", user.getId().toString()); // or however you get user ID
+        extraClaims.put("userId", user.getId().toString());
         extraClaims.put("role", user.getRole());
 
-        // Generate a JWT token for the new user.
         var jwtToken = jwtService.generateToken(extraClaims, user);
-        // always true for new registrations
 
-        //Send registration notification
+        // Build event but don’t send yet
+        AuthEvent event = new AuthEvent(
+                request.organizationName(),
+                user.getEmail(),
+                "ORG_REGISTERED",
+                "Organization registered successfully. Temporary password sent to email with login instructions.",
+                subscription.planType().toString(),
+                LocalDateTime.now()
+        );
+
+        // Register callback to send after commit
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+            @Override
+            public void afterCommit() {
+                rabbitTemplate.convertAndSend(notificationExchange, authRoutingKey, event);
+            }
+        });
 
         return new RegistrationResponse(
                 jwtToken,
                 request.email(),
-                true, // always true for new registrations
+                true,
                 subscriptionResponse,
                 "Organization registered successfully. Temporary password sent to email with login instructions."
         );
     }
-    
+
+
 
 
     /**
