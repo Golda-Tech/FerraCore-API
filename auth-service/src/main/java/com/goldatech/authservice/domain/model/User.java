@@ -32,6 +32,8 @@ public class User implements UserDetails {
     private String lastname;
     private String email;
     private String password;
+    @Column(name = "first_time_user", nullable = false)
+    private boolean firstTimeUser;
 
     @Enumerated(EnumType.STRING)
     private Role role;

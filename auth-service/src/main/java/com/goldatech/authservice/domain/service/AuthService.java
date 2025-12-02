@@ -66,6 +66,8 @@ public class AuthService {
             throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
         }
 
+
+
         // Build a new User object from the registration request.
         var user = User.builder()
                 .firstname(request.firstname())
