@@ -33,7 +33,7 @@ public class User implements UserDetails {
     private String email;
     private String password;
     @Column(name = "first_time_user", nullable = false)
-    private boolean firstTimeUser;
+    private boolean firstTimeUser = true;
 
     @Enumerated(EnumType.STRING)
     private Role role;

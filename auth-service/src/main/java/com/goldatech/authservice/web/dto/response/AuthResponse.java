@@ -22,5 +22,6 @@ public record AuthResponse(
         String lastname,
         String email,
         Role role,
-        String message
+        String message,
+        boolean passwordResetRequired
 ) {}

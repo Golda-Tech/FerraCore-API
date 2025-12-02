@@ -161,7 +161,8 @@ public class AuthService {
                 user.getLastname(),
                 user.getEmail(),
                 user.getRole(),
-                "User logged in successfully."
+                "User logged in successfully.",
+                user.isFirstTimeUser()
         );
     }
 
@@ -289,7 +290,8 @@ public class AuthService {
                 user.getLastname(),
                 user.getEmail(),
                 user.getRole(),
-                "OTP verified and user logged in successfully."
+                "OTP verified and user logged in successfully.",
+                user.isFirstTimeUser()
         );
 
     }
