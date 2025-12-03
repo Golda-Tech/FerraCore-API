@@ -77,7 +77,7 @@ public class AuthService {
                 request.organizationName(),
                 request.planType(),
                 request.email(),
-                "",
+                request.mobileNumber(),
                 ""
         );
         SubscriptionResponse subscriptionResponse = subscriptionService.createSubscription(subscription);

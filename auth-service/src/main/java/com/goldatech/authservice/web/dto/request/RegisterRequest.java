@@ -18,5 +18,6 @@ public record RegisterRequest(
         @NotBlank String lastname,
         @Email String email,
         @NotBlank String organizationName,
+        @NotBlank String mobileNumber,
         PlanType planType
 ) {}
