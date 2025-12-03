@@ -105,7 +105,7 @@ public class AuthService {
                 request.organizationName(),
                 user.getEmail(),
                 "ORG_REGISTERED",
-                "Organization registered successfully. Temporary password sent to email with login instructions.",
+                tempPassword,
                 subscription.planType().toString(),
                 LocalDateTime.now()
         );

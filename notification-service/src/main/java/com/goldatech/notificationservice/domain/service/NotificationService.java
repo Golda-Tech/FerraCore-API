@@ -118,7 +118,7 @@ public class NotificationService {
                                   <li><strong>Contact Email:</strong> %s</li>
                                 </ul>
                             
-                                <p>We’ve created a temporary password for your account. Please use the link below to log in, 
+                                <p>We’ve created a temporary password for your account which is <strong> %s</strong>. Please use the link below to log in, 
                                 change your password, and complete your profile setup:</p>
                             
                                 <p style="margin:20px 0;">
@@ -145,7 +145,8 @@ public class NotificationService {
                     event.username(), //Organization Name
                     event.username(), //Organization Name
                     event.userId(), //Plan
-                    event.email());
+                    event.email(),
+                    event.message());
 
 
             emailChannel.sendNotification(new NotificationEvent(
