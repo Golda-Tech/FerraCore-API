@@ -313,6 +313,18 @@ public class AuthService {
         return new ResetPasswordResponse("Password reset successfully.");
     }
 
+    public ResetPasswordResponse forgotPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        user.setFirstTimeUser(false);
+        userRepository.save(user);
+
+        return new ResetPasswordResponse("Password changed successfully.");
+    }
+
 
     private String otpGenerator() {
         int otp = ThreadLocalRandom.current().nextInt(100000, 999999); // 6 digits

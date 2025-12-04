@@ -88,4 +88,10 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ResetPasswordResponse> forgotPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        ResetPasswordResponse response =  authService.forgotPassword(request);
+        return ResponseEntity.ok(response);
+    }
+
 }
