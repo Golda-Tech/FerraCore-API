@@ -32,6 +32,7 @@ public class User implements UserDetails {
     private String lastname;
     private String email;
     private String password;
+    @Builder.Default
     @Column(name = "first_time_user", nullable = false)
     private boolean firstTimeUser = true;
 
