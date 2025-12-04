@@ -90,6 +90,7 @@ public class AuthService {
                 .email(request.email())
                 .password(passwordEncoder.encode(tempPassword))
                 .role(Role.USER)
+                .firstTimeUser(true)
                 .build();
 
         userRepository.save(user);
