@@ -277,6 +277,8 @@ public class AuthService {
                             .email(identifier)
                             .password(passwordEncoder.encode(otpGenerator())) // Random password
                             .role(Role.USER) // Default role
+                            .passwordResetRequired(false)
+                            .firstTimeUser(true)
                             .build();
                     return userRepository.save(newUser);
                 });
