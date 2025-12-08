@@ -169,8 +169,8 @@ public class AuthService {
                 user.getEmail(),
                 user.getRole(),
                 "User logged in successfully.",
-                user.isFirstTimeUser(),
-                user.isPasswordResetRequired()
+                user.isPasswordResetRequired(),
+                user.isFirstTimeUser()
         );
     }
 
@@ -304,8 +304,8 @@ public class AuthService {
                 user.getEmail(),
                 user.getRole(),
                 "OTP verified and user logged in successfully.",
-                user.isFirstTimeUser(),
-                user.isPasswordResetRequired()
+                user.isPasswordResetRequired(),
+                user.isFirstTimeUser()
         );
 
     }
