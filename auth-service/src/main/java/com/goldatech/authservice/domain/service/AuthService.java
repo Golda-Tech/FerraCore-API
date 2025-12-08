@@ -91,6 +91,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(tempPassword))
                 .role(Role.USER)
                 .firstTimeUser(true)
+                .passwordResetRequired(true)
                 .build();
 
         userRepository.save(user);
@@ -165,7 +166,8 @@ public class AuthService {
                 user.getEmail(),
                 user.getRole(),
                 "User logged in successfully.",
-                user.isFirstTimeUser()
+                user.isFirstTimeUser(),
+                user.isPasswordResetRequired()
         );
     }
 
@@ -294,7 +296,8 @@ public class AuthService {
                 user.getEmail(),
                 user.getRole(),
                 "OTP verified and user logged in successfully.",
-                user.isFirstTimeUser()
+                user.isFirstTimeUser(),
+                user.isPasswordResetRequired()
         );
 
     }
@@ -308,7 +311,7 @@ public class AuthService {
         }
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
-        user.setFirstTimeUser(false);
+        user.setPasswordResetRequired(false);
         userRepository.save(user);
 
         return new ResetPasswordResponse("Password reset successfully.");

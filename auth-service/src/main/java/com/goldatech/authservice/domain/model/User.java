@@ -35,6 +35,8 @@ public class User implements UserDetails {
     @Builder.Default
     @Column(name = "first_time_user", nullable = false)
     private boolean firstTimeUser = true;
+    @Column(name = "password_reset_required", nullable = false)
+    private boolean passwordResetRequired = true;
 
     @Enumerated(EnumType.STRING)
     private Role role;
