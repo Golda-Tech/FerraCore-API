@@ -14,6 +14,7 @@ import com.goldatech.authservice.web.dto.response.RegistrationResponse;
 import com.goldatech.authservice.web.dto.response.ResetPasswordResponse;
 import com.goldatech.authservice.web.dto.response.SubscriptionResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
  * Service class containing the business logic for authentication.
  * Handles user registration and login.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -290,6 +292,9 @@ public class AuthService {
 
         // Generate a JWT token for the user
         var jwtToken = jwtService.generateToken(extraClaims, user);
+
+        log.info("User {} details.", user);
+
         return new AuthResponse(
                 jwtToken,
                 user.getId(),
