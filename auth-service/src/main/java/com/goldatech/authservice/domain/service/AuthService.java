@@ -323,7 +323,8 @@ public class AuthService {
 
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
-        user.setFirstTimeUser(false);
+        user.setFirstTimeUser(true);
+        user.setPasswordResetRequired(false);
         userRepository.save(user);
 
         return new ResetPasswordResponse("Password changed successfully.");
