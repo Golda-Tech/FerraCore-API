@@ -23,5 +23,6 @@ public record AuthResponse(
         String email,
         Role role,
         String message,
-        boolean passwordResetRequired
+        boolean passwordResetRequired,
+        boolean firstTimeUser
 ) {}
