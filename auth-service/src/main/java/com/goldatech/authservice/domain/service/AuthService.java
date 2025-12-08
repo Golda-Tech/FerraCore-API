@@ -160,6 +160,7 @@ public class AuthService {
 
         // Generate a new JWT token for the authenticated user.
         var jwtToken = jwtService.generateToken(extraClaims, user);
+        log.info("First timer {}, password required {} logged in successfully.", user.isFirstTimeUser(), user.isPasswordResetRequired());
         return new AuthResponse(
                 jwtToken,
                 user.getId(),
@@ -293,7 +294,7 @@ public class AuthService {
         // Generate a JWT token for the user
         var jwtToken = jwtService.generateToken(extraClaims, user);
 
-        log.info("User {} details.", user);
+        log.info("First timer {}, password required {} .Verify Otp", user.isFirstTimeUser(), user.isPasswordResetRequired());
 
         return new AuthResponse(
                 jwtToken,
