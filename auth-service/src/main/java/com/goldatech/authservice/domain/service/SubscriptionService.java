@@ -8,6 +8,7 @@ import com.goldatech.authservice.security.JwtService;
 import com.goldatech.authservice.web.dto.request.SubscriptionCreateRequest;
 import com.goldatech.authservice.web.dto.request.SubscriptionLoginRequest;
 import com.goldatech.authservice.web.dto.request.SubscriptionUpdateRequest;
+import com.goldatech.authservice.web.dto.response.ApiCredentialsResponse;
 import com.goldatech.authservice.web.dto.response.Organization;
 import com.goldatech.authservice.web.dto.response.SubscriptionAuthResponse;
 import com.goldatech.authservice.web.dto.response.SubscriptionResponse;
@@ -123,6 +124,64 @@ public class SubscriptionService {
     public void deleteSubscription(Long id) {
         log.warn("Deleting subscription with id: {}", id);
         repository.deleteById(id);
+    }
+
+    @Transactional
+    public SubscriptionResponse regenerateCredentials(Long subscriptionId) {
+        log.warn("Regenerating credentials for subscription ID: {}", subscriptionId);
+
+        Subscription subscription = repository.findById(subscriptionId)
+                .orElseThrow(() -> new RuntimeException("Subscription not found"));
+
+        // Generate new credentials
+        subscription.setSubscriptionKey(generateRandomKey());
+        subscription.setSubscriptionSecret(generateRandomSecret());
+
+        Subscription updated = repository.save(subscription);
+
+        log.info("Credentials regenerated successfully for subscription ID: {}", subscriptionId);
+        return SubscriptionMapper.toResponse(updated);
+    }
+
+    /**
+     * Regenerates credentials by subscription key (for authenticated API calls)
+     *
+     * @param currentKey the current subscription key
+     * @return SubscriptionResponse with new credentials
+     */
+    @Transactional
+    public SubscriptionResponse regenerateCredentialsByKey(String currentKey) {
+        log.warn("Regenerating credentials for subscription key: {}", currentKey);
+
+        Subscription subscription = repository.findBySubscriptionKey(currentKey)
+                .orElseThrow(() -> new RuntimeException("Subscription not found"));
+
+        // Generate new credentials
+        subscription.setSubscriptionKey(generateRandomKey());
+        subscription.setSubscriptionSecret(generateRandomSecret());
+
+        Subscription updated = repository.save(subscription);
+
+        log.info("Credentials regenerated successfully");
+        return SubscriptionMapper.toResponse(updated);
+    }
+
+    /**
+     * Gets only the API credentials for a subscription (without full details)
+     *
+     * @param subscriptionId the ID of the subscription
+     * @return ApiCredentialsResponse containing only key and secret
+     */
+    public ApiCredentialsResponse getCredentials(Long subscriptionId) {
+        log.debug("Fetching credentials for subscription ID: {}", subscriptionId);
+
+        Subscription subscription = repository.findById(subscriptionId)
+                .orElseThrow(() -> new RuntimeException("Subscription not found"));
+
+        return new ApiCredentialsResponse(
+                subscription.getSubscriptionKey(),
+                subscription.getSubscriptionSecret()
+        );
     }
 
 
