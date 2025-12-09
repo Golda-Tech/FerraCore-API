@@ -44,6 +44,30 @@ public class Subscription {
     @Column(name = "status")
     private SubscriptionStatus status;
 
+    @Column(name = "business_type")
+    private String businessType;
+
+    @Column(name = "registration_number")
+    private String registrationNumber;
+
+    @Column(name = "tax_id")
+    private String taxId;
+
+    @Column(name = "website")
+    private String website;
+
+    @Column(name = "billing_cycle")
+    private String billingCycle = "monthly";
+
+    @Column(name = "subscription_amount")
+    private Double subscriptionAmount;
+
+    @Column(name = "currency")
+    private String currency = "GHS";
+
+    @Column(name = "next_billing_date")
+    private LocalDateTime nextBillingDate;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
