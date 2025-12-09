@@ -1,23 +1,27 @@
 package com.goldatech.authservice.web.controller;
 
 import com.goldatech.authservice.domain.service.AuthService;
-import com.goldatech.authservice.web.dto.request.LoginRequest;
-import com.goldatech.authservice.web.dto.request.RegisterRequest;
-import com.goldatech.authservice.web.dto.request.ResetPasswordRequest;
+import com.goldatech.authservice.domain.service.ProfileService;
+import com.goldatech.authservice.web.dto.request.*;
 import com.goldatech.authservice.web.dto.response.AuthResponse;
 import com.goldatech.authservice.web.dto.response.RegistrationResponse;
 import com.goldatech.authservice.web.dto.response.ResetPasswordResponse;
+import com.goldatech.authservice.web.dto.response.UserProfileResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+    private final ProfileService profileService;
 
     /**
      * Handles user registration.
@@ -92,6 +96,71 @@ public class AuthController {
     public ResponseEntity<ResetPasswordResponse> forgotPassword(@Valid @RequestBody ResetPasswordRequest request) {
         ResetPasswordResponse response =  authService.forgotPassword(request);
         return ResponseEntity.ok(response);
+    }
+
+    // ============= PROFILE ENDPOINTS =============
+
+    /**
+     * Gets the complete profile for the authenticated user including organization and subscription details.
+     *
+     * @param authentication the authenticated user's security context
+     * @return UserProfileResponse with complete profile data
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<UserProfileResponse> getProfile(Authentication authentication) {
+        log.info("Fetching profile for authenticated user");
+        String email = authentication.getName(); // Gets the email from JWT
+        UserProfileResponse profile = profileService.getUserProfile(email);
+        return ResponseEntity.ok(profile);
+    }
+
+    /**
+     * Updates the authenticated user's profile information.
+     *
+     * @param authentication the authenticated user's security context
+     * @param request the profile update request
+     * @return updated UserProfileResponse
+     */
+    @PutMapping("/profile")
+    public ResponseEntity<UserProfileResponse> updateProfile(
+            Authentication authentication,
+            @Valid @RequestBody ProfileUpdateRequest request) {
+        log.info("Updating profile for authenticated user");
+        String email = authentication.getName();
+        UserProfileResponse profile = profileService.updateProfile(email, request);
+        return ResponseEntity.ok(profile);
+    }
+
+    /**
+     * Updates the organization details for the authenticated user.
+     *
+     * @param authentication the authenticated user's security context
+     * @param request the organization update request
+     * @return updated UserProfileResponse
+     */
+    @PutMapping("/profile/organization")
+    public ResponseEntity<UserProfileResponse> updateOrganization(
+            Authentication authentication,
+            @Valid @RequestBody OrganizationUpdateRequest request) {
+        log.info("Updating organization for authenticated user");
+        String email = authentication.getName();
+        UserProfileResponse profile = profileService.updateOrganization(email, request);
+        return ResponseEntity.ok(profile);
+    }
+
+    /**
+     * Regenerates API credentials (subscription key and secret) for the authenticated user.
+     * WARNING: This will invalidate the current credentials.
+     *
+     * @param authentication the authenticated user's security context
+     * @return updated UserProfileResponse with new credentials
+     */
+    @PostMapping("/profile/regenerate-credentials")
+    public ResponseEntity<UserProfileResponse> regenerateApiCredentials(Authentication authentication) {
+        log.warn("Regenerating API credentials for authenticated user");
+        String email = authentication.getName();
+        UserProfileResponse profile = profileService.regenerateApiCredentials(email);
+        return ResponseEntity.ok(profile);
     }
 
 }
