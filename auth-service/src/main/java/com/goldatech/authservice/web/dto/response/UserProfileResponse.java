@@ -32,7 +32,7 @@ public record UserProfileResponse(
 
     @Builder
     public record SubscriptionDetails(
-            PlanType plan,
+            String plan,
             SubscriptionStatus status,
             String billingCycle,
             LocalDateTime nextBilling,

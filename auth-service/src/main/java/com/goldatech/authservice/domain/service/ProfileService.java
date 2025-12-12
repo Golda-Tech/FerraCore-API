@@ -159,7 +159,7 @@ public class ProfileService {
                     .build();
 
             subDetails = UserProfileResponse.SubscriptionDetails.builder()
-                    .plan(subscription.getPlanType())
+                    .plan(subscription.getPlanType().displayName().toUpperCase())
                     .status(subscription.getStatus())
                     .billingCycle("monthly") // Default or add to entity
                     .nextBilling(calculateNextBilling(subscription.getCreatedAt()))

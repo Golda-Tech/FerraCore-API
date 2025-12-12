@@ -110,7 +110,7 @@ public class AuthService {
                 user.getEmail(),
                 "ORG_REGISTERED",
                 tempPassword,
-                subscription.planType().toString(),
+                subscription.planType().displayName(),
                 LocalDateTime.now()
         );
 
