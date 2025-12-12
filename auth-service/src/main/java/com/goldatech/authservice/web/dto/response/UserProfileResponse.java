@@ -13,6 +13,7 @@ public record UserProfileResponse(
         String firstName,
         String lastName,
         String email,
+        Boolean isFirstTimeUser,
         String phone,
         Role role,
         OrganizationDetails organization,

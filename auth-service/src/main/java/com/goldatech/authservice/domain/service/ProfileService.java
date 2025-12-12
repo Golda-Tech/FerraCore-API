@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
 
 @Slf4j
 @Service
@@ -176,6 +178,7 @@ public class ProfileService {
                 .firstName(user.getFirstname())
                 .lastName(user.getLastname())
                 .email(user.getEmail())
+                .isFirstTimeUser(user.isFirstTimeUser())
                 .phone("") // Add phone field to User entity if needed
                 .role(user.getRole())
                 .organization(orgDetails)
@@ -207,18 +210,26 @@ public class ProfileService {
      */
     private Double getPlanAmount(com.goldatech.authservice.domain.model.PlanType planType) {
         return switch (planType) {
-            case COLLECTIONS -> 199.0;
-            case DISBURSEMENTS -> 249.0;
-            case PREAPPROVALS -> 179.0;
-            case ALL_INCLUSIVE -> 499.0;
+            case PAYMENT_REQUEST -> 199.0;
+            case PAYOUTS -> 249.0;
+            case RECURRING_PAYMENTS-> 179.0;
+            case ENTERPRISE_FULL_ACCESS -> 499.0;
         };
     }
 
     private String generateRandomKey() {
-        return "sk_live_" + java.util.UUID.randomUUID().toString().replace("-", "");
+        // generate an alphanumeric string of length 24
+        return  randomString(24);
     }
 
     private String generateRandomSecret() {
-        return "pk_live_" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        return randomString(48);
+    }
+
+    private String randomString(int length) {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[length];
+        random.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }
