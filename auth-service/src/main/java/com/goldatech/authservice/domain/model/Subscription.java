@@ -56,6 +56,9 @@ public class Subscription {
     @Column(name = "website")
     private String website;
 
+    @Column(name = "call_back_url")
+    private String callbackUrl;
+
     @Column(name = "billing_cycle")
     private String billingCycle = "monthly";
 

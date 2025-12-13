@@ -148,6 +148,24 @@ public class AuthController {
         return ResponseEntity.ok(profile);
     }
 
+
+    /**
+     * Updates the subscription details for the authenticated user.
+     *
+     * @param authentication the authenticated user's security context
+     * @param callbackUrl the new callback URL
+     * @return updated UserProfileResponse
+     */
+    @PutMapping("/profile/callback")
+    public ResponseEntity<UserProfileResponse> updateOrganization(
+            Authentication authentication,
+            @Valid @RequestBody String callbackUrl) {
+        log.info("Updating callbackUrl for authenticated user");
+        String email = authentication.getName();
+        UserProfileResponse profile = profileService.updateCallbackUrl(email, callbackUrl);
+        return ResponseEntity.ok(profile);
+    }
+
     /**
      * Regenerates API credentials (subscription key and secret) for the authenticated user.
      * WARNING: This will invalidate the current credentials.

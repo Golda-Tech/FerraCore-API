@@ -74,6 +74,7 @@ public class ProfileService {
             }
             user.setEmail(request.email());
         }
+        user.setFirstTimeUser(false);
 
         userRepository.save(user);
 
@@ -110,19 +111,41 @@ public class ProfileService {
             subscription.setContactAddress(request.address());
         }
         if (request.website() != null) {
-            subscription.setWebsite(request.address());
+            subscription.setWebsite(request.website());
         }
         if (request.registrationNumber() != null) {
-            subscription.setRegistrationNumber(request.address());
+            subscription.setRegistrationNumber(request.registrationNumber());
         }
         if (request.taxId() != null) {
-            subscription.setTaxId(request.address());
+            subscription.setTaxId(request.taxId());
         }
 
         // Note: You'll need to add these fields to the Subscription entity
         // For now, they'll be stored in the contact fields or you need to extend the entity
 
         subscriptionRepository.save(subscription);
+        user.setFirstTimeUser(false);
+        userRepository.save(user);
+
+        return buildProfileResponse(user, subscription);
+    }
+
+    @Transactional
+    public UserProfileResponse updateCallbackUrl(String email, String callbackUrl) {
+        log.info("Updating callback url for user: {}", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Subscription subscription = subscriptionRepository.findByContactEmail(email)
+                .orElseThrow(() -> new RuntimeException("Subscription not found for user"));
+
+        if (callbackUrl != null) {
+            subscription.setCallbackUrl(callbackUrl);
+        }
+        subscriptionRepository.save(subscription);
+        user.setFirstTimeUser(false);
+        userRepository.save(user);
 
         return buildProfileResponse(user, subscription);
     }
