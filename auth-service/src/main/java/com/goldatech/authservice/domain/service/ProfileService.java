@@ -63,6 +63,10 @@ public class ProfileService {
         if (request.lastName() != null) {
             user.setLastname(request.lastName());
         }
+
+        if (request.phone() != null) {
+            user.setPhoneNumber(request.phone());
+        }
         if (request.email() != null && !request.email().equals(user.getEmail())) {
             // Check if new email already exists
             if (userRepository.existsByEmail(request.email())) {
@@ -105,6 +109,16 @@ public class ProfileService {
         if (request.address() != null) {
             subscription.setContactAddress(request.address());
         }
+        if (request.website() != null) {
+            subscription.setWebsite(request.address());
+        }
+        if (request.registrationNumber() != null) {
+            subscription.setRegistrationNumber(request.address());
+        }
+        if (request.taxId() != null) {
+            subscription.setTaxId(request.address());
+        }
+
         // Note: You'll need to add these fields to the Subscription entity
         // For now, they'll be stored in the contact fields or you need to extend the entity
 
