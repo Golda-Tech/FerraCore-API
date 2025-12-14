@@ -36,6 +36,7 @@ public record UserProfileResponse(
             SubscriptionStatus status,
             String billingCycle,
             LocalDateTime nextBilling,
+            String callbackUrl,
             Double amount,
             String currency
     ) {}

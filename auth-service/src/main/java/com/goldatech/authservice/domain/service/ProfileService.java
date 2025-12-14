@@ -200,6 +200,7 @@ public class ProfileService {
                     .status(subscription.getStatus())
                     .billingCycle("monthly") // Default or add to entity
                     .nextBilling(calculateNextBilling(subscription.getCreatedAt()))
+                    .callbackUrl(subscription.getCallbackUrl())
                     .amount(getPlanAmount(subscription.getPlanType()))
                     .currency("GHS")
                     .build();
