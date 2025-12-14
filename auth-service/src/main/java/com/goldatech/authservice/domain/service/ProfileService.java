@@ -188,17 +188,17 @@ public class ProfileService {
         if (subscription != null) {
             orgDetails = UserProfileResponse.OrganizationDetails.builder()
                     .name(subscription.getOrganizationName())
-                    .businessType("Technology") // Default or fetch from extended entity
+                    .businessType(subscription.getBusinessType())
                     .address(subscription.getContactAddress())
-                    .registrationNumber("") // Add to entity if needed
-                    .taxId("") // Add to entity if needed
-                    .website("") // Add to entity if needed
+                    .registrationNumber(subscription.getRegistrationNumber())
+                    .taxId(subscription.getTaxId())
+                    .website(subscription.getWebsite())
                     .build();
 
             subDetails = UserProfileResponse.SubscriptionDetails.builder()
                     .plan(subscription.getPlanType().displayName().toUpperCase())
                     .status(subscription.getStatus())
-                    .billingCycle("monthly") // Default or add to entity
+                    .billingCycle("monthly")
                     .nextBilling(calculateNextBilling(subscription.getCreatedAt()))
                     .callbackUrl(subscription.getCallbackUrl())
                     .amount(getPlanAmount(subscription.getPlanType()))
@@ -217,7 +217,7 @@ public class ProfileService {
                 .lastName(user.getLastname())
                 .email(user.getEmail())
                 .isFirstTimeUser(user.isFirstTimeUser())
-                .phone("") // Add phone field to User entity if needed
+                .phone(user.getPhoneNumber())
                 .role(user.getRole())
                 .organization(orgDetails)
                 .subscription(subDetails)
