@@ -77,7 +77,7 @@ public class AuthService {
             throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
         }
 
-        if (userRepository.existsByOrganization(request.organizationName())) {
+        if (userRepository.existsByOrganizationName(request.organizationName())) {
             throw new UserAlreadyExistsException("Business name " + request.email() + " already exists");
         }
 
@@ -85,7 +85,7 @@ public class AuthService {
             throw new UserAlreadyExistsException("Subscription with email " + request.email() + " already exists");
         }
 
-        if (subscriptionRepository.existsByOrganization(request.organizationName())) {
+        if (subscriptionRepository.existsByOrganizationName(request.organizationName())) {
             throw new UserAlreadyExistsException("Business name " + request.email() + " already exists");
         }
 

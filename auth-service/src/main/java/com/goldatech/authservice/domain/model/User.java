@@ -30,6 +30,8 @@ public class User implements UserDetails {
     private Integer id;
     private String firstname;
     private String lastname;
+    @Column(name = "organization_name")
+    private String organizationName;
     private String email;
     private String password;
     @Column(name = "phone_number")
