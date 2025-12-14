@@ -3,6 +3,7 @@ package com.goldatech.authservice.domain.service;
 import com.goldatech.authservice.domain.exception.UserAlreadyExistsException;
 import com.goldatech.authservice.domain.model.*;
 import com.goldatech.authservice.domain.repository.OtpRepository;
+import com.goldatech.authservice.domain.repository.SubscriptionRepository;
 import com.goldatech.authservice.domain.repository.UserRepository;
 import com.goldatech.authservice.security.JwtService;
 import com.goldatech.authservice.web.dto.request.LoginRequest;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final SubscriptionService subscriptionService;
@@ -73,6 +75,18 @@ public class AuthService {
     public RegistrationResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
+        }
+
+        if (userRepository.existsByOrganization(request.organizationName())) {
+            throw new UserAlreadyExistsException("Business name " + request.email() + " already exists");
+        }
+
+        if (subscriptionRepository.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("Subscription with email " + request.email() + " already exists");
+        }
+
+        if (subscriptionRepository.existsByOrganization(request.organizationName())) {
+            throw new UserAlreadyExistsException("Business name " + request.email() + " already exists");
         }
 
         var subscription = new SubscriptionCreateRequest(

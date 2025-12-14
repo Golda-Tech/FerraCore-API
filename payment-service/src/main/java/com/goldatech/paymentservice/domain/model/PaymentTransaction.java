@@ -42,6 +42,7 @@ public class PaymentTransaction {
     private String mobileNumber;
     private BigDecimal amount;
     private String currency;
+    private String initiatedBy;    // User ID or system that initiated the transaction
     private TransactionStatus status;
     private String message;
     private LocalDateTime initiatedAt;

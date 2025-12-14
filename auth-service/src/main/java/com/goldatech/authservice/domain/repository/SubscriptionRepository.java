@@ -22,4 +22,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
 
     Optional<Subscription> findByContactEmail(String contactEmail);
 
+    boolean existsByEmail(String email);
+    boolean existsByOrganization(String organization);
+
 }

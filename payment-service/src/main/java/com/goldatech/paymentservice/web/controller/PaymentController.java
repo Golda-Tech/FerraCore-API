@@ -83,7 +83,7 @@ public class PaymentController {
     }
 
 
-    //Get a;ll payments
+    //Get all payments
     @GetMapping
     public ResponseEntity<Iterable<PaymentTransaction>> getAllPayments() {
         log.info("Received request to fetch all payments");
@@ -130,9 +130,9 @@ public class PaymentController {
     }
 
     @GetMapping("/status-summary")
-    public ResponseEntity<Map<String, Long>> getCollectionStatusSummary() {
+    public ResponseEntity<Map<String, Long>> getCollectionStatusSummary(@RequestParam String initiatedBy) {
         try {
-            return ResponseEntity.ok(paymentService.getPaymentStatusSummary());
+            return ResponseEntity.ok(paymentService.getPaymentStatusSummary(initiatedBy));
         } catch (Exception e) {
             log.error("Error getting collection status summary: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface PaymentTransactionRepository extends JpaRepository<PaymentTransaction, Long> {
+    List<PaymentTransaction> findByInitiatedBy(String initiatedBy);
     Optional<PaymentTransaction> findByTransactionRef(String transactionRef);
     Optional<PaymentTransaction> findByExternalRef(String externalRef);
     List<PaymentTransaction> findByInitiatedAtBetween(LocalDateTime start, LocalDateTime end);

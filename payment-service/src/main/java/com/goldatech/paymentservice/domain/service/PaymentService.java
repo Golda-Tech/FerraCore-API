@@ -154,10 +154,14 @@ public class PaymentService {
     }
 
 
-    public Map<String, Long> getPaymentStatusSummary() {
-        log.info("Getting payment status summary");
-        return transactionRepository.findAll().stream()
-                .collect(Collectors.groupingBy(t -> t.getStatus().name(), Collectors.counting()));
+    public Map<String, Long> getPaymentStatusSummary(String initiatedBy) {
+        log.info("Getting payment status summary for user: {}", initiatedBy);
+        return transactionRepository.findByInitiatedBy(initiatedBy)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        t -> t.getStatus().name(),
+                        Collectors.counting()
+                ));
     }
 
     public List<PaymentTrendDTO> getPaymentTrends(LocalDateTime start, LocalDateTime end, Interval interval) {
