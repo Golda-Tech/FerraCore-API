@@ -171,6 +171,7 @@ public class AuthController {
             Authentication authentication,
             @Valid @RequestBody WhitelistUpdateRequest request) {
         log.info("Updating whitelisted phone numbers for authenticated user");
+        log.info("Request: {}", request.phone2());
         String email = authentication.getName();
         UserProfileResponse profile = profileService.updateWhitelistedIds(email, request);
         return ResponseEntity.ok(profile);

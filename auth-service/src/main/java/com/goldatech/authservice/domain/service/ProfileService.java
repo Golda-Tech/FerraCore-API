@@ -160,6 +160,7 @@ public class ProfileService {
         String phone4 = request.phone4();
 
         log.info("Updating whitelisted phone numbers for user: {}", email);
+        log.info("New whitelisted numbers: {}, {}, {}, {}", phone1, phone2, phone3, phone4);
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
