@@ -61,7 +61,7 @@ public class SubscriptionController {
     }
 
     @Operation(summary = "Authorize subscription key",
-            description = "Authorizes a subscription using the provided subscription key and Authorization header.")
+            description = "Basic authentication header containing API Subscription Key and API subscription Secret. Should be sent in as B64 encoded.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Authorization successful",
                     content = @Content(schema = @Schema(implementation = SubscriptionAuthResponse.class))),
