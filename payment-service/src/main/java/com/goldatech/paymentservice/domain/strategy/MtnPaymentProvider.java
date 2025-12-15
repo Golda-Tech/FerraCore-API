@@ -77,6 +77,7 @@ public class MtnPaymentProvider implements PaymentProvider{
                 .provider("MTN")
                 .mobileNumber(request.mobileNumber())
                 .amount(request.amount())
+                .initiatedBy(request.initiatedBy())
                 .currency("GHS")
                 .status(TransactionStatus.PENDING)
                 .message("Payment request sent to MTN.")

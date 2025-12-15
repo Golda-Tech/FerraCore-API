@@ -15,6 +15,7 @@ public record PaymentRequest(
         @NotNull @DecimalMin("0.01") BigDecimal amount,
         @NotBlank String currency,
         @NotBlank String partyIdType,
+        @NotBlank String initiatedBy,
         String payerMessage,
         String payeeNote
 ) {}
