@@ -1,7 +1,7 @@
 package com.goldatech.paymentservice.domain.service;
 
-import com.goldatech.authservice.domain.model.Subscription;
-import com.goldatech.authservice.domain.repository.SubscriptionRepository;
+import com.goldatech.paymentservice.domain.model.Subscription;
+import com.goldatech.paymentservice.domain.repository.SubscriptionRepository;
 import com.goldatech.paymentservice.domain.model.MtnCallback;
 import com.goldatech.paymentservice.domain.model.Otp;
 import com.goldatech.paymentservice.domain.model.PaymentTransaction;
