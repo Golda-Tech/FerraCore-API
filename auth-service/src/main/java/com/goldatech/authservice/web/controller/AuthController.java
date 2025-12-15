@@ -166,6 +166,16 @@ public class AuthController {
         return ResponseEntity.ok(profile);
     }
 
+    @PutMapping("/profile/whitelistIds")
+    public ResponseEntity<UserProfileResponse> updateWhitelistedIds(
+            Authentication authentication,
+            @Valid @RequestBody String phone1,String phone2, String phone3, String phone4) {
+        log.info("Updating whitelisted phone numbers for authenticated user");
+        String email = authentication.getName();
+        UserProfileResponse profile = profileService.updateWhitelistedIds(email, phone1, phone2, phone3, phone4);
+        return ResponseEntity.ok(profile);
+    }
+
     /**
      * Regenerates API credentials (subscription key and secret) for the authenticated user.
      * WARNING: This will invalidate the current credentials.

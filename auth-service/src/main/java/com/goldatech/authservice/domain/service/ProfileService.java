@@ -8,6 +8,7 @@ import com.goldatech.authservice.web.dto.request.OrganizationUpdateRequest;
 import com.goldatech.authservice.web.dto.request.ProfileUpdateRequest;
 import com.goldatech.authservice.web.dto.response.UserProfileResponse;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -150,6 +151,37 @@ public class ProfileService {
         return buildProfileResponse(user, subscription);
     }
 
+    @Transactional
+    public UserProfileResponse updateWhitelistedIds(String email, String phone1, String phone2, String phone3, String phone4) {
+        log.info("Updating whitelisted phone numbers for user: {}", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Subscription subscription = subscriptionRepository.findByContactEmail(email)
+                .orElseThrow(() -> new RuntimeException("Subscription not found for user"));
+
+        if (phone1 != null) {
+            subscription.setWhitelistedNumber1(phone1);
+        }
+        if (phone2 != null) {
+            subscription.setWhitelistedNumber2(phone2);
+        }
+        if (phone3 != null) {
+            subscription.setWhitelistedNumber3(phone3);
+        }
+        if (phone4 != null) {
+            subscription.setWhitelistedNumber4(phone4);
+        }
+
+        subscriptionRepository.save(subscription);
+        user.setFirstTimeUser(false);
+        userRepository.save(user);
+
+        return buildProfileResponse(user, subscription);
+    }
+
+
     /**
      * Regenerates API credentials for a subscription
      *
@@ -201,6 +233,10 @@ public class ProfileService {
                     .billingCycle("monthly")
                     .nextBilling(calculateNextBilling(subscription.getCreatedAt()))
                     .callbackUrl(subscription.getCallbackUrl())
+                    .whitelistedNumber1(subscription.getWhitelistedNumber1())
+                    .whitelistedNumber2(subscription.getWhitelistedNumber2())
+                    .whitelistedNumber3(subscription.getWhitelistedNumber3())
+                    .whitelistedNumber4(subscription.getWhitelistedNumber4())
                     .amount(getPlanAmount(subscription.getPlanType()))
                     .currency("GHS")
                     .build();
@@ -270,4 +306,6 @@ public class ProfileService {
         random.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
+
+
 }

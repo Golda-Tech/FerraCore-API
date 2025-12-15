@@ -37,6 +37,10 @@ public record UserProfileResponse(
             String billingCycle,
             LocalDateTime nextBilling,
             String callbackUrl,
+            String whitelistedNumber1,
+            String whitelistedNumber2,
+            String whitelistedNumber3,
+            String whitelistedNumber4,
             Double amount,
             String currency
     ) {}

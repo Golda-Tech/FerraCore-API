@@ -1,5 +1,6 @@
 package com.goldatech.paymentservice.domain.service;
 
+import com.goldatech.authservice.domain.repository.SubscriptionRepository;
 import com.goldatech.paymentservice.domain.model.MtnCallback;
 import com.goldatech.paymentservice.domain.model.Otp;
 import com.goldatech.paymentservice.domain.model.PaymentTransaction;
@@ -40,6 +41,7 @@ public class PaymentService {
 
     private final PaymentProviderFactory providerFactory;
     private final PaymentTransactionRepository transactionRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final OtpRepository otpRepository;
     private final RabbitTemplate rabbitTemplate;
     private final MtnCallbackRepository callbackRepository;
@@ -90,6 +92,20 @@ public class PaymentService {
         if (callbackUrl == null || (!callbackUrl.startsWith("http://") && !callbackUrl.startsWith("https://"))) {
             log.error("Callback URL {} is not valid", callbackUrl);
             throw new IllegalArgumentException("Callback URL must be a valid URL starting with http:// or https://");
+        }
+
+        //verify if mobile number is whitelisted in the subscription record
+        String mobileNumber = request.mobileNumber();
+        Optional<com.goldatech.authservice.domain.model.Subscription> subscriptionOpt = subscriptionRepository.findByWhitelistedNumber1(mobileNumber);
+        if (subscriptionOpt.isEmpty()) {
+            subscriptionOpt = subscriptionRepository.findByWhitelistedNumber2(mobileNumber);
+            if (subscriptionOpt.isEmpty()) {
+                subscriptionOpt = subscriptionRepository.findByWhitelistedNumber3(mobileNumber);
+                if (subscriptionOpt.isEmpty()) {
+                    log.error("Mobile number {} is not whitelisted in any subscription", mobileNumber);
+                    throw new IllegalArgumentException("Mobile number is not whitelisted. Please update your whitelisted mobile numbers via API or on the RexHub Dashboard.");
+                }
+            }
         }
 
 

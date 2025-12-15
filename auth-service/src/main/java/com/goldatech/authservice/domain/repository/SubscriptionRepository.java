@@ -25,4 +25,9 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     boolean existsByContactEmail(String email);
     boolean existsByOrganizationName(String organization);
 
+    Optional<Subscription> findByWhitelistedNumber1(String mobileNumber);
+    Optional<Subscription> findByWhitelistedNumber2(String mobileNumber);
+    Optional<Subscription> findByWhitelistedNumber3(String mobileNumber);
+
+
 }

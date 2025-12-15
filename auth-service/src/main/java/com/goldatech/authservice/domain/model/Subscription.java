@@ -50,6 +50,18 @@ public class Subscription {
     @Column(name = "registration_number")
     private String registrationNumber;
 
+    @Column(name = "whitelisted_number_1")
+    private String whitelistedNumber1;
+
+    @Column(name = "whitelisted_number_2")
+    private String whitelistedNumber2;
+
+    @Column(name = "whitelisted_number_3")
+    private String whitelistedNumber3;
+
+    @Column(name = "whitelisted_number_4")
+    private String whitelistedNumber4;
+
     @Column(name = "tax_id")
     private String taxId;
 
