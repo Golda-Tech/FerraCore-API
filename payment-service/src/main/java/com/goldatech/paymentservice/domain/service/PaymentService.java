@@ -1,5 +1,6 @@
 package com.goldatech.paymentservice.domain.service;
 
+import com.goldatech.authservice.domain.model.Subscription;
 import com.goldatech.authservice.domain.repository.SubscriptionRepository;
 import com.goldatech.paymentservice.domain.model.MtnCallback;
 import com.goldatech.paymentservice.domain.model.Otp;
@@ -15,11 +16,9 @@ import com.goldatech.paymentservice.domain.strategy.PaymentProviderFactory;
 import com.goldatech.paymentservice.web.dto.request.MtnCallBackRequest;
 import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
 import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
-import com.goldatech.paymentservice.web.dto.request.momo.PreApprovalRequest;
 import com.goldatech.paymentservice.web.dto.response.NameEnquiryResponse;
 import com.goldatech.paymentservice.web.dto.response.PaymentResponse;
 import com.goldatech.paymentservice.web.dto.response.PaymentTrendDTO;
-import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -63,6 +62,7 @@ public class PaymentService {
         DAILY, WEEKLY, MONTHLY
     }
 
+
     @Transactional
     public PaymentResponse initiatePayment(PaymentRequest request, String callbackUrl, String xRef,  String targetEnvironment) {
         log.info("Initiating payment request for provider: {}", request.provider());
@@ -96,7 +96,7 @@ public class PaymentService {
 
         //verify if mobile number is whitelisted in the subscription record
         String mobileNumber = request.mobileNumber();
-        Optional<com.goldatech.authservice.domain.model.Subscription> subscriptionOpt = subscriptionRepository.findByWhitelistedNumber1(mobileNumber);
+        Optional<Subscription> subscriptionOpt = subscriptionRepository.findByWhitelistedNumber1(mobileNumber);
         if (subscriptionOpt.isEmpty()) {
             subscriptionOpt = subscriptionRepository.findByWhitelistedNumber2(mobileNumber);
             if (subscriptionOpt.isEmpty()) {
