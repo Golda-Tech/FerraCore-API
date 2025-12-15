@@ -1,5 +1,6 @@
 package com.goldatech.authservice.domain.service;
 
+import com.goldatech.authservice.domain.model.PlanType;
 import com.goldatech.authservice.domain.model.Subscription;
 import com.goldatech.authservice.domain.model.User;
 import com.goldatech.authservice.domain.repository.SubscriptionRepository;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -41,6 +43,11 @@ public class ProfileService {
         // Find subscription by contact email (assuming user email matches contact email)
         Subscription subscription = subscriptionRepository.findByContactEmail(email)
                 .orElse(null);
+
+        if (subscription != null) {
+            subscription.setBusinessType("Technology"); // Temporary hardcoded value
+        }
+        subscriptionRepository.save(Objects.requireNonNull(subscription));
 
         return buildProfileResponse(user, subscription);
     }
@@ -289,7 +296,7 @@ public class ProfileService {
     /**
      * Gets the plan amount based on plan type
      */
-    private Double getPlanAmount(com.goldatech.authservice.domain.model.PlanType planType) {
+    private Double getPlanAmount(PlanType planType) {
         return switch (planType) {
             case PAYMENT_REQUEST -> 199.0;
             case PAYOUTS -> 249.0;
