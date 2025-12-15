@@ -31,7 +31,7 @@ public class EmailNotificationChannel implements NotificationChannel {
         Resend resend = new Resend(RESEND_API_KEY);
 
         CreateEmailOptions params = CreateEmailOptions.builder()
-                .from("FerraCore Payments <updates@updates.atomarkin.com>")
+                .from("Rexhub <noreply@rexhub.com.gh>")
                 .to(event.recipient())
                 .subject(event.subject())
                 .html(event.body())
