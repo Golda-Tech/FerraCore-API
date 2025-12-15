@@ -6,6 +6,7 @@ import com.goldatech.authservice.domain.repository.SubscriptionRepository;
 import com.goldatech.authservice.domain.repository.UserRepository;
 import com.goldatech.authservice.web.dto.request.OrganizationUpdateRequest;
 import com.goldatech.authservice.web.dto.request.ProfileUpdateRequest;
+import com.goldatech.authservice.web.dto.request.WhitelistUpdateRequest;
 import com.goldatech.authservice.web.dto.response.UserProfileResponse;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -152,7 +153,12 @@ public class ProfileService {
     }
 
     @Transactional
-    public UserProfileResponse updateWhitelistedIds(String email, String phone1, String phone2, String phone3, String phone4) {
+    public UserProfileResponse updateWhitelistedIds(String email, WhitelistUpdateRequest request) {
+        String phone1 = request.phone1();
+        String phone2 = request.phone2();
+        String phone3 = request.phone3();
+        String phone4 = request.phone4();
+
         log.info("Updating whitelisted phone numbers for user: {}", email);
 
         User user = userRepository.findByEmail(email)

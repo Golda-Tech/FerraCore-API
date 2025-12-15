@@ -169,10 +169,10 @@ public class AuthController {
     @PutMapping("/profile/whitelistIds")
     public ResponseEntity<UserProfileResponse> updateWhitelistedIds(
             Authentication authentication,
-            @Valid @RequestBody String phone1,@Valid @RequestBody String phone2, @Valid @RequestBody String phone3,@Valid @RequestBody  String phone4) {
+            @Valid @RequestBody WhitelistUpdateRequest request) {
         log.info("Updating whitelisted phone numbers for authenticated user");
         String email = authentication.getName();
-        UserProfileResponse profile = profileService.updateWhitelistedIds(email, phone1, phone2, phone3, phone4);
+        UserProfileResponse profile = profileService.updateWhitelistedIds(email, request);
         return ResponseEntity.ok(profile);
     }
 
