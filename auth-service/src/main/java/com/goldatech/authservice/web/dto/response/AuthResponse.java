@@ -19,6 +19,7 @@ public record AuthResponse(
         String token,
         Integer id,
         String firstname,
+        String organizationName,
         String lastname,
         String email,
         Role role,

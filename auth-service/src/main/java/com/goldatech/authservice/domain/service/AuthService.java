@@ -105,6 +105,7 @@ public class AuthService {
                 .firstname(request.firstname())
                 .lastname(request.lastname())
                 .email(request.email())
+                .organizationName(request.organizationName().toUpperCase())
                 .password(passwordEncoder.encode(tempPassword))
                 .role(Role.USER)
                 .firstTimeUser(true)
@@ -182,6 +183,7 @@ public class AuthService {
                 user.getFirstname(),
                 user.getLastname(),
                 user.getEmail(),
+                user.getOrganizationName(),
                 user.getRole(),
                 "User logged in successfully.",
                 user.isPasswordResetRequired(),
@@ -315,6 +317,7 @@ public class AuthService {
                 jwtToken,
                 user.getId(),
                 user.getFirstname(),
+                user.getOrganizationName(),
                 user.getLastname(),
                 user.getEmail(),
                 user.getRole(),
