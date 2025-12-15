@@ -141,13 +141,14 @@ public class PaymentController {
 
     @GetMapping("/trends")
     public ResponseEntity<List<PaymentTrendDTO>> getTrends(
+            @RequestParam String initiatedBy,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @RequestParam(defaultValue = "DAILY") PaymentService.Interval interval
 
     ) {
         try {
-            List<PaymentTrendDTO> trends = paymentService.getPaymentTrends(startDate, endDate, interval);
+            List<PaymentTrendDTO> trends = paymentService.getPaymentTrends(initiatedBy, startDate, endDate, interval);
             return ResponseEntity.ok(trends);
         } catch (Exception e) {
             log.error("Error fetching trends: {}", e.getMessage(), e);

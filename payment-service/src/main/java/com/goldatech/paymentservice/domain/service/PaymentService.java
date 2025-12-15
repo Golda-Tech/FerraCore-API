@@ -164,8 +164,8 @@ public class PaymentService {
                 ));
     }
 
-    public List<PaymentTrendDTO> getPaymentTrends(LocalDateTime start, LocalDateTime end, Interval interval) {
-        List<PaymentTransaction> transactions = transactionRepository.findByInitiatedAtBetween(start, end);
+    public List<PaymentTrendDTO> getPaymentTrends(String initBy, LocalDateTime start, LocalDateTime end, Interval interval) {
+        List<PaymentTransaction> transactions = transactionRepository.findByInitiatedAtBetweenAndInitiatedBy(start, end, initBy);
 
         // Choose grouping function
         java.util.function.Function<PaymentTransaction, java.time.LocalDate> groupingFn = switch (interval) {
