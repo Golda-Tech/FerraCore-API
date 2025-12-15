@@ -85,9 +85,9 @@ public class PaymentController {
 
     //Get all payments
     @GetMapping
-    public ResponseEntity<Iterable<PaymentTransaction>> getAllPayments() {
+    public ResponseEntity<Iterable<PaymentTransaction>> getAllPayments(@RequestParam String initiatedBy) {
         log.info("Received request to fetch all payments");
-        Iterable<PaymentTransaction> payments = paymentService.getAllPayments();
+        Iterable<PaymentTransaction> payments = paymentService.getAllPayments(initiatedBy);
         return ResponseEntity.ok(payments);
     }
 

@@ -15,6 +15,7 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
     Optional<PaymentTransaction> findByTransactionRef(String transactionRef);
     Optional<PaymentTransaction> findByExternalRef(String externalRef);
     List<PaymentTransaction> findByInitiatedAtBetween(LocalDateTime start, LocalDateTime end);
+    List<PaymentTransaction> findByInitiatedByOrderByInitiatedAtDesc(String initiatedBy);
     List<PaymentTransaction> findByInitiatedAtBetweenAndInitiatedBy(
             LocalDateTime start,
             LocalDateTime end,

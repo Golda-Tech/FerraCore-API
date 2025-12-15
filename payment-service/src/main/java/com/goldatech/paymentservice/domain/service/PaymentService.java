@@ -146,6 +146,11 @@ public class PaymentService {
         return transactionRepository.findAll(Sort.by(Sort.Direction.DESC, "initiatedAt"));
     }
 
+    public List<PaymentTransaction> getAllPayments(String initiatedBy) {
+        log.info("Getting all payments for user: {}", initiatedBy);
+        return transactionRepository.findByInitiatedByOrderByInitiatedAtDesc(initiatedBy);
+    }
+
     //Get payment by transaction reference
     public Optional<PaymentTransaction> getPaymentByTransactionRef(String transactionRef) {
         log.info("Getting payment transaction by reference: {}", transactionRef);
@@ -153,6 +158,15 @@ public class PaymentService {
 
     }
 
+
+    public Map<String, Long> getPaymentStatusSummary() {
+        return transactionRepository.findAll()
+                .stream()
+                .collect(Collectors.groupingBy(
+                        t -> t.getStatus().name(),
+                        Collectors.counting()
+                ));
+    }
 
     public Map<String, Long> getPaymentStatusSummary(String initiatedBy) {
         log.info("Getting payment status summary for user: {}", initiatedBy);
@@ -166,6 +180,45 @@ public class PaymentService {
 
     public List<PaymentTrendDTO> getPaymentTrends(String initBy, LocalDateTime start, LocalDateTime end, Interval interval) {
         List<PaymentTransaction> transactions = transactionRepository.findByInitiatedAtBetweenAndInitiatedBy(start, end, initBy);
+
+        // Choose grouping function
+        java.util.function.Function<PaymentTransaction, java.time.LocalDate> groupingFn = switch (interval) {
+            case DAILY -> t -> t.getInitiatedAt().toLocalDate();
+            case WEEKLY -> t -> t.getInitiatedAt().toLocalDate()
+                    .with(java.time.DayOfWeek.MONDAY); // start of week
+            case MONTHLY -> t -> t.getInitiatedAt().toLocalDate()
+                    .withDayOfMonth(1); // start of month
+        };
+
+        // Group by interval
+        Map<java.time.LocalDate, List<PaymentTransaction>> grouped = transactions.stream()
+                .collect(Collectors.groupingBy(groupingFn));
+
+        return grouped.entrySet().stream()
+                .map(entry -> {
+                    java.time.LocalDate period = entry.getKey();
+                    List<PaymentTransaction> groupTransactions = entry.getValue();
+
+                    long totalCount = groupTransactions.size();
+                    double totalAmount = groupTransactions.stream()
+                            .mapToDouble(t -> t.getAmount().doubleValue())
+                            .sum();
+
+                    Map<String, Long> statusCounts = groupTransactions.stream()
+                            .collect(Collectors.groupingBy(
+                                    t -> t.getStatus().name(),
+                                    Collectors.counting()
+                            ));
+
+                    return new PaymentTrendDTO(period, totalCount, new BigDecimal(totalAmount), new HashMap<>(), statusCounts);
+                })
+                .sorted(java.util.Comparator.comparing(PaymentTrendDTO::date))
+                .toList();
+    }
+
+
+    public List<PaymentTrendDTO> getPaymentTrends(LocalDateTime start, LocalDateTime end, Interval interval) {
+        List<PaymentTransaction> transactions = transactionRepository.findByInitiatedAtBetween(start, end);
 
         // Choose grouping function
         java.util.function.Function<PaymentTransaction, java.time.LocalDate> groupingFn = switch (interval) {
