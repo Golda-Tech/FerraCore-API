@@ -355,6 +355,88 @@ public class AuthService {
         return new ResetPasswordResponse("Password changed successfully.");
     }
 
+    @Transactional
+    public boolean sendOtp(String destination, String channel, String type) {
+        //First check if user exists with the email
+        Optional<User> userOpt = userRepository.findByEmail(destination);
+        if (userOpt.isEmpty()) {
+            throw new IllegalArgumentException("User not found with email: " + destination);
+        }
+
+        log.info("Sending OTP to {}", destination);
+
+        String generatedOtp = otpGenerator();
+
+        Otp otp = Otp.builder()
+                .otpCode(generatedOtp)
+                .type(type)
+                .message("Your OTP code is " + generatedOtp)
+                .channel(channel)
+                .subject(type + " Verification")
+                .used(false)
+                .build();
+
+        log.info("OTP object:" + otp);
+
+        if ("SMS".equals(channel)) {
+            otp.setMobileNumber(destination);
+        } else if ("EMAIL".equals(channel)) {
+            otp.setEmail(destination);
+        }
+
+        otpRepository.save(otp);
+
+        OtpEvent event = new OtpEvent(
+                "SMS".equals(channel) ? destination : null,
+                "EMAIL".equals(channel) ? destination : null,
+                generatedOtp,
+                null,
+                type,
+                otp.getMessage(),
+                channel,
+                otp.getSubject()
+        );
+
+        log.info("Sending OTP to {}", destination);
+
+        rabbitTemplate.convertAndSend(notificationExchange, otpRoutingKey, event);
+
+        return true;
+    }
+    
+    //Verify otp
+    @Transactional
+    public boolean verifyOtp(String identifier, String otp, String channel) {
+        // Verify the OTP
+        Optional<Otp> otpRecordOpt;
+
+        if ("SMS".equalsIgnoreCase(channel)) {
+            otpRecordOpt = otpRepository
+                    .findTopByMobileNumberAndOtpCodeAndExpiresAtAfterAndUsedFalseOrderByCreatedAtDesc(
+                            identifier, otp, LocalDateTime.now()
+                    );
+        } else if ("EMAIL".equalsIgnoreCase(channel)) {
+            otpRecordOpt = otpRepository
+                    .findTopByEmailAndOtpCodeAndExpiresAtAfterAndUsedFalseOrderByCreatedAtDesc(
+                            identifier, otp, LocalDateTime.now()
+                    );
+        } else {
+            throw new IllegalArgumentException("Unsupported OTP channel: " + channel);
+        }
+
+        if (otpRecordOpt.isEmpty()) {
+            throw new IllegalArgumentException("Invalid or expired OTP");
+        }
+
+        Otp otpRecord = otpRecordOpt.get();
+
+        // Mark OTP as used
+        otpRecord.setUsed(true);
+        otpRepository.save(otpRecord);
+
+        return true;
+    }
+
 
     private String otpGenerator() {
         int otp = ThreadLocalRandom.current().nextInt(100000, 999999); // 6 digits

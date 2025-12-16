@@ -202,6 +202,22 @@ public class NotificationService {
             }
 
 
+        }else if ("FORGOT_PASSWORD".equalsIgnoreCase(event.type())) {
+            if (event.channel().equals("SMS")) {
+                NotificationChannel smsChannel = channelFactory.getChannel("SMS");
+                String messageBody = String.format("Your password reset Code is: %s. It is valid for 5 minutes.",
+                        event.otpCode());
+                smsChannel.sendNotification(new NotificationEvent(
+                        "PASSWORD_RESET_OTP", "SMS", event.mobileNumber(), event.userId(), "Password Reset OTP", messageBody, null
+                ));
+            }else if (event.channel().equals("EMAIL")) {
+                NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
+                String emailBody = String.format("Your password reset Code is: %s. It is valid for 5 minutes.",
+                        event.otpCode());
+                emailChannel.sendNotification(new NotificationEvent(
+                        "PASSWORD_RESET_OTP_EMAIL", "EMAIL", event.email(), event.userId(), "Password Reset Code", emailBody, null
+                ));
+            }
         }
     }
 }

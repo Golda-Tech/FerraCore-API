@@ -192,4 +192,17 @@ public class AuthController {
         return ResponseEntity.ok(profile);
     }
 
+    @GetMapping("/send-reset-otp")
+    public ResponseEntity<String> sendResetOtp(@RequestParam String destination, @RequestParam String channel, @RequestParam String type) {
+        authService.sendOtp(destination, channel, type);
+        return ResponseEntity.ok("Password reset OTP sent successfully.");
+    }
+
+
+    @GetMapping("/verify-reset-otp")
+    public ResponseEntity<String> verifyResetOtp(@RequestParam String identifier, @RequestParam String otp, @RequestParam String channel) {
+        authService.verifyOtp(identifier, otp, channel);
+        return ResponseEntity.ok("OTP verified successfully.");
+    }
+
 }

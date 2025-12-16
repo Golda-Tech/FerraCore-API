@@ -31,6 +31,8 @@ public class SecurityConfig {
             "/api/v1/auth/forgot-password",
             "/api/v1/auth/reset-password",
             "/api/v1/auth/send-login-otp",
+            "/api/v1/auth/send-reset-otp",
+            "/api/v1/auth/verify-reset-otp",
             "/api/v1/auth/verify-otp",
             "/api/v1/subscriptions/initiate",
             "/api/v1/subscriptions/tokens",
