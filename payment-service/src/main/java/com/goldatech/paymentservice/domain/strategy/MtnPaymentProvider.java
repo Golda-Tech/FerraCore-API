@@ -2,18 +2,17 @@ package com.goldatech.paymentservice.domain.strategy;
 
 import com.goldatech.paymentservice.domain.model.PaymentTransaction;
 import com.goldatech.paymentservice.domain.model.TransactionStatus;
+import com.goldatech.paymentservice.domain.model.UserRoles;
 import com.goldatech.paymentservice.domain.repository.PaymentTransactionRepository;
 import com.goldatech.paymentservice.domain.repository.PreApprovalTransactionRepository;
 import com.goldatech.paymentservice.domain.service.MtnMomoService;
 import com.goldatech.paymentservice.util.ReferenceIdGenerator;
 import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
 import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
-import com.goldatech.paymentservice.web.dto.request.PreApprovalMandateRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.Payer;
 import com.goldatech.paymentservice.web.dto.request.momo.PreApprovalRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.RequestToPayRequest;
 import com.goldatech.paymentservice.web.dto.response.NameEnquiryResponse;
-import com.goldatech.paymentservice.web.dto.response.PreApprovalMandateResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.BasicUserInfoResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalStatusResponse;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component("MTN")
 @RequiredArgsConstructor
@@ -61,7 +59,7 @@ public class MtnPaymentProvider implements PaymentProvider{
                 "GHS",
                 referenceId,//externalId
                 new Payer("MSISDN", request.mobileNumber()),
-                referenceId,//referenceId used as payerMessage to aid in reconciliation
+                request.initiationPartner(),//initiationPartner used as payerMessage to aid in reconciliation
                 request.payeeNote()
         );
 
@@ -78,6 +76,11 @@ public class MtnPaymentProvider implements PaymentProvider{
                 .mobileNumber(request.mobileNumber())
                 .amount(request.amount())
                 .initiatedBy(request.initiatedBy())
+                .initiationPartner(request.initiationPartner())
+                .userRoles(request.initiationPartner().equalsIgnoreCase("Ferracore Technologies") ||
+                        request.initiationPartner().equalsIgnoreCase("Rexhub") ||
+                        request.initiationPartner().equalsIgnoreCase("Global Accelerex")
+                        ? UserRoles.ADMIN : UserRoles.PARTNER)
                 .currency("GHS")
                 .status(TransactionStatus.PENDING)
                 .message("Payment request sent to MTN.")

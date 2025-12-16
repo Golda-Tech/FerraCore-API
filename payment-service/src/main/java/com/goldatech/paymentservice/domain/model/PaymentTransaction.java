@@ -43,6 +43,8 @@ public class PaymentTransaction {
     private BigDecimal amount;
     private String currency;
     private String initiatedBy;    // User ID or system that initiated the transaction
+    private String initiationPartner;    // Partner through which the transaction was initiated
+    private UserRoles userRoles;    // Access level of the initiator
     private TransactionStatus status;
     private String message;
     private LocalDateTime initiatedAt;
