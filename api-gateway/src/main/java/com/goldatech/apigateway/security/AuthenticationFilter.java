@@ -30,6 +30,8 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/api/v1/auth/reset-password",
             "/api/v1/auth/send-login-otp",
             "/api/v1/auth/verify-otp",
+            "/api/v1/auth/send-reset-otp",
+            "/api/v1/auth/verify-reset-otp",
             "/api/v1/health/**",
 
             "/api/v1/health/**",
