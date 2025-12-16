@@ -175,6 +175,29 @@ public class ProfileService {
         Subscription subscription = subscriptionRepository.findByContactEmail(email)
                 .orElseThrow(() -> new RuntimeException("Subscription not found for user"));
 
+        //check if phone numbers have been used before by other users
+        if(phone1 != null) {
+            Subscription existingSub1 = subscriptionRepository.findByWhitelistedNumber1(phone1)
+                    .orElse(null);
+            if (existingSub1 != null && !existingSub1.getId().equals(subscription.getId())) {
+                throw new RuntimeException("Phone number " + phone1 + " is already in use.");
+            }
+        }
+        if(phone2 != null) {
+            Subscription existingSub2 = subscriptionRepository.findByWhitelistedNumber2(phone2)
+                    .orElse(null);
+            if (existingSub2 != null && !existingSub2.getId().equals(subscription.getId())) {
+                throw new RuntimeException("Phone number " + phone2 + " is already in use.");
+            }
+        }
+        if(phone3 != null) {
+            Subscription existingSub3 = subscriptionRepository.findByWhitelistedNumber3(phone3)
+                    .orElse(null);
+            if (existingSub3 != null && !existingSub3.getId().equals(subscription.getId())) {
+                throw new RuntimeException("Phone number " + phone3 + " is already in use.");
+            }
+        }
+
         if (phone1 != null) {
             subscription.setWhitelistedNumber1(phone1);
         }
