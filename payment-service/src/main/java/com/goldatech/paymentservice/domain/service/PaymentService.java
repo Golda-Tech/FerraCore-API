@@ -96,16 +96,14 @@ public class PaymentService {
 
         //verify if mobile number is whitelisted in the subscription record
         String mobileNumber = request.mobileNumber();
-        Optional<Subscription> subscriptionOpt = subscriptionRepository.findByWhitelistedNumber1(mobileNumber);
+
+        Optional<Subscription> subscriptionOpt = subscriptionRepository
+                .findByWhitelistedNumbers(mobileNumber);   // single query
+
         if (subscriptionOpt.isEmpty()) {
-            subscriptionOpt = subscriptionRepository.findByWhitelistedNumber2(mobileNumber);
-            if (subscriptionOpt.isEmpty()) {
-                subscriptionOpt = subscriptionRepository.findByWhitelistedNumber3(mobileNumber);
-                if (subscriptionOpt.isEmpty()) {
-                    log.error("Mobile number {} is not whitelisted in any subscription", mobileNumber);
-                    throw new IllegalArgumentException("Mobile number is not whitelisted. Please update your whitelisted mobile numbers via API or on the RexHub Dashboard.");
-                }
-            }
+            log.error("Mobile number {} is not whitelisted in any subscription", mobileNumber);
+            throw new IllegalArgumentException(
+                    "Mobile number is not whitelisted. Please update your whitelisted mobile numbers via API or on the RexHub Dashboard.");
         }
 
 
