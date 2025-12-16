@@ -381,9 +381,6 @@ public class PaymentService {
 
         callbackRepository.save(callback);
 
-        //If financialTransactionId field is present in the request then it is a successs, otherwise check for reason and others and store them
-        // First fetch the transaction. If it does not exist log and return otherise then we proceed with updating status if it is a success or not and co
-        // Do not throw error if transaction not found, just log it
 
         Optional<PaymentTransaction> transactionOpt = transactionRepository.findByExternalRef(mtnCallBackRequest.externalId());
         if (transactionOpt.isEmpty()) {
@@ -392,8 +389,9 @@ public class PaymentService {
         }
 
         PaymentTransaction transaction = transactionOpt.get();
-        //What shows success is the presence of financialTransactionId
-        if (mtnCallBackRequest.financialTransactionId() != null && !mtnCallBackRequest.financialTransactionId().isEmpty()) {
+        //If status is successful and reason is null or empty then it is a success
+        if("SUCCESSFUL".equalsIgnoreCase(mtnCallBackRequest.status())
+                && (mtnCallBackRequest.reason() == null || mtnCallBackRequest.reason().isEmpty())) {
             transaction.setStatus(TransactionStatus.SUCCESSFUL);
             transaction.setMessage("Payment successful");
             transaction.setCompletedAt(LocalDateTime.now());
@@ -405,7 +403,7 @@ public class PaymentService {
             transaction.setMtnPayerMessage(mtnCallBackRequest.payerMessage());
             transaction.setMtnPayeeNote(mtnCallBackRequest.payeeNote());
 
-        } else {
+        }  else {
             transaction.setStatus(TransactionStatus.FAILED);
             transaction.setMessage(mtnCallBackRequest.reason() != null ? mtnCallBackRequest.reason() : "Payment failed");
             transaction.setCompletedAt(LocalDateTime.now());
