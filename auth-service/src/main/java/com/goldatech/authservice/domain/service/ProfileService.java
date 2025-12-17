@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -178,24 +179,28 @@ public class ProfileService {
         Subscription subscription = subscriptionRepository.findByContactEmail(email)
                 .orElseThrow(() -> new RuntimeException("Subscription not found for user"));
 
-        // one query checks all four columns at once
-        List<String> phones = Stream.of(phone1, phone2, phone3, phone4)
+        List<String> newPhones = Stream.of(phone1, phone2, phone3, phone4)
                 .filter(Objects::nonNull)
+                .map(String::trim)
                 .toList();
+
+        /* ignore rows that belong to THIS subscription */
         List<Subscription> conflicts = subscriptionRepository
-                .findByAnyWhitelistedNumber(phones, subscription.getContactEmail());
-
-
+                .findByAnyWhitelistedNumber(newPhones, subscription.getId());
 
         if (!conflicts.isEmpty()) {
-            throw new RuntimeException("Phone number(s) already in use: " +
-                                       conflicts.stream()
-                                               .flatMap(s -> Stream.of(s.getWhitelistedNumber1(),
-                                                       s.getWhitelistedNumber2(),
-                                                       s.getWhitelistedNumber3(),
-                                                       s.getWhitelistedNumber4()))
-                                               .filter(n -> List.of(phone1, phone2, phone3, phone4).contains(n))
-                                               .collect(Collectors.joining(", ")));
+            /* build a clean list of the *first* offending number(s) */
+            Set<String> incoming = Set.copyOf(newPhones);
+            String dup = conflicts.stream()
+                    .flatMap(s -> Stream.of(s.getWhitelistedNumber1(),
+                            s.getWhitelistedNumber2(),
+                            s.getWhitelistedNumber3(),
+                            s.getWhitelistedNumber4()))
+                    .filter(incoming::contains)
+                    .findFirst()                       // one is enough for the message
+                    .orElse("");
+
+            throw new RuntimeException("Phone number " + dup + " is already in use by another subscription.");
         }
 
         subscription.setWhitelistedNumber1(phone1);
