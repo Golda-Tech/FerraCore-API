@@ -27,7 +27,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     boolean existsByContactEmail(String email);
     boolean existsByOrganizationName(String organization);
 
-    @Query("SELECT s FROM Subscription s WHERE s.contact_email <> :excludeId AND " +
+    @Query("SELECT s FROM Subscription s WHERE s.contactEmail <> :excludeId AND " +
            "(:numbers MEMBER OF s.whitelistedNumber1 OR " +
            ":numbers MEMBER OF s.whitelistedNumber2 OR " +
            ":numbers MEMBER OF s.whitelistedNumber3 OR " +
