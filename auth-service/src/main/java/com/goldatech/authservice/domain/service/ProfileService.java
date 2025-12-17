@@ -179,9 +179,13 @@ public class ProfileService {
                 .orElseThrow(() -> new RuntimeException("Subscription not found for user"));
 
         // one query checks all four columns at once
-        List<Subscription> conflicts = subscriptionRepository.findByAnyWhitelistedNumber(
-                List.of(phone1, phone2, phone3, phone4),   // non-null list
-                subscription.getContactEmail());                     // skip self
+        List<String> phones = Stream.of(phone1, phone2, phone3, phone4)
+                .filter(Objects::nonNull)
+                .toList();
+        List<Subscription> conflicts = subscriptionRepository
+                .findByAnyWhitelistedNumber(phones, subscription.getContactEmail());
+
+
 
         if (!conflicts.isEmpty()) {
             throw new RuntimeException("Phone number(s) already in use: " +
