@@ -182,6 +182,7 @@ public class ProfileService {
         List<String> newPhones = Stream.of(phone1, phone2, phone3, phone4)
                 .filter(Objects::nonNull)
                 .map(String::trim)
+                .filter(s -> !s.isEmpty())
                 .toList();
 
         /* ignore rows that belong to THIS subscription */
