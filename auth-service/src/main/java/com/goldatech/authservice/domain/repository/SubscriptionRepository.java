@@ -3,6 +3,8 @@ package com.goldatech.authservice.domain.repository;
 import com.goldatech.authservice.domain.model.Subscription;
 import com.goldatech.authservice.domain.model.SubscriptionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,9 +27,13 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     boolean existsByContactEmail(String email);
     boolean existsByOrganizationName(String organization);
 
-    Optional<Subscription> findByWhitelistedNumber1(String mobileNumber);
-    Optional<Subscription> findByWhitelistedNumber2(String mobileNumber);
-    Optional<Subscription> findByWhitelistedNumber3(String mobileNumber);
+    @Query("SELECT s FROM Subscription s WHERE s.contact_email <> :excludeId AND " +
+           "(:numbers MEMBER OF s.whitelistedNumber1 OR " +
+           ":numbers MEMBER OF s.whitelistedNumber2 OR " +
+           ":numbers MEMBER OF s.whitelistedNumber3 OR " +
+           ":numbers MEMBER OF s.whitelistedNumber4)")
+    List<Subscription> findByAnyWhitelistedNumber(@Param("numbers") List<String> numbers,
+                                                  @Param("excludeId") String excludeId);
 
 
 }

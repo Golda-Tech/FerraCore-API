@@ -18,7 +18,10 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -175,41 +178,26 @@ public class ProfileService {
         Subscription subscription = subscriptionRepository.findByContactEmail(email)
                 .orElseThrow(() -> new RuntimeException("Subscription not found for user"));
 
-        //check if phone numbers have been used before by other users
-        if(phone1 != null) {
-            Subscription existingSub1 = subscriptionRepository.findByWhitelistedNumber1(phone1)
-                    .orElse(null);
-            if (existingSub1 != null && !existingSub1.getId().equals(subscription.getId())) {
-                throw new RuntimeException("Phone number " + phone1 + " is already in use.");
-            }
-        }
-        if(phone2 != null) {
-            Subscription existingSub2 = subscriptionRepository.findByWhitelistedNumber2(phone2)
-                    .orElse(null);
-            if (existingSub2 != null && !existingSub2.getId().equals(subscription.getId())) {
-                throw new RuntimeException("Phone number " + phone2 + " is already in use.");
-            }
-        }
-        if(phone3 != null) {
-            Subscription existingSub3 = subscriptionRepository.findByWhitelistedNumber3(phone3)
-                    .orElse(null);
-            if (existingSub3 != null && !existingSub3.getId().equals(subscription.getId())) {
-                throw new RuntimeException("Phone number " + phone3 + " is already in use.");
-            }
+        // one query checks all four columns at once
+        List<Subscription> conflicts = subscriptionRepository.findByAnyWhitelistedNumber(
+                List.of(phone1, phone2, phone3, phone4),   // non-null list
+                subscription.getContactEmail());                     // skip self
+
+        if (!conflicts.isEmpty()) {
+            throw new RuntimeException("Phone number(s) already in use: " +
+                                       conflicts.stream()
+                                               .flatMap(s -> Stream.of(s.getWhitelistedNumber1(),
+                                                       s.getWhitelistedNumber2(),
+                                                       s.getWhitelistedNumber3(),
+                                                       s.getWhitelistedNumber4()))
+                                               .filter(n -> List.of(phone1, phone2, phone3, phone4).contains(n))
+                                               .collect(Collectors.joining(", ")));
         }
 
-        if (phone1 != null) {
-            subscription.setWhitelistedNumber1(phone1);
-        }
-        if (phone2 != null) {
-            subscription.setWhitelistedNumber2(phone2);
-        }
-        if (phone3 != null) {
-            subscription.setWhitelistedNumber3(phone3);
-        }
-        if (phone4 != null) {
-            subscription.setWhitelistedNumber4(phone4);
-        }
+        subscription.setWhitelistedNumber1(phone1);
+        subscription.setWhitelistedNumber2(phone2);
+        subscription.setWhitelistedNumber3(phone3);
+        subscription.setWhitelistedNumber4(phone4);
 
         subscriptionRepository.save(subscription);
         user.setFirstTimeUser(false);
