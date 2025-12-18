@@ -100,7 +100,7 @@ public class PaymentService {
         String mobileNumber = request.mobileNumber();
 
         Optional<Subscription> subscriptionOpt = subscriptionRepository
-                .findByWhitelistedNumbers(mobileNumber);   // single query
+                .findByContactEmailAndWhitelistedNumbers(request.initiatedBy(),mobileNumber);
 
         if (subscriptionOpt.isEmpty()) {
             log.error("Mobile number {} is not whitelisted in any subscription", mobileNumber);
@@ -217,7 +217,7 @@ public class PaymentService {
 
                     long totalCount = groupTransactions.size();
                     double totalAmount = groupTransactions.stream()
-                            .filter(t -> "Payment successful".equalsIgnoreCase(t.getMessage()))
+                            .filter(t -> t.getStatus() != null && t.getStatus() == TransactionStatus.SUCCESSFUL)
                             .mapToDouble(t -> t.getAmount().doubleValue())
                             .sum();
 
@@ -425,7 +425,8 @@ public class PaymentService {
             transaction.setMtnPayerMessage(mtnCallBackRequest.payerMessage());
             transaction.setMtnPayeeNote(mtnCallBackRequest.payeeNote());
 
-            Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByName(transaction.getInitiationPartner());
+            Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByNameIgnoreCase(transaction.getInitiationPartner());
+            log.info("Fetching partner Id : {}", partnerOpt);
             if (partnerOpt.isPresent()) {
                 BigDecimal amount = new BigDecimal(mtnCallBackRequest.amount());
                 updatePartnerSummary(partnerOpt.get(),transaction.getInitiationPartner(), amount);

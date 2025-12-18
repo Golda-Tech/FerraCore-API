@@ -48,7 +48,7 @@ public class SubscriptionService {
 
     public SubscriptionResponse createSubscription(SubscriptionCreateRequest request) {
         log.info("Creating subscription for org: {}", request.organizationName());
-        log.info("View user type for org: {}", request.userType());
+
 
         // 1. look for any existing row with this organisation name
         Optional<Subscription> existing = repository
@@ -64,7 +64,7 @@ public class SubscriptionService {
         // 3. build & save
         PartnerSummary partnerSummary = PartnerSummary.builder()
                 .partnerId(orgId)
-                .partnerName(request.organizationName())
+                .partnerName(request.organizationName().toUpperCase())
                 .totalAmountTransactions(BigDecimal.valueOf(0.00))
                 .totalCountTransactions("")
                 .build();
@@ -74,7 +74,7 @@ public class SubscriptionService {
 
         Subscription subscription = Subscription.builder()
                 .organizationId(orgId)
-                .organizationName(request.organizationName())
+                .organizationName(request.organizationName().toUpperCase())
                 .planType(request.planType())
                 .userType(request.userType())
                 .contactEmail(request.contactEmail())

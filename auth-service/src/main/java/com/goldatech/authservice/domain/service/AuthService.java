@@ -73,10 +73,6 @@ public class AuthService {
      */
     @Transactional
     public RegistrationResponse register(RegisterRequest request) {
-        log.info("See userRole for org: {}", request.userType().name());
-        log.info("See userRole for org: {}", request.userType());
-        log.info("See userRole for org: {}", request.planType().toString());
-        log.info("See userRole for org: {}", request.planType());
 
         if (userRepository.existsByEmail(request.email())) {
             throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
@@ -96,7 +92,7 @@ public class AuthService {
         }
 
         var subscription = new SubscriptionCreateRequest(
-                request.organizationName(),
+                request.organizationName().toUpperCase(),
                 request.planType(),
                 request.userType(),
                 request.email(),

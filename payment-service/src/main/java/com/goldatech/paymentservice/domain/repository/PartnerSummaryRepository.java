@@ -9,7 +9,9 @@ import java.util.Optional;
 
 public interface PartnerSummaryRepository extends JpaRepository<PartnerSummary, Long> {
     /* returns partner-id that matches the given partner-name */
-    @Query(value = "SELECT partner_id FROM partner_summary WHERE partner_name = :name LIMIT 1", nativeQuery = true)
-    Optional<String> findPartnerIdByName(@Param("name") String partnerName);
+// java
+    @Query(value = "SELECT partner_id FROM partner_summary WHERE LOWER(partner_name) = LOWER(:name) LIMIT 1", nativeQuery = true)
+    Optional<String> findPartnerIdByNameIgnoreCase(@Param("name") String partnerName);
+
 
 }

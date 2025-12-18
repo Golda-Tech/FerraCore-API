@@ -13,7 +13,11 @@ public interface SubscriptionRepository  extends JpaRepository<Subscription, Lon
     Optional<Subscription> findByWhitelistedNumber2(String mobileNumber);
     Optional<Subscription> findByWhitelistedNumber3(String mobileNumber);
 
+
     @Query("SELECT s FROM Subscription s " +
-           "WHERE :number IN (s.whitelistedNumber1, s.whitelistedNumber2, s.whitelistedNumber3, s.whitelistedNumber4)")
-    Optional<Subscription> findByWhitelistedNumbers(@Param("number") String number);
+           "WHERE s.contactEmail = :email " +
+           "AND :number IN (s.whitelistedNumber1, s.whitelistedNumber2, s.whitelistedNumber3, s.whitelistedNumber4)")
+    Optional<Subscription> findByContactEmailAndWhitelistedNumbers(@Param("email") String email,
+                                                                   @Param("number") String number);
+
 }
