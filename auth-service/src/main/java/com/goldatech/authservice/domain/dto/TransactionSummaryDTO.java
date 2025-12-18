@@ -1,11 +1,20 @@
 package com.goldatech.authservice.domain.dto;
 
-import java.math.BigDecimal;
 
-public record TransactionSummaryDTO(
-        Long totalTransactions,           // Count of all transactions
-        Long successfulTransactions,      // Count of successful transactions
-        BigDecimal successfulAmount,      // Amount of successful transactions (duplicate of totalAmount)
-        Long failedTransactions,          // Count of failed transactions
-        BigDecimal failedAmount           // Amount of failed transactions
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TransactionSummaryDTO {
+    // Add this as the first field to match the SELECT order
+    private String email;
+
+    private Long totalTransactions;
+    private Double totalSuccessAmount;
+    private Long totalSuccessCount;
+    private Long totalFailedCount;
+    private Double totalFailedAmount;
+}

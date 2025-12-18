@@ -59,31 +59,54 @@ public class ProfileService {
     }
 
     public List<UserProfileResponse> getUsers(String orgName) {
-        log.info("Fetching all users for organization: {}", orgName);
+        log.info("Fetching bulk users for organization: {}", orgName);
 
-        /* 1. all subscriptions for this organisation (any status) */
+        // 1. Get all subscriptions
         List<Subscription> subs = subscriptionRepository.findByOrganizationNameIgnoreCase(orgName);
+        List<String> emails = subs.stream().map(Subscription::getContactEmail).toList();
 
-        /* 2. map each subscription to its user + live stats */
+        // 2. Bulk fetch all transaction stats in ONE query
+        Map<String, TransactionSummaryDTO> summaryMap = paymentTransactionRepository
+                .getBulkUserTransactionSummaries(emails, TransactionStatus.SUCCESSFUL, TransactionStatus.FAILED)
+                .stream()
+                .collect(Collectors.toMap(TransactionSummaryDTO::getEmail, dto -> dto));
+
+        // 3. Map everything together
         return subs.stream()
                 .map(sub -> {
                     User user = userRepository.findByEmail(sub.getContactEmail())
-                            .orElseThrow(() -> new RuntimeException(
-                                    "No user for e-mail " + sub.getContactEmail()));
+                            .orElseThrow(() -> new RuntimeException("User not found: " + sub.getContactEmail()));
 
-                    /* live stats from payment_transactions */
-                    TransactionSummaryDTO row = paymentTransactionRepository.getUserTransactionSummary(user.getEmail(),TransactionStatus.SUCCESSFUL,TransactionStatus.FAILED);
-                    UserTransactionSummary summary = UserTransactionSummary.builder()
-                            .totalTransactionCount((row.totalTransactions()))
-                            .successTransactionCount((row.successfulTransactions()))
-                            .failedTransactionCount(row.failedTransactions())
-                            .successfulTotalTransactionAmount(row.successfulAmount())
-                            .failedTotalTransactionAmount(row.failedAmount())
-                            .build();
+                    // Get summary from map, or use default if user has no transactions
+                    TransactionSummaryDTO row = summaryMap.get(user.getEmail());
+                    UserTransactionSummary summary = mapToTransactionSummary(row);
 
                     return buildProfileResponse(user, sub, summary);
                 })
                 .toList();
+    }
+
+    /**
+     * Helper method to handle null rows and map DTO fields safely.
+     */
+    private UserTransactionSummary mapToTransactionSummary(TransactionSummaryDTO row) {
+        if (row == null) {
+            return UserTransactionSummary.builder()
+                    .totalTransactionCount(0L)
+                    .successTransactionCount(0L)
+                    .failedTransactionCount(0L)
+                    .successfulTotalTransactionAmount(BigDecimal.valueOf(0.0))
+                    .failedTotalTransactionAmount(BigDecimal.valueOf(0.0))
+                    .build();
+        }
+
+        return UserTransactionSummary.builder()
+                .totalTransactionCount(row.getTotalTransactions())
+                .successTransactionCount(row.getTotalSuccessCount())
+                .failedTransactionCount(row.getTotalFailedCount())
+                .successfulTotalTransactionAmount(BigDecimal.valueOf(row.getTotalSuccessAmount()))
+                .failedTotalTransactionAmount(BigDecimal.valueOf(row.getTotalFailedAmount()))
+                .build();
     }
 
 
