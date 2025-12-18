@@ -71,8 +71,11 @@ public class ProfileService {
                                     "No user for e-mail " + sub.getContactEmail()));
 
                     /* live stats from payment_transactions */
-                    UserTransactionSummary summary =
-                            paymentTransactionRepository.getUserTransactionSummary(user.getEmail());
+                    Map<String, Object> row = paymentTransactionRepository.getUserTransactionSummary(user.getEmail());
+                    UserTransactionSummary summary = UserTransactionSummary.builder()
+                            .totalTransactionCount(((Number) row.get("totalTransactionCount")).longValue())
+                            .successfulTotalTransactionAmount((BigDecimal) row.get("successfulTotalTransactionAmount"))
+                            .build();
 
                     return buildProfileResponse(user, sub, summary);
                 })
