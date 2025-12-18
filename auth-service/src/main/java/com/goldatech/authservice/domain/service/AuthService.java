@@ -108,7 +108,7 @@ public class AuthService {
                 .email(request.email())
                 .organizationName(request.organizationName().toUpperCase())
                 .password(passwordEncoder.encode(tempPassword))
-                .role(UserRoles.valueOf(request.userRoles().displayName()))
+                .role(request.userRoles())
                 .firstTimeUser(true)
                 .passwordResetRequired(true)
                 .build();
@@ -127,7 +127,7 @@ public class AuthService {
                 user.getEmail(),
                 "ORG_REGISTERED",
                 tempPassword,
-                subscription.planType().displayName(),
+                subscription.planType(),
                 LocalDateTime.now()
         );
 

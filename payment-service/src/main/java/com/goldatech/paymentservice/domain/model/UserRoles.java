@@ -1,20 +1,10 @@
 package com.goldatech.paymentservice.domain.model;
 
 public enum UserRoles {
-    SUPER_ADMIN("Super Admin"),
-    GA_ADMIN("Ga Admin"),
-    BUSINESS_ADMIN("Business Admin"),
-    BUSINESS_FINANCE("Business Finance"),
-    BUSINESS_OPERATOR("Business Operator");
+    SUPER_ADMIN,
+    GA_ADMIN,
+    BUSINESS_ADMIN,
+    BUSINESS_FINANCE,
+    BUSINESS_OPERATOR
 
-
-    private final String displayName;
-
-    UserRoles(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public String displayName() {
-        return displayName;
-    }
 }

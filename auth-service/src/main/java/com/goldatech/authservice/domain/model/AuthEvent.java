@@ -10,7 +10,7 @@ public record AuthEvent(
         String email,
         String eventAction,
         String message,
-        String userId,
+        PlanType userId,
         LocalDateTime timestamp
 )  {}
 

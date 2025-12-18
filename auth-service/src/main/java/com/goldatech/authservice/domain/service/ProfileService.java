@@ -333,7 +333,7 @@ public class ProfileService {
                     .build();
 
             subDetails = UserProfileResponse.SubscriptionDetails.builder()
-                    .plan(subscription.getPlanType().displayName().toUpperCase())
+                    .plan(String.valueOf(subscription.getPlanType()))
                     .status(subscription.getStatus())
                     .billingCycle("monthly")
                     .nextBilling(calculateNextBilling(subscription.getCreatedAt()))
@@ -452,7 +452,7 @@ public class ProfileService {
 
     private UserProfileResponse.SubscriptionDetails buildSubDetails(Subscription s) {
         return UserProfileResponse.SubscriptionDetails.builder()
-                .plan(s.getPlanType().displayName().toUpperCase())
+                .plan(String.valueOf(s.getPlanType()))
                 .status(s.getStatus())
                 .billingCycle("monthly")
                 .nextBilling(calculateNextBilling(s.getCreatedAt()))

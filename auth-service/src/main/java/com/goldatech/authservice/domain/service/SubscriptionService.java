@@ -75,7 +75,7 @@ public class SubscriptionService {
                 .organizationId(orgId)
                 .organizationName(request.organizationName())
                 .planType(request.planType())
-                .userType(UserRoles.valueOf(request.userType().displayName()))
+                .userType(request.userType())
                 .contactEmail(request.contactEmail())
                 .subscriptionKey(generatedKey)
                 .subscriptionSecret(generatedSecret)
