@@ -9,7 +9,7 @@ COPY . .
 RUN mvn clean package -DskipTests -Dspotless.check.skip=true
 
 # Stage 2: Run the app
-FROM openjdk:21-slim
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copy the built JAR from builder stage

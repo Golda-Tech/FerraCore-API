@@ -1,0 +1,64 @@
+version: "3.8"
+name: "rexhub"
+services:
+  api-gateway:
+    build: ../../api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - loki
+
+  auth-service:
+    build: ../../auth-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - loki
+
+  collection-service:
+    build: ../../collections-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - loki
+
+  notifications-service:
+    build: ../../notification-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - loki
+
+  payment-service:
+    build: ../../payment-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - loki
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+
+  loki:
+    image: grafana/loki:2.9.8
+    command:
+      - "-config.file=/etc/loki/local-config.yaml"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+
+  grafana:
+    image: grafana/grafana:10.4.5
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    depends_on:
+      - loki

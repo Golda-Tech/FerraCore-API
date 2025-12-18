@@ -9,7 +9,7 @@ COPY . .
 RUN mvn clean package -DskipTests -Dspotless.check.skip=true
 
 # Stage 2: Run the app
-FROM openjdk:21-slim
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=builder /app/target/collections-service-0.0.1-SNAPSHOT.jar app.jar
 # Render uses PORT environment variable
