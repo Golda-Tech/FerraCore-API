@@ -4,6 +4,7 @@ import com.goldatech.authservice.domain.mapper.SubscriptionMapper;
 import com.goldatech.authservice.domain.model.PartnerSummary;
 import com.goldatech.authservice.domain.model.Subscription;
 import com.goldatech.authservice.domain.model.SubscriptionStatus;
+import com.goldatech.authservice.domain.model.UserRoles;
 import com.goldatech.authservice.domain.repository.PartnerSummaryRepository;
 import com.goldatech.authservice.domain.repository.SubscriptionRepository;
 import com.goldatech.authservice.security.JwtService;
@@ -74,7 +75,7 @@ public class SubscriptionService {
                 .organizationId(orgId)
                 .organizationName(request.organizationName())
                 .planType(request.planType())
-                .userType(request.userType())
+                .userType(UserRoles.valueOf(request.userType().displayName()))
                 .contactEmail(request.contactEmail())
                 .subscriptionKey(generatedKey)
                 .subscriptionSecret(generatedSecret)

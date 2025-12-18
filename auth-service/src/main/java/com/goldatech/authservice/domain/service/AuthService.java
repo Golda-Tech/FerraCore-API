@@ -108,7 +108,7 @@ public class AuthService {
                 .email(request.email())
                 .organizationName(request.organizationName().toUpperCase())
                 .password(passwordEncoder.encode(tempPassword))
-                .role(request.userRoles())
+                .role(UserRoles.valueOf(request.userRoles().displayName()))
                 .firstTimeUser(true)
                 .passwordResetRequired(true)
                 .build();
