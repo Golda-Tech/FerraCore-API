@@ -100,8 +100,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: health,info,gateway,prometheus
   endpoint:
+    prometheus:
+      access: unrestricted
     health:
       show-details: always
 
