@@ -122,7 +122,7 @@ public class NotificationService {
                                 change your password, and complete your profile setup:</p>
                             
                                 <p style="margin:20px 0;">
-                                  <a href="https://app.ferracore.tech/login" 
+                                  <a href="https://www.rexhub.com.gh/login" 
                                      style="background-color:#3498db; color:#fff; padding:12px 20px; text-decoration:none; border-radius:5px;">
                                      Log in & Change Password
                                   </a>
