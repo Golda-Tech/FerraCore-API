@@ -73,6 +73,8 @@ public class AuthService {
      */
     @Transactional
     public RegistrationResponse register(RegisterRequest request) {
+        log.info("See userRole for org: {}", request.userRoles());
+
         if (userRepository.existsByEmail(request.email())) {
             throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
         }

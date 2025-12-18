@@ -3,10 +3,7 @@ package com.goldatech.authservice.domain.service;
 import com.goldatech.authservice.domain.dto.TransactionSummaryDTO;
 import com.goldatech.authservice.domain.dto.UserTransactionSummary;
 import com.goldatech.authservice.domain.model.*;
-import com.goldatech.authservice.domain.repository.PartnerSummaryRepository;
-import com.goldatech.authservice.domain.repository.PaymentTransactionRepository;
-import com.goldatech.authservice.domain.repository.SubscriptionRepository;
-import com.goldatech.authservice.domain.repository.UserRepository;
+import com.goldatech.authservice.domain.repository.*;
 import com.goldatech.authservice.web.dto.request.OrganizationUpdateRequest;
 import com.goldatech.authservice.web.dto.request.ProfileUpdateRequest;
 import com.goldatech.authservice.web.dto.request.WhitelistUpdateRequest;
@@ -31,6 +28,7 @@ public class ProfileService {
 
     private final UserRepository userRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final RoleRequestRepository roleRequestRepository;
     private final PartnerSummaryRepository partnerSummaryRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
 
@@ -286,6 +284,7 @@ public class ProfileService {
     }
 
 
+
     /**
      * Regenerates API credentials for a subscription
      *
@@ -521,4 +520,25 @@ public class ProfileService {
     }
 
 
+    @Transactional
+    public UserProfileResponse initiateRoleUpdate(String email, String requestedRole) {
+        // verify user exists
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // create and save a pending role request
+        RoleRequest rr = RoleRequest.builder()
+                .id(java.util.UUID.randomUUID())
+                .userEmail(email)
+                .requestedRole(requestedRole)
+                .status(RoleRequestStatus.PENDING)
+                .requestedAt(java.time.LocalDateTime.now())
+                .build();
+
+        roleRequestRepository.save(rr);
+
+        // return current profile (subscription may be null)
+        Subscription subscription = subscriptionRepository.findByContactEmail(email).orElse(null);
+        return buildProfileResponse(user, subscription);
+    }
 }

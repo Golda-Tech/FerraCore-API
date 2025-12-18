@@ -48,6 +48,7 @@ public class SubscriptionService {
 
     public SubscriptionResponse createSubscription(SubscriptionCreateRequest request) {
         log.info("Creating subscription for org: {}", request.organizationName());
+        log.info("View user type for org: {}", request.userType());
 
         // 1. look for any existing row with this organisation name
         Optional<Subscription> existing = repository

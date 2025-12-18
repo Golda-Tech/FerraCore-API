@@ -32,9 +32,11 @@ public class Subscription {
     @Column(name = "subscription_secret", unique = true)
     private String subscriptionSecret;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "plan_type")
     private PlanType planType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "user_type")
     private UserRoles userType;
 
@@ -47,6 +49,7 @@ public class Subscription {
     @Column(name = "contact_number")
     private String contactNumber;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private SubscriptionStatus status;
 
