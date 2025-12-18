@@ -117,9 +117,9 @@ public class AuthController {
     }
 
     @GetMapping("/profile/users")
-    public ResponseEntity<List<UserProfileResponse>> getUsersProfile(@RequestParam String orgName) {
+    public ResponseEntity<List<UserProfileResponse>> getUsersProfile(@RequestParam String organizationName) {
         log.info("Fetching ALL profile for authenticated users");
-        List<UserProfileResponse> profile = profileService.getUsers(orgName);
+        List<UserProfileResponse> profile = profileService.getUsers(organizationName);
         return ResponseEntity.ok(profile);
     }
 

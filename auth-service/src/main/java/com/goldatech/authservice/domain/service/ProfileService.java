@@ -64,6 +64,7 @@ public class ProfileService {
         // 1. Get all subscriptions
         List<Subscription> subs = subscriptionRepository.findByOrganizationNameIgnoreCase(orgName);
         List<String> emails = subs.stream().map(Subscription::getContactEmail).toList();
+        log.info("emails: {}", emails);
 
         // 2. Bulk fetch all transaction stats in ONE query
         Map<String, TransactionSummaryDTO> summaryMap = paymentTransactionRepository
@@ -389,7 +390,7 @@ public class ProfileService {
                         .subscription(buildSubDetails(sub))
                         .apiCredentials(buildApiCreds(sub));
 
-
+        log.info("Fetching partner summary: {}", ps);
         if (ps != null) {
             builder.summary(UserProfileResponse.Summary.builder()
                     .partnerId(ps.getPartnerId())
