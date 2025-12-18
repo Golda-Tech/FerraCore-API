@@ -4,6 +4,7 @@ import com.goldatech.authservice.domain.model.UserRoles;
 import com.goldatech.authservice.domain.model.SubscriptionStatus;
 import lombok.Builder;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Builder
@@ -56,6 +57,8 @@ public record UserProfileResponse(
             String partnerId,
             String partnerName,
             String totalCountTransactions,
-            Double totalAmountTransactions
+            Long successfulTransactionsCount,
+            Long failedTransactionsCount,
+            BigDecimal totalSuccessfulAmountTransactions
     ) {}
 }

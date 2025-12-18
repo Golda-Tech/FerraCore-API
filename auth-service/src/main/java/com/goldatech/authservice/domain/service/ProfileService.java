@@ -1,5 +1,6 @@
 package com.goldatech.authservice.domain.service;
 
+import com.goldatech.authservice.domain.dto.TransactionSummaryDTO;
 import com.goldatech.authservice.domain.dto.UserTransactionSummary;
 import com.goldatech.authservice.domain.model.*;
 import com.goldatech.authservice.domain.repository.PartnerSummaryRepository;
@@ -71,10 +72,13 @@ public class ProfileService {
                                     "No user for e-mail " + sub.getContactEmail()));
 
                     /* live stats from payment_transactions */
-                    Map<String, Object> row = paymentTransactionRepository.getUserTransactionSummary(user.getEmail());
+                    TransactionSummaryDTO row = paymentTransactionRepository.getUserTransactionSummary(user.getEmail());
                     UserTransactionSummary summary = UserTransactionSummary.builder()
-                            .totalTransactionCount(((Number) row.get("totalTransactionCount")).longValue())
-                            .successfulTotalTransactionAmount((BigDecimal) row.get("successfulTotalTransactionAmount"))
+                            .totalTransactionCount((row.totalTransactions()))
+                            .successTransactionCount((row.successfulTransactions()))
+                            .failedTransactionCount(row.failedTransactions())
+                            .successfulTotalTransactionAmount(row.successfulAmount())
+                            .failedTotalTransactionAmount(row.failedAmount())
                             .build();
 
                     return buildProfileResponse(user, sub, summary);
@@ -96,12 +100,10 @@ public class ProfileService {
     }
 
 
-
-
     /**
      * Updates user profile information
      *
-     * @param email the email of the authenticated user
+     * @param email   the email of the authenticated user
      * @param request the profile update request
      * @return updated UserProfileResponse
      */
@@ -148,7 +150,7 @@ public class ProfileService {
     /**
      * Updates organization details
      *
-     * @param email the email of the authenticated user
+     * @param email   the email of the authenticated user
      * @param request the organization update request
      * @return updated UserProfileResponse
      */
@@ -368,7 +370,7 @@ public class ProfileService {
             builder.summary(UserProfileResponse.Summary.builder()
                     .partnerId(ps.getPartnerId())
                     .partnerName(ps.getPartnerName())
-                    .totalAmountTransactions(new BigDecimal(String.valueOf(ps.getTotalAmountTransactions())).doubleValue())
+                    .totalSuccessfulAmountTransactions(ps.getTotalAmountTransactions())
                     .totalCountTransactions(ps.getTotalCountTransactions())
                     .build());
         }
@@ -388,9 +390,11 @@ public class ProfileService {
         /* summary node */
         UserProfileResponse.Summary summary = UserProfileResponse.Summary.builder()
                 .partnerId(u.getEmail())
-                .partnerName(u.getFirstname() + " " + u.getLastname())
+                .partnerName(u.getOrganizationName())
                 .totalCountTransactions(String.valueOf(uts.getTotalTransactionCount()))
-                .totalAmountTransactions(uts.getSuccessfulTotalTransactionAmount().doubleValue())
+                .totalSuccessfulAmountTransactions(uts.getSuccessfulTotalTransactionAmount())
+                .failedTransactionsCount(uts.getFailedTransactionCount())
+                .successfulTransactionsCount(uts.getSuccessTransactionCount())
                 .build();
 
         /* final immutable object */
@@ -470,14 +474,14 @@ public class ProfileService {
         return switch (planType) {
             case PAYMENT_REQUEST -> 199.0;
             case PAYOUTS -> 249.0;
-            case RECURRING_PAYMENTS-> 179.0;
+            case RECURRING_PAYMENTS -> 179.0;
             case ENTERPRISE_FULL_ACCESS -> 499.0;
         };
     }
 
     private String generateRandomKey() {
         // generate an alphanumeric string of length 24
-        return  randomString(24);
+        return randomString(24);
     }
 
     private String generateRandomSecret() {

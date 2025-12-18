@@ -11,4 +11,7 @@ import lombok.Builder;
 public class UserTransactionSummary {
     long totalTransactionCount;
     BigDecimal successfulTotalTransactionAmount;
+    BigDecimal failedTotalTransactionAmount;
+    long failedTransactionCount;
+    long successTransactionCount;
 }
