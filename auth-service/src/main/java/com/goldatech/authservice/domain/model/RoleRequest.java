@@ -15,7 +15,7 @@ import java.util.UUID;
 public class RoleRequest {
 
     @Id
-    private UUID id;
+    private Long id;
 
     @Column(nullable = false)
     private String userEmail;
