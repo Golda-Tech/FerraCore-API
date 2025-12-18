@@ -95,7 +95,7 @@ public class ProfileService {
                     .totalTransactionCount(0L)
                     .successTransactionCount(0L)
                     .failedTransactionCount(0L)
-                    .successfulTotalTransactionAmount(BigDecimal.valueOf(0.0))
+                    .successfulTotalTransactionAmount(BigDecimal.valueOf(0.0)) // Assuming this is Double
                     .failedTotalTransactionAmount(BigDecimal.valueOf(0.0))
                     .build();
         }
@@ -104,8 +104,9 @@ public class ProfileService {
                 .totalTransactionCount(row.getTotalTransactions())
                 .successTransactionCount(row.getTotalSuccessCount())
                 .failedTransactionCount(row.getTotalFailedCount())
-                .successfulTotalTransactionAmount(BigDecimal.valueOf(row.getTotalSuccessAmount()))
-                .failedTotalTransactionAmount(BigDecimal.valueOf(row.getTotalFailedAmount()))
+                // Convert BigDecimal to Double if needed
+                .successfulTotalTransactionAmount(BigDecimal.valueOf(row.getTotalSuccessAmount() != null ? row.getTotalSuccessAmount().doubleValue() : 0.0))
+                .failedTotalTransactionAmount(BigDecimal.valueOf(row.getTotalFailedAmount() != null ? row.getTotalFailedAmount().doubleValue() : 0.0))
                 .build();
     }
 
