@@ -1,7 +1,7 @@
 package com.goldatech.authservice.domain.repository;
 
 import com.goldatech.authservice.domain.model.PaymentTransaction;
-import com.goldatech.authservice.domain.model.UserTransactionSummary;
+import com.goldatech.authservice.domain.dto.UserTransactionSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

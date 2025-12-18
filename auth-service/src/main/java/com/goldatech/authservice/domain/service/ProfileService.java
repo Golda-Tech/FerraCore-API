@@ -1,5 +1,6 @@
 package com.goldatech.authservice.domain.service;
 
+import com.goldatech.authservice.domain.dto.UserTransactionSummary;
 import com.goldatech.authservice.domain.model.*;
 import com.goldatech.authservice.domain.repository.PartnerSummaryRepository;
 import com.goldatech.authservice.domain.repository.PaymentTransactionRepository;
