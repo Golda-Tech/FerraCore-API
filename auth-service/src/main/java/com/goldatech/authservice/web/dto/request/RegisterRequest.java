@@ -21,5 +21,5 @@ public record RegisterRequest(
         @NotBlank String organizationName,
         @NotBlank String mobileNumber,
         PlanType planType,
-        UserRoles userRoles
+        UserRoles userType
 ) {}
