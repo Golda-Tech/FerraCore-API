@@ -21,7 +21,7 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
 //    Map<String, Object> getUserTransactionSummary(@Param("initiatedBy") String initiatedBy);
 
     @Query("""
-    SELECT new com.goldatech.authservice.dto.TransactionSummaryDTO(
+    SELECT new com.goldatech.authservice.domain.dto.TransactionSummaryDTO(
         COUNT(pt),
         COALESCE(SUM(CASE WHEN pt.status = :success THEN pt.amount ELSE 0 END), 0),
         SUM(CASE WHEN pt.status = :success THEN 1L ELSE 0L END),
