@@ -217,6 +217,7 @@ public class PaymentService {
 
                     long totalCount = groupTransactions.size();
                     double totalAmount = groupTransactions.stream()
+                            .filter(t -> "Payment successful".equalsIgnoreCase(t.getMessage()))
                             .mapToDouble(t -> t.getAmount().doubleValue())
                             .sum();
 
@@ -424,10 +425,10 @@ public class PaymentService {
             transaction.setMtnPayerMessage(mtnCallBackRequest.payerMessage());
             transaction.setMtnPayeeNote(mtnCallBackRequest.payeeNote());
 
-            Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByName(transaction.getMtnPayerMessage());
+            Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByName(transaction.getInitiationPartner());
             if (partnerOpt.isPresent()) {
                 BigDecimal amount = new BigDecimal(mtnCallBackRequest.amount());
-                updatePartnerSummary(partnerOpt.get(),transaction.getMtnPayerMessage(), amount);
+                updatePartnerSummary(partnerOpt.get(),transaction.getInitiationPartner(), amount);
             }
         }  else {
             transaction.setStatus(TransactionStatus.FAILED);
