@@ -528,7 +528,6 @@ public class ProfileService {
 
         // create and save a pending role request
         RoleRequest rr = RoleRequest.builder()
-                .id(java.util.UUID.randomUUID())
                 .userEmail(email)
                 .requestedRole(requestedRole)
                 .status(RoleRequestStatus.PENDING)

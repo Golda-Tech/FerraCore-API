@@ -15,6 +15,7 @@ import java.util.UUID;
 public class RoleRequest {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
