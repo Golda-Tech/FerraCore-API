@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -20,6 +21,9 @@ public class Subscription {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "organization_id", nullable = false)
+    private String organizationId;
+
     @Column(name = "organization_name", nullable = false)
     private String organizationName;
 
@@ -31,6 +35,9 @@ public class Subscription {
 
     @Column(name = "plan_type")
     private PlanType planType;
+
+    @Column(name = "user_type")
+    private Role userType;
 
     @Column(name = "contact_email")
     private String contactEmail;

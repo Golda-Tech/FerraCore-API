@@ -1,8 +1,10 @@
 package com.goldatech.authservice.domain.service;
 
 import com.goldatech.authservice.domain.mapper.SubscriptionMapper;
+import com.goldatech.authservice.domain.model.PartnerSummary;
 import com.goldatech.authservice.domain.model.Subscription;
 import com.goldatech.authservice.domain.model.SubscriptionStatus;
+import com.goldatech.authservice.domain.repository.PartnerSummaryRepository;
 import com.goldatech.authservice.domain.repository.SubscriptionRepository;
 import com.goldatech.authservice.security.JwtService;
 import com.goldatech.authservice.web.dto.request.SubscriptionCreateRequest;
@@ -17,10 +19,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
@@ -28,35 +33,57 @@ import java.util.Optional;
 public class SubscriptionService {
 
     private final SubscriptionRepository repository;
+    private final PartnerSummaryRepository partnerSummaryRepository;
     private final JwtService jwtService;
 
     @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
 
-    public SubscriptionService(SubscriptionRepository repository, JwtService jwtService) {
+    public SubscriptionService(SubscriptionRepository repository, PartnerSummaryRepository partnerSummaryRepository, JwtService jwtService) {
         this.repository = repository;
+        this.partnerSummaryRepository = partnerSummaryRepository;
         this.jwtService = jwtService;
     }
 
     public SubscriptionResponse createSubscription(SubscriptionCreateRequest request) {
         log.info("Creating subscription for org: {}", request.organizationName());
 
+        // 1. look for any existing row with this organisation name
+        Optional<Subscription> existing = repository
+                .findTopByOrganizationNameIgnoreCase(request.organizationName());
+
+        String orgId = existing.map(Subscription::getOrganizationId)   // reuse
+                .orElseGet(this::orgIdGenerator);       // new
+
+        // 2. generate keys
         String generatedKey = generateRandomKey();
         String generatedSecret = generateRandomSecret();
 
+        // 3. build & save
+        PartnerSummary partnerSummary = PartnerSummary.builder()
+                .partnerId(orgId)
+                .partnerName(request.organizationName())
+                .totalAmountTransactions(BigDecimal.valueOf(0.00))
+                .totalCountTransactions("")
+                .build();
+        partnerSummaryRepository.save(partnerSummary);
+
+
+
         Subscription subscription = Subscription.builder()
+                .organizationId(orgId)
                 .organizationName(request.organizationName())
                 .planType(request.planType())
+                .userType(request.userType())
                 .contactEmail(request.contactEmail())
                 .subscriptionKey(generatedKey)
                 .subscriptionSecret(generatedSecret)
-                .status(SubscriptionStatus.valueOf("ACTIVE"))
+                .status(SubscriptionStatus.ACTIVE)
                 .build();
 
         Subscription saved = repository.save(subscription);
         return SubscriptionMapper.toResponse(saved);
     }
-
 
     public SubscriptionAuthResponse authorize(SubscriptionLoginRequest request, String authorization) {
         log.info("Authenticating subscription with key: {}", request.subscriptionKey());
@@ -92,6 +119,7 @@ public class SubscriptionService {
                 "Subscription authorized successfully."
         );
     }
+
 
 
     public List<SubscriptionResponse> getAllSubscriptions() {
@@ -199,5 +227,15 @@ public class SubscriptionService {
         byte[] bytes = new byte[length];
         random.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private String orgIdGenerator() {
+
+        final AtomicInteger counter = new AtomicInteger(0);
+
+        int day  = (int) (Instant.now().toEpochMilli() / 86_400_000) % 1_000; // 0-999
+        int seq  = counter.updateAndGet(v -> v >= 999 ? 0 : v + 1);          // 0-999
+        return String.format("%03d%03d", day, seq);                          // 6 digits
+
     }
 }

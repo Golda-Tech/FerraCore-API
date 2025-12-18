@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -111,6 +113,22 @@ public class AuthController {
         log.info("Fetching profile for authenticated user");
         String email = authentication.getName(); // Gets the email from JWT
         UserProfileResponse profile = profileService.getUserProfile(email);
+        return ResponseEntity.ok(profile);
+    }
+
+    @GetMapping("/profile/users")
+    public ResponseEntity<List<UserProfileResponse>> getUsersProfile(@RequestParam String orgName) {
+        log.info("Fetching ALL profile for authenticated users");
+        List<UserProfileResponse> profile = profileService.getUsers(orgName);
+        return ResponseEntity.ok(profile);
+    }
+
+
+
+    @GetMapping("/profile/partners")
+    public ResponseEntity<List<UserProfileResponse>> getPartnersProfile() {
+        log.info("Fetching ALL profile for authenticated partners");
+        List<UserProfileResponse> profile = profileService.getPartners();
         return ResponseEntity.ok(profile);
     }
 

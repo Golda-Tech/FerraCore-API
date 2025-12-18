@@ -93,6 +93,7 @@ public class AuthService {
         var subscription = new SubscriptionCreateRequest(
                 request.organizationName(),
                 request.planType(),
+                request.role(),
                 request.email(),
                 request.mobileNumber(),
                 ""
@@ -107,7 +108,7 @@ public class AuthService {
                 .email(request.email())
                 .organizationName(request.organizationName().toUpperCase())
                 .password(passwordEncoder.encode(tempPassword))
-                .role(Role.USER)
+                .role(request.role())
                 .firstTimeUser(true)
                 .passwordResetRequired(true)
                 .build();
@@ -295,8 +296,7 @@ public class AuthService {
                             .firstname(identifier.contains("@") ? identifier.substring(0, identifier.indexOf("@")) : "User")
                             .lastname(" ") // Default last name
                             .email(identifier)
-                            .password(passwordEncoder.encode(otpGenerator())) // Random password
-                            .role(Role.USER) // Default role
+                            .password(passwordEncoder.encode(otpGenerator())) // Random password// Default role
                             .passwordResetRequired(false)
                             .firstTimeUser(true)
                             .build();

@@ -80,7 +80,7 @@ public class MtnPaymentProvider implements PaymentProvider{
                 .userRoles(request.initiationPartner().equalsIgnoreCase("Ferracore Technologies") ||
                         request.initiationPartner().equalsIgnoreCase("Rexhub") ||
                         request.initiationPartner().equalsIgnoreCase("Global Accelerex")
-                        ? UserRoles.ADMIN : UserRoles.PARTNER)
+                        ? UserRoles.SUPER_ADMIN : UserRoles.GA_ADMIN)
                 .currency("GHS")
                 .status(TransactionStatus.PENDING)
                 .message("Payment request sent to MTN.")

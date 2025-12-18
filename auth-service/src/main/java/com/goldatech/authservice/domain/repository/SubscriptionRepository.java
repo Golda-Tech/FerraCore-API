@@ -36,4 +36,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     List<Subscription> findByAnyWhitelistedNumber(@Param("numbers") Collection<String> numbers,
                                                   @Param("excludeId") Long excludeId);
 
+    Optional<Subscription> findTopByOrganizationNameIgnoreCase(String orgName);
+
+    List<Subscription> findByOrganizationNameIgnoreCase(String orgName);
 }

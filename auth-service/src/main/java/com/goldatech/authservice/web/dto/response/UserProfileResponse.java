@@ -1,5 +1,6 @@
 package com.goldatech.authservice.web.dto.response;
 
+import com.goldatech.authservice.domain.model.PartnerSummary;
 import com.goldatech.authservice.domain.model.PlanType;
 import com.goldatech.authservice.domain.model.Role;
 import com.goldatech.authservice.domain.model.SubscriptionStatus;
@@ -18,7 +19,8 @@ public record UserProfileResponse(
         Role role,
         OrganizationDetails organization,
         SubscriptionDetails subscription,
-        ApiCredentials apiCredentials
+        ApiCredentials apiCredentials,
+        Summary summary
 ) {
     @Builder
     public record OrganizationDetails(
@@ -49,5 +51,13 @@ public record UserProfileResponse(
     public record ApiCredentials(
             String subscriptionKey,
             String subscriptionSecret
+    ) {}
+
+    @Builder
+    public record Summary(
+            String partnerId,
+            String partnerName,
+            String totalCountTransactions,
+            Double totalAmountTransactions
     ) {}
 }

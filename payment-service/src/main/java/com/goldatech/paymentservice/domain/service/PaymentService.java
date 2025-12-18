@@ -1,16 +1,13 @@
 package com.goldatech.paymentservice.domain.service;
 
 import com.goldatech.paymentservice.domain.model.Subscription;
-import com.goldatech.paymentservice.domain.repository.SubscriptionRepository;
+import com.goldatech.paymentservice.domain.repository.*;
 import com.goldatech.paymentservice.domain.model.MtnCallback;
 import com.goldatech.paymentservice.domain.model.Otp;
 import com.goldatech.paymentservice.domain.model.PaymentTransaction;
 import com.goldatech.paymentservice.domain.model.TransactionStatus;
 import com.goldatech.paymentservice.domain.model.events.OtpEvent;
 import com.goldatech.paymentservice.domain.model.events.PaymentEvent;
-import com.goldatech.paymentservice.domain.repository.MtnCallbackRepository;
-import com.goldatech.paymentservice.domain.repository.OtpRepository;
-import com.goldatech.paymentservice.domain.repository.PaymentTransactionRepository;
 import com.goldatech.paymentservice.domain.strategy.PaymentProvider;
 import com.goldatech.paymentservice.domain.strategy.PaymentProviderFactory;
 import com.goldatech.paymentservice.web.dto.request.MtnCallBackRequest;
@@ -19,6 +16,7 @@ import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
 import com.goldatech.paymentservice.web.dto.response.NameEnquiryResponse;
 import com.goldatech.paymentservice.web.dto.response.PaymentResponse;
 import com.goldatech.paymentservice.web.dto.response.PaymentTrendDTO;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -33,6 +31,8 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
+import static jakarta.transaction.Transactional.*;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -40,10 +40,12 @@ public class PaymentService {
 
     private final PaymentProviderFactory providerFactory;
     private final PaymentTransactionRepository transactionRepository;
+    private final PartnerSummaryRepository partnerSummaryRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final OtpRepository otpRepository;
     private final RabbitTemplate rabbitTemplate;
     private final MtnCallbackRepository callbackRepository;
+    private final EntityManager em;
 
     @Value("${notification.exchange}")
     private String notificationExchange;
@@ -359,6 +361,25 @@ public class PaymentService {
 
 
 
+    private void updatePartnerSummary(String partnerId, String partnerName, BigDecimal amount) {
+        em.createNativeQuery(
+                        """
+                        INSERT INTO partner_summary(partner_id, partner_name,
+                                                    total_amount_transactions, total_count_transactions)
+                        VALUES (:pid, :name, :amt, 1)
+                        ON CONFLICT (partner_id)
+                        DO UPDATE
+                            SET total_amount_transactions = total_amount_transactions + :amt,
+                                total_count_transactions    = total_count_transactions    + 1
+                        """)
+                .setParameter("pid", partnerId)
+                .setParameter("name", partnerName)
+                .setParameter("amt", amount)
+                .executeUpdate();
+    }
+
+
+
     public void processMtnCallback(MtnCallBackRequest mtnCallBackRequest) {
 
         //Log the callback received
@@ -403,6 +424,11 @@ public class PaymentService {
             transaction.setMtnPayerMessage(mtnCallBackRequest.payerMessage());
             transaction.setMtnPayeeNote(mtnCallBackRequest.payeeNote());
 
+            Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByName(transaction.getMtnPayerMessage());
+            if (partnerOpt.isPresent()) {
+                BigDecimal amount = new BigDecimal(mtnCallBackRequest.amount());
+                updatePartnerSummary(partnerOpt.get(),transaction.getMtnPayerMessage(), amount);
+            }
         }  else {
             transaction.setStatus(TransactionStatus.FAILED);
             transaction.setMessage(mtnCallBackRequest.reason() != null ? mtnCallBackRequest.reason() : "Payment failed");
