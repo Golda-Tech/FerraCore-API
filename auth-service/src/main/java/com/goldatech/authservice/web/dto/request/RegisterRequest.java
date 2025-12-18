@@ -1,7 +1,7 @@
 package com.goldatech.authservice.web.dto.request;
 
 import com.goldatech.authservice.domain.model.PlanType;
-import com.goldatech.authservice.domain.model.Role;
+import com.goldatech.authservice.domain.model.UserRoles;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -21,5 +21,5 @@ public record RegisterRequest(
         @NotBlank String organizationName,
         @NotBlank String mobileNumber,
         PlanType planType,
-        Role role
+        UserRoles userRoles
 ) {}

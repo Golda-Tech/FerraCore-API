@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -37,7 +36,7 @@ public class Subscription {
     private PlanType planType;
 
     @Column(name = "user_type")
-    private Role userType;
+    private UserRoles userType;
 
     @Column(name = "contact_email")
     private String contactEmail;

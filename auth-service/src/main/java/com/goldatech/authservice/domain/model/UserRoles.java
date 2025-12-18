@@ -3,7 +3,7 @@ package com.goldatech.authservice.domain.model;
 /**
  * Enum for user roles.
  */
-public enum Role {
+public enum UserRoles {
     SUPER_ADMIN("Super Admin"),
     GA_ADMIN("Ga Admin"),
     BUSINESS_ADMIN("Business Admin"),
@@ -13,7 +13,7 @@ public enum Role {
 
     private final String displayName;
 
-    Role(String displayName) {
+    UserRoles(String displayName) {
         this.displayName = displayName;
     }
 

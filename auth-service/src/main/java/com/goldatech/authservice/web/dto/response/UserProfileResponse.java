@@ -1,8 +1,6 @@
 package com.goldatech.authservice.web.dto.response;
 
-import com.goldatech.authservice.domain.model.PartnerSummary;
-import com.goldatech.authservice.domain.model.PlanType;
-import com.goldatech.authservice.domain.model.Role;
+import com.goldatech.authservice.domain.model.UserRoles;
 import com.goldatech.authservice.domain.model.SubscriptionStatus;
 import lombok.Builder;
 
@@ -16,7 +14,7 @@ public record UserProfileResponse(
         String email,
         Boolean isFirstTimeUser,
         String phone,
-        Role role,
+        UserRoles userRoles,
         OrganizationDetails organization,
         SubscriptionDetails subscription,
         ApiCredentials apiCredentials,

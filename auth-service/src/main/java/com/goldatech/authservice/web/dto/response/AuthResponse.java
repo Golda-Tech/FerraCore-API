@@ -1,6 +1,6 @@
 package com.goldatech.authservice.web.dto.response;
 
-import com.goldatech.authservice.domain.model.Role;
+import com.goldatech.authservice.domain.model.UserRoles;
 
 /**
  * Data Transfer Object (DTO) for authentication responses.
@@ -12,7 +12,7 @@ import com.goldatech.authservice.domain.model.Role;
  * @param firstname the user's first name
  * @param lastname the user's last name
  * @param email the user's email
- * @param role the user's role
+ * @param userRoles the user's role
  * @param message a descriptive message about the operation's success
  */
 public record AuthResponse(
@@ -22,7 +22,7 @@ public record AuthResponse(
         String organizationName,
         String lastname,
         String email,
-        Role role,
+        UserRoles userRoles,
         String message,
         boolean passwordResetRequired,
         boolean firstTimeUser

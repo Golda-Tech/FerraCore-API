@@ -43,7 +43,7 @@ public class User implements UserDetails {
     private boolean passwordResetRequired = true;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private UserRoles role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -93,7 +93,7 @@ public class AuthService {
         var subscription = new SubscriptionCreateRequest(
                 request.organizationName(),
                 request.planType(),
-                request.role(),
+                request.userRoles(),
                 request.email(),
                 request.mobileNumber(),
                 ""
@@ -108,7 +108,7 @@ public class AuthService {
                 .email(request.email())
                 .organizationName(request.organizationName().toUpperCase())
                 .password(passwordEncoder.encode(tempPassword))
-                .role(request.role())
+                .role(request.userRoles())
                 .firstTimeUser(true)
                 .passwordResetRequired(true)
                 .build();
