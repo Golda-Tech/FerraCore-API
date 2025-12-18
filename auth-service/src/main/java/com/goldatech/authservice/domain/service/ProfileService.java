@@ -526,6 +526,8 @@ public class ProfileService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        log.info("See requested role: {}", requestedRole);
+
         // create and save a pending role request
         RoleRequest rr = RoleRequest.builder()
                 .userEmail(email)

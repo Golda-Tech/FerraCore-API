@@ -212,12 +212,15 @@ public class AuthController {
 
 
     @PostMapping("/roles/request-update")
-    public ResponseEntity<UserProfileResponse> initiateRoleUpdate(Authentication authentication, String requestedRole) {
-        log.warn("Initiating Role update for authenticated user");
+    public ResponseEntity<UserProfileResponse> initiateRoleUpdate(
+            Authentication authentication,
+            @RequestParam(name = "requestedRole") String requestedRole) {
+        log.warn("Initiating Role update for authenticated user, requestedRole={}", requestedRole);
         String email = authentication.getName();
         UserProfileResponse profile = profileService.initiateRoleUpdate(email, requestedRole);
         return ResponseEntity.ok(profile);
     }
+
 
     @GetMapping("/send-reset-otp")
     public ResponseEntity<String> sendResetOtp(@RequestParam String destination, @RequestParam String channel, @RequestParam String type) {
