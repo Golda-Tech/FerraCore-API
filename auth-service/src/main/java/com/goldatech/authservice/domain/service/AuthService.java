@@ -324,7 +324,7 @@ public class AuthService {
         log.info("First timer {}, password required {} .Verify Otp", user.isFirstTimeUser(), user.isPasswordResetRequired());
 
         String partnerId = subscriptionRepository
-                .findOrganizationIdByOrganizationName(user.getOrganizationName())
+                .findFirstOrganizationIdByOrganizationName(user.getOrganizationName())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No subscription for organisation [%s]".formatted(user.getOrganizationName())
                 ));
