@@ -329,6 +329,8 @@ public class AuthService {
                         "No subscription for organisation [%s]".formatted(user.getOrganizationName())
                 ));
 
+        log.info("Partner ID {}", partnerId);
+
         return new AuthResponse(
                 jwtToken,
                 user.getId(),

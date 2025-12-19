@@ -373,7 +373,7 @@ public class ProfileService {
                 .orElseThrow(() -> new RuntimeException("User not found: " + sub.getContactEmail()));
 
         PartnerSummary ps = partnerSummaryRepository
-                .findByOrganizationNameIgnoreCase(user.getOrganizationName())
+                .findByPartnerNameIgnoreCase(user.getOrganizationName())
                 .orElse(null);
 
         /* build base response */

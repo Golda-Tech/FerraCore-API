@@ -431,7 +431,7 @@ public class PaymentService {
             log.info("Fetching partner Id : {}", partnerOpt);
             if (partnerOpt.isPresent()) {
                 BigDecimal amount = new BigDecimal(mtnCallBackRequest.amount());
-                updatePartnerSummary(partnerOpt.get(),transaction.getInitiationPartner(), amount);
+                partnerSummaryRepository.upsertPartnerSummary(partnerOpt.get(), transaction.getInitiationPartner(), amount);
             }
         }  else {
             transaction.setStatus(TransactionStatus.FAILED);

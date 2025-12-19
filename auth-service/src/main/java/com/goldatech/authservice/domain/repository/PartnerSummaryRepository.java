@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface PartnerSummaryRepository  extends JpaRepository<PartnerSummary, Long> {
 
     @Query("SELECT ps FROM PartnerSummary ps WHERE LOWER(ps.partnerName) = LOWER(:orgName)")
-    Optional<PartnerSummary> findByOrganizationNameIgnoreCase(@Param("orgName") String orgName);
+    Optional<PartnerSummary> findByPartnerNameIgnoreCase(@Param("orgName") String orgName);
 
     // Find by partnerId directly
     Optional<PartnerSummary> findByPartnerId(String partnerId);
