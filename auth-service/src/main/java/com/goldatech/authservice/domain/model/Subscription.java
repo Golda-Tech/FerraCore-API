@@ -32,6 +32,9 @@ public class Subscription {
     @Column(name = "subscription_secret", unique = true)
     private String subscriptionSecret;
 
+    @Column(name = "created_by")
+    private String createdBy;
+
     @Column(name = "plan_type")
     private PlanType planType;
 

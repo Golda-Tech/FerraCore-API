@@ -9,6 +9,7 @@ import com.goldatech.authservice.web.dto.response.SubscriptionAuthResponse;
 import com.goldatech.authservice.web.dto.response.SubscriptionResponse;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,9 +44,10 @@ public class SubscriptionController {
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     @PostMapping("/initiate")
-    public SubscriptionResponse create(@Valid @RequestBody SubscriptionCreateRequest request) {
+    public SubscriptionResponse create(@Valid @RequestBody SubscriptionCreateRequest request, Authentication authentication) {
         log.info("Received request to create subscription for org: {}", request.organizationName());
-        return service.createSubscription(request);
+        String createdBy = authentication.getName();
+        return service.createSubscription(request, createdBy);
     }
 
     @Operation(summary = "Get all subscriptions",

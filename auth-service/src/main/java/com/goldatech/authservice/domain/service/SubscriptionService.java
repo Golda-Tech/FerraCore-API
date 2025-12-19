@@ -4,7 +4,7 @@ import com.goldatech.authservice.domain.mapper.SubscriptionMapper;
 import com.goldatech.authservice.domain.model.PartnerSummary;
 import com.goldatech.authservice.domain.model.Subscription;
 import com.goldatech.authservice.domain.model.SubscriptionStatus;
-import com.goldatech.authservice.domain.model.UserRoles;
+import com.goldatech.authservice.domain.repository.OrgIdSequenceRepository;
 import com.goldatech.authservice.domain.repository.PartnerSummaryRepository;
 import com.goldatech.authservice.domain.repository.SubscriptionRepository;
 import com.goldatech.authservice.security.JwtService;
@@ -15,6 +15,7 @@ import com.goldatech.authservice.web.dto.response.ApiCredentialsResponse;
 import com.goldatech.authservice.web.dto.response.Organization;
 import com.goldatech.authservice.web.dto.response.SubscriptionAuthResponse;
 import com.goldatech.authservice.web.dto.response.SubscriptionResponse;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -35,18 +36,22 @@ public class SubscriptionService {
 
     private final SubscriptionRepository repository;
     private final PartnerSummaryRepository partnerSummaryRepository;
+    private final OrgIdSequenceRepository orgSeqRepository;
     private final JwtService jwtService;
+    private final AtomicInteger counter = new AtomicInteger(0);
+
 
     @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
 
-    public SubscriptionService(SubscriptionRepository repository, PartnerSummaryRepository partnerSummaryRepository, JwtService jwtService) {
+    public SubscriptionService(SubscriptionRepository repository, PartnerSummaryRepository partnerSummaryRepository, OrgIdSequenceRepository orgSeqRepository, JwtService jwtService) {
         this.repository = repository;
         this.partnerSummaryRepository = partnerSummaryRepository;
+        this.orgSeqRepository = orgSeqRepository;
         this.jwtService = jwtService;
     }
 
-    public SubscriptionResponse createSubscription(SubscriptionCreateRequest request) {
+    public SubscriptionResponse createSubscription(SubscriptionCreateRequest request, String createdBy) {
         log.info("Creating subscription for org: {}", request.organizationName());
 
 
@@ -67,6 +72,7 @@ public class SubscriptionService {
                 .partnerName(request.organizationName().toUpperCase())
                 .totalAmountTransactions(BigDecimal.valueOf(0.00))
                 .totalCountTransactions("")
+                .createdBy(createdBy)
                 .build();
         partnerSummaryRepository.save(partnerSummary);
 
@@ -80,6 +86,7 @@ public class SubscriptionService {
                 .contactEmail(request.contactEmail())
                 .subscriptionKey(generatedKey)
                 .subscriptionSecret(generatedSecret)
+                .createdBy(createdBy)
                 .status(SubscriptionStatus.ACTIVE)
                 .build();
 
@@ -231,13 +238,17 @@ public class SubscriptionService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
+    @PostConstruct
+    private void loadSequence() {
+        Integer last = orgSeqRepository.findMaxSequence();
+        counter.set(last == null ? 0 : last);
+    }
+
     private String orgIdGenerator() {
+        int day = (int) (Instant.now().toEpochMilli() / 86_400_000);
+        int seq = counter.updateAndGet(v -> v >= 999_999 ? 0 : v + 1);
 
-        final AtomicInteger counter = new AtomicInteger(0);
-
-        int day  = (int) (Instant.now().toEpochMilli() / 86_400_000) % 1_000; // 0-999
-        int seq  = counter.updateAndGet(v -> v >= 999 ? 0 : v + 1);          // 0-999
-        return String.format("%03d%03d", day, seq);                          // 6 digits
-
+        orgSeqRepository.saveSequence(seq, Instant.now());
+        return String.format("%02d%06d", day % 100, seq);
     }
 }

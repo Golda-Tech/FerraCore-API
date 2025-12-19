@@ -1,9 +1,7 @@
 package com.goldatech.paymentservice.web.controller;
 
 import com.goldatech.paymentservice.domain.model.MandateStatus;
-import com.goldatech.paymentservice.domain.model.TransactionStatus;
 import com.goldatech.paymentservice.domain.service.PreApprovalService;
-import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
 import com.goldatech.paymentservice.web.dto.request.PreApprovalMandateRequest;
 import com.goldatech.paymentservice.web.dto.response.PreApprovalMandateResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalStatusResponse;
@@ -12,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1/mandates")
@@ -26,7 +22,7 @@ public class PreApprovalController {
     @PostMapping
     public ResponseEntity<PreApprovalMandateResponse> createPreApproval(@Valid @RequestBody PreApprovalMandateRequest request){
         log.info("Received pre-approval mandate creation request for provider: {}", request.provider());
-        PreApprovalMandateResponse response = preApprovalService.creatPreApprovalMandate(request);
+        PreApprovalMandateResponse response = preApprovalService.createPreApprovalMandate(request);
         return ResponseEntity.ok(response);
     }
 

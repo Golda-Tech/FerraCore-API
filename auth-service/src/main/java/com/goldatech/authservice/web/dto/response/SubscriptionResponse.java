@@ -10,6 +10,7 @@ public record SubscriptionResponse(
         String organizationName,
         String subscriptionKey,
         String subscriptionSecret,
+        String organizationId,
         PlanType planType,
         SubscriptionStatus status,
         String contactEmail,

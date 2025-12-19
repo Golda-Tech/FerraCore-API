@@ -41,6 +41,7 @@ public class PaymentTransaction {
     private String provider;       // "MTN", "VODAFONE", etc.
     private String mobileNumber;
     private BigDecimal amount;
+    private BigDecimal transactionFee;
     private String currency;
     private String initiatedBy;    // User ID or system that initiated the transaction
     private String initiationPartner;    // Partner through which the transaction was initiated

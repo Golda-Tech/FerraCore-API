@@ -38,5 +38,8 @@ public class PartnerSummary  {
     @Column(name = "total_count_transactions")
     private String totalCountTransactions;
 
+    @Column(name = "createdBy")
+    private String createdBy;
+
 }
 

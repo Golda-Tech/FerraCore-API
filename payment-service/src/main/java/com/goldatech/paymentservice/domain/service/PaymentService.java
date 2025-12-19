@@ -109,6 +109,7 @@ public class PaymentService {
         }
 
 
+
         PaymentTransaction transaction = provider.initiatePayment(request, callbackUrl, xRef);
 
 
@@ -361,8 +362,9 @@ public class PaymentService {
     }
 
 
-
+    @Transactional
     private void updatePartnerSummary(String partnerId, String partnerName, BigDecimal amount) {
+        log.info("Upsert partner {} with amount {} for amount {}", partnerId, amount, partnerName);
         em.createNativeQuery(
                         """
                         INSERT INTO partner_summary(partner_id, partner_name,

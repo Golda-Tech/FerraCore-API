@@ -20,6 +20,7 @@ public record AuthResponse(
         Integer id,
         String firstname,
         String organizationName,
+        String organizationId,
         String lastname,
         String email,
         UserRoles userRoles,

@@ -14,6 +14,7 @@ public class SubscriptionMapper {
                 entity.getOrganizationName(),
                 entity.getSubscriptionKey(),
                 entity.getSubscriptionSecret(), // include only if you want to expose it
+                entity.getOrganizationId(),
                 entity.getPlanType(),
                 entity.getStatus(),
                 entity.getContactEmail(),

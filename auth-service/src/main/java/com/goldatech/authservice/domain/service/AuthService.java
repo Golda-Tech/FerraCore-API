@@ -72,7 +72,7 @@ public class AuthService {
      * @throws UserAlreadyExistsException if a user with the given email already exists.
      */
     @Transactional
-    public RegistrationResponse register(RegisterRequest request) {
+    public RegistrationResponse register(RegisterRequest request, String registeredBy) {
 
         if (userRepository.existsByEmail(request.email())) {
             throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
@@ -99,7 +99,7 @@ public class AuthService {
                 request.mobileNumber(),
                 ""
         );
-        SubscriptionResponse subscriptionResponse = subscriptionService.createSubscription(subscription);
+        SubscriptionResponse subscriptionResponse = subscriptionService.createSubscription(subscription, registeredBy);
 
         String tempPassword = generateRandomPassword(10);
 
@@ -111,6 +111,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(tempPassword))
                 .role(request.userType())
                 .firstTimeUser(true)
+                .createdBy(registeredBy)
                 .passwordResetRequired(true)
                 .build();
 
@@ -121,6 +122,7 @@ public class AuthService {
         extraClaims.put("role", user.getRole());
 
         var jwtToken = jwtService.generateToken(extraClaims, user);
+
 
         // Build event but don’t send yet
         AuthEvent event = new AuthEvent(
@@ -176,6 +178,12 @@ public class AuthService {
         extraClaims.put("userId", user.getId().toString()); // or however you get user ID
         extraClaims.put("role", user.getRole());
 
+        String partnerId = subscriptionRepository
+                .findOrganizationIdByOrganizationName(user.getOrganizationName())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No subscription for organisation [%s]".formatted(user.getOrganizationName())
+                ));
+
         // Generate a new JWT token for the authenticated user.
         var jwtToken = jwtService.generateToken(extraClaims, user);
         log.info("First timer {}, password required {} logged in successfully.", user.isFirstTimeUser(), user.isPasswordResetRequired());
@@ -186,6 +194,7 @@ public class AuthService {
                 user.getLastname(),
                 user.getEmail(),
                 user.getOrganizationName(),
+                partnerId,
                 user.getRole(),
                 "User logged in successfully.",
                 user.isPasswordResetRequired(),
@@ -314,11 +323,18 @@ public class AuthService {
 
         log.info("First timer {}, password required {} .Verify Otp", user.isFirstTimeUser(), user.isPasswordResetRequired());
 
+        String partnerId = subscriptionRepository
+                .findOrganizationIdByOrganizationName(user.getOrganizationName())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No subscription for organisation [%s]".formatted(user.getOrganizationName())
+                ));
+
         return new AuthResponse(
                 jwtToken,
                 user.getId(),
                 user.getFirstname(),
                 user.getOrganizationName(),
+                partnerId,
                 user.getLastname(),
                 user.getEmail(),
                 user.getRole(),

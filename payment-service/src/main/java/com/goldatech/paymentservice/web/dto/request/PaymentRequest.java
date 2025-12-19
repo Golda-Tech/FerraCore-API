@@ -16,7 +16,7 @@ public record PaymentRequest(
         @NotBlank String currency,
         @NotBlank String partyIdType,
         @NotBlank String initiatedBy,
-        @NotBlank String initiationPartner,
+        @NotBlank String initiationPartnerId,
         String payerMessage,
         String payeeNote
 ) {}

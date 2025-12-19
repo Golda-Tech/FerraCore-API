@@ -13,6 +13,16 @@ public interface SubscriptionRepository  extends JpaRepository<Subscription, Lon
     Optional<Subscription> findByWhitelistedNumber2(String mobileNumber);
     Optional<Subscription> findByWhitelistedNumber3(String mobileNumber);
 
+    /* 1.  does this contactEmail (email) exist at all? */
+    boolean existsByContactEmail(String contactEmail);
+
+    /* 2.  fetch the organisation name that belongs to a given organizationId */
+    @Query("select s.organizationName " +
+           "from Subscription s " +
+           "where s.contactEmail = :contactEmail")
+    Optional<String> findOrganizationNameByContactEmail(@Param("contactEmail") String contactEmail);
+
+
 
     @Query("SELECT s FROM Subscription s " +
            "WHERE s.contactEmail = :email " +

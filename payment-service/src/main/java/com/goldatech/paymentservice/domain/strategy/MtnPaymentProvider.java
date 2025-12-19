@@ -5,6 +5,7 @@ import com.goldatech.paymentservice.domain.model.TransactionStatus;
 import com.goldatech.paymentservice.domain.model.UserRoles;
 import com.goldatech.paymentservice.domain.repository.PaymentTransactionRepository;
 import com.goldatech.paymentservice.domain.repository.PreApprovalTransactionRepository;
+import com.goldatech.paymentservice.domain.repository.SubscriptionRepository;
 import com.goldatech.paymentservice.domain.service.MtnMomoService;
 import com.goldatech.paymentservice.util.ReferenceIdGenerator;
 import com.goldatech.paymentservice.web.dto.request.NameEnquiryRequest;
@@ -20,7 +21,8 @@ import com.goldatech.paymentservice.web.dto.response.momo.RequestToPayStatusResp
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -30,57 +32,68 @@ import java.util.Optional;
 public class MtnPaymentProvider implements PaymentProvider{
     private final PaymentTransactionRepository transactionRepository;
     private final PreApprovalTransactionRepository preApprovalTransactionRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final MtnMomoService mtnMomoService;
 
     @Override
     public PaymentTransaction initiatePayment(PaymentRequest request, String callbackUrl, String xReferenceId) {
-        log.info("Initiating payment with MTN for mobile number: {}", request.mobileNumber());
-        // In a real scenario, this is where you would call the MTN API.
+        log.info("Initiating payment for mobile number: {}", request.mobileNumber());
         //Call the MTN Momo service to initiate payment
 
-        /*
-        String amount,
-        String currency,
-        String externalId,
-        Payer payer,
-        String payerMessage,
-        String payeeNote
-         */
+        String orgName = subscriptionRepository.findOrganizationNameByContactEmail(request.initiatedBy())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No subscription found for partner [%s]".formatted(request.initiationPartnerId())
+                ));
 
-        // Generate reference id using injected generator. Fall back to "FPG" if collectionRef is null.
-        //TODO: CollectionRef should always contain client initials. User table should have Organization name/initials and also Organization logo
+        // Generate reference id using injected generator. Fall back to "FC" if collectionRef is null.
 
         String referenceId = ReferenceIdGenerator.generate(
-                request.collectionRef() != null ? request.collectionRef() : "FPG"
+                request.collectionRef() != null ? request.collectionRef() : "FC"
         );
 
+        // compute commission: 1.75% of the amount, capped at 35 GHS
+        BigDecimal finalCommissionAmount = deriveCommissionFees(request);
+
+        BigDecimal netAmount = request.amount().subtract(finalCommissionAmount);
+
         RequestToPayRequest mtnRequest = new RequestToPayRequest(
-                request.amount().toString(),
+                netAmount.toPlainString(),
                 "GHS",
                 referenceId,//externalId
                 new Payer("MSISDN", request.mobileNumber()),
-                request.initiationPartner(),//initiationPartner used as payerMessage to aid in reconciliation
+                orgName,//org Name used as payerMessage to aid in reconciliation
                 request.payeeNote()
         );
 
         String xRef = mtnMomoService.requestToPay(mtnRequest, xReferenceId);
 
 
-        // For now, we'll simulate a successful transaction.
-//        String externalRef = "mtn-" + UUID.randomUUID().toString();
+        // determine user role based on initiationPartner
+        String initiationPartner = Optional.ofNullable(orgName).orElse("").trim();
+        UserRoles userRole;
+        if (initiationPartner.equalsIgnoreCase("Ferracore Technologies") || initiationPartner.equalsIgnoreCase("Rexhub")) {
+            userRole = UserRoles.SUPER_ADMIN;
+        } else if (initiationPartner.equalsIgnoreCase("Global Accelerex")) {
+            userRole = UserRoles.GA_ADMIN;
+        } else {
+            userRole = UserRoles.BUSINESS_ADMIN;
+        }
+
+
+
+        // For now, we'll simulate a Pending transaction.
+
         PaymentTransaction transaction = PaymentTransaction.builder()
                 .collectionRef(request.collectionRef())
                 .transactionRef(xRef)
                 .externalRef(referenceId)
                 .provider("MTN")
                 .mobileNumber(request.mobileNumber())
-                .amount(request.amount())
+                .amount(netAmount)
+                .transactionFee(finalCommissionAmount)
                 .initiatedBy(request.initiatedBy())
-                .initiationPartner(request.initiationPartner())
-                .userRoles(request.initiationPartner().equalsIgnoreCase("Ferracore Technologies") ||
-                        request.initiationPartner().equalsIgnoreCase("Rexhub") ||
-                        request.initiationPartner().equalsIgnoreCase("Global Accelerex")
-                        ? UserRoles.SUPER_ADMIN : UserRoles.GA_ADMIN)
+                .initiationPartner(orgName)
+                .userRoles(userRole)
                 .currency("GHS")
                 .status(TransactionStatus.PENDING)
                 .message("Payment request sent to MTN.")
@@ -93,6 +106,22 @@ public class MtnPaymentProvider implements PaymentProvider{
                 .mtnPayeeNote(request.payeeNote())
                 .build();
         return transactionRepository.save(transaction);
+    }
+
+    private static BigDecimal deriveCommissionFees(PaymentRequest request) {
+        BigDecimal commissionFee = request.amount()
+                .multiply(new BigDecimal("0.0175"))
+                .setScale(8, RoundingMode.HALF_UP);
+
+        BigDecimal cappedFee = commissionFee.min(new BigDecimal("35.00"))
+                .setScale(8, RoundingMode.HALF_UP);
+
+        if (commissionFee.compareTo(cappedFee) > 0) {
+            commissionFee = cappedFee;
+        }
+
+        //round commission fee to 2dp
+        return commissionFee.setScale(2, RoundingMode.HALF_UP);
     }
 
     @Override

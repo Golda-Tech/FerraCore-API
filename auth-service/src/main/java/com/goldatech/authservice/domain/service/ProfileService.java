@@ -324,6 +324,7 @@ public class ProfileService {
         if (subscription != null) {
             orgDetails = UserProfileResponse.OrganizationDetails.builder()
                     .name(subscription.getOrganizationName())
+                    .partnerId(subscription.getOrganizationId())
                     .businessType(subscription.getBusinessType())
                     .address(subscription.getContactAddress())
                     .registrationNumber(subscription.getRegistrationNumber())
@@ -372,7 +373,7 @@ public class ProfileService {
                 .orElseThrow(() -> new RuntimeException("User not found: " + sub.getContactEmail()));
 
         PartnerSummary ps = partnerSummaryRepository
-                .findByPartnerId(user.getEmail())
+                .findByOrganizationNameIgnoreCase(user.getOrganizationName())
                 .orElse(null);
 
         /* build base response */
@@ -443,6 +444,7 @@ public class ProfileService {
                 .name(s.getOrganizationName())
                 .businessType(s.getBusinessType())
                 .address(s.getContactAddress())
+                .partnerId(s.getOrganizationId())
                 .registrationNumber(s.getRegistrationNumber())
                 .taxId(s.getTaxId())
                 .website(s.getWebsite())

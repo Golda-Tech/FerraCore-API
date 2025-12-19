@@ -2,20 +2,16 @@ package com.goldatech.paymentservice.domain.service;
 
 import com.goldatech.paymentservice.domain.exception.PreApprovalException;
 import com.goldatech.paymentservice.domain.model.*;
-import com.goldatech.paymentservice.domain.model.events.PaymentEvent;
 import com.goldatech.paymentservice.domain.model.events.PreApprovalEvent;
 import com.goldatech.paymentservice.domain.repository.MtnCallbackRepository;
 import com.goldatech.paymentservice.domain.repository.OtpRepository;
-import com.goldatech.paymentservice.domain.repository.PaymentTransactionRepository;
 import com.goldatech.paymentservice.domain.repository.PreApprovalTransactionRepository;
 import com.goldatech.paymentservice.domain.strategy.MtnPaymentProvider;
 import com.goldatech.paymentservice.domain.strategy.PaymentProvider;
 import com.goldatech.paymentservice.domain.strategy.PaymentProviderFactory;
-import com.goldatech.paymentservice.web.dto.request.PaymentRequest;
 import com.goldatech.paymentservice.web.dto.request.PreApprovalMandateRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.Payer;
 import com.goldatech.paymentservice.web.dto.request.momo.PreApprovalRequest;
-import com.goldatech.paymentservice.web.dto.response.PaymentResponse;
 import com.goldatech.paymentservice.web.dto.response.PreApprovalMandateResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalStatusResponse;
@@ -50,7 +46,7 @@ public class PreApprovalService {
     private String otpRoutingKey;
 
     @Transactional
-    public PreApprovalMandateResponse creatPreApprovalMandate(PreApprovalMandateRequest request) {
+    public PreApprovalMandateResponse createPreApprovalMandate(PreApprovalMandateRequest request) {
         log.info("Initiating payment request for provider: {}", request.provider());
 
         //Create PreApprovalTransaction in DB with PENDING status

@@ -32,8 +32,9 @@ public class AuthController {
      * @return a ResponseEntity with an AuthResponse containing a JWT token.
      */
     @PostMapping("/register")
-    public ResponseEntity<RegistrationResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+    public ResponseEntity<RegistrationResponse> register(@Valid @RequestBody RegisterRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(authService.register(request,email));
     }
 
     /**

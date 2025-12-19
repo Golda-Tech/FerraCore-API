@@ -33,6 +33,7 @@ public class User implements UserDetails {
     @Column(name = "organization_name")
     private String organizationName;
     private String email;
+    private String createdBy;
     private String password;
     @Column(name = "phone_number")
     private String phoneNumber;

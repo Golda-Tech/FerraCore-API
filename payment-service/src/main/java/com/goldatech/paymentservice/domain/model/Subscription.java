@@ -30,6 +30,9 @@ public class Subscription {
     @Column(name = "subscription_secret", unique = true)
     private String subscriptionSecret;
 
+    @Column(name = "organization_id", unique = true)
+    private String organizationId;
+
     @Column(name = "plan_type")
     private PlanType planType;
 
@@ -68,6 +71,9 @@ public class Subscription {
 
     @Column(name = "website")
     private String website;
+
+    @Column(name = "created_by")
+    private String createdBy;
 
     @Column(name = "call_back_url")
     private String callbackUrl;

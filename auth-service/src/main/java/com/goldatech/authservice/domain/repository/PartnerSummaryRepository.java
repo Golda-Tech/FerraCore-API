@@ -8,6 +8,13 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface PartnerSummaryRepository  extends JpaRepository<PartnerSummary, Long> {
-    @Query("SELECT ps FROM PartnerSummary ps WHERE ps.partnerName = :orgName")
-    Optional<PartnerSummary> findByPartnerId(@Param("orgName") String orgName);
+
+    @Query("SELECT ps FROM PartnerSummary ps WHERE LOWER(ps.partnerName) = LOWER(:orgName)")
+    Optional<PartnerSummary> findByOrganizationNameIgnoreCase(@Param("orgName") String orgName);
+
+    // Find by partnerId directly
+    Optional<PartnerSummary> findByPartnerId(String partnerId);
+
+    // Check if organization exists
+    boolean existsByPartnerName(String partnerName);
 }

@@ -24,6 +24,7 @@ public record UserProfileResponse(
     @Builder
     public record OrganizationDetails(
             String name,
+            String partnerId,
             String businessType,
             String address,
             String registrationNumber,
