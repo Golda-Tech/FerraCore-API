@@ -84,6 +84,21 @@ spring:
               filters:
                 - AddRequestHeader=X-Gateway-Verified,true
 
+            - id: auth-service-actuator
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/auth-service/actuator/**
+              filters:
+                - RewritePath=/auth-service/actuator/(?<segment>.*), /actuator/${segment}
+
+            - id: payment-service-actuator
+              uri: ${PAYMENTS_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/payment-service/actuator/**
+              filters:
+                - RewritePath=/payment-service/actuator/(?<segment>.*), /actuator/${segment}
+
+
             # Fallback for any other /api/v1/** paths to collections service
           httpclient:
             connect-timeout: 5000

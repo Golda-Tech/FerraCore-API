@@ -36,6 +36,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
             "/api/v1/health/**",
             "/actuator/health/**",
+            "/actuator/**",
 
             // Swagger & OpenAPI docs
             "/v3/api-docs/**",
