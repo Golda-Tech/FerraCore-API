@@ -40,6 +40,6 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
 
     List<Subscription> findByOrganizationNameIgnoreCase(String orgName);
 
-    @Query("select s.organizationId from Subscription s where lower(s.organizationName) = lower(:orgName)")
+    @Query("select s.organizationId from Subscription s where lower(s.organizationName) = lower(:orgName) limit 1")
     Optional<String> findOrganizationIdByOrganizationName(@Param("orgName") String orgName);
 }
