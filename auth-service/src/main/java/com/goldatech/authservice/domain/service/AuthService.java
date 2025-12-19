@@ -179,7 +179,7 @@ public class AuthService {
         extraClaims.put("role", user.getRole());
 
         String partnerId = subscriptionRepository
-                .findOrganizationIdByOrganizationName(user.getOrganizationName())
+                .findFirstOrganizationIdByOrganizationName(user.getOrganizationName())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No subscription for organisation [%s]".formatted(user.getOrganizationName())
                 ));
