@@ -72,7 +72,7 @@ public class AuthService {
      * @throws UserAlreadyExistsException if a user with the given email already exists.
      */
     @Transactional
-    public RegistrationResponse register(RegisterRequest request, String registeredBy) {
+    public RegistrationResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.email())) {
             throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
@@ -99,7 +99,7 @@ public class AuthService {
                 request.mobileNumber(),
                 ""
         );
-        SubscriptionResponse subscriptionResponse = subscriptionService.createSubscription(subscription, registeredBy);
+        SubscriptionResponse subscriptionResponse = subscriptionService.createSubscription(subscription, request.registeredBy());
 
         String tempPassword = generateRandomPassword(10);
 
@@ -111,7 +111,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(tempPassword))
                 .role(request.userType())
                 .firstTimeUser(true)
-                .createdBy(registeredBy)
+                .createdBy(request.registeredBy())
                 .passwordResetRequired(true)
                 .build();
 
