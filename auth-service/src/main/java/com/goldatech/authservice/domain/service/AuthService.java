@@ -179,7 +179,7 @@ public class AuthService {
         extraClaims.put("role", user.getRole());
 
         String partnerId = subscriptionRepository
-                .findFirstOrganizationIdByOrganizationName(user.getOrganizationName())
+                .findOrganizationIdByOrganizationName(user.getOrganizationName())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No subscription for organisation [%s]".formatted(user.getOrganizationName())
                 ));
@@ -324,7 +324,7 @@ public class AuthService {
         log.info("First timer {}, password required {} .Verify Otp", user.isFirstTimeUser(), user.isPasswordResetRequired());
 
         String partnerId = subscriptionRepository
-                .findFirstOrganizationIdByOrganizationName(user.getOrganizationName())
+                .findOrganizationIdByOrganizationName(user.getOrganizationName())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No subscription for organisation [%s]".formatted(user.getOrganizationName())
                 ));
