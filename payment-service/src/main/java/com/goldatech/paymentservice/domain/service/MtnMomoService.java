@@ -20,10 +20,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -230,9 +227,10 @@ public class MtnMomoService {
             }
 
             log.info("PreApprovalMandate created - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
-            return response.getBody();
-
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            return Objects.requireNonNull(response.getBody()).message() != null ? new PreApprovalResponse(xRef, response.getBody().message()) :
+                    new PreApprovalResponse(xRef, "Pre-approval mandate created successfully, pending approval.");
+        }
+        catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("createPreApprovalMandate failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
             boolean isFatal = e.getStatusCode().is4xxClientError();
             throw new PaymentGatewayException("createPreApprovalMandate failed: " + e.getResponseBodyAsString(), e, isFatal);

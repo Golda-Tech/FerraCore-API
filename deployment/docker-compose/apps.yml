@@ -2,7 +2,7 @@ version: "3.8"
 name: "rexpay-api"
 services:
   auth-service:
-    image: atomarkin/rexpay-auth-service
+    image: ferracore/rexpay-auth-service
     container_name: auth-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -21,7 +21,7 @@ services:
 
 
   collections-service:
-    image: atomarkin/rexpay-collections-service
+    image: ferracore/rexpay-collections-service
     container_name: collections-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -44,7 +44,7 @@ services:
 
 
   api-gateway:
-    image: atomarkin/rexpay-api-gateway
+    image: ferracore/rexpay-api-gateway
     container_name: api-gateway
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -64,13 +64,13 @@ services:
 
 
   notifications-service:
-    image: atomarkin/rexpay-notifications-service
+    image: ferracore/rexpay-notifications-service
     container_name: notifications-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:5432/postgres
-      - SPRING_DATASOURCE_USERNAME=postgres.soluxcknwrhdmygsbxsh
-      - SPRING_DATASOURCE_PASSWORD=rexpaypass
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:6543/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres.quikquwoyxuvszyqxawx
+      - SPRING_DATASOURCE_PASSWORD=EXFptq2%Bn9Rfuxje
       - RABBITMQ_HOST=kangaroo.rmq.cloudamqp.com
       - RABBITMQ_PORT=5671
       - RABBITMQ_USERNAME=jbkywnak
@@ -87,13 +87,13 @@ services:
           memory: 700m
 
   payments-service:
-    image: atomarkin/rexpay-payments-service
+    image: ferracore/rexpay-payments-service
     container_name: payments-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:5432/postgres
-      - SPRING_DATASOURCE_USERNAME=postgres.soluxcknwrhdmygsbxsh
-      - SPRING_DATASOURCE_PASSWORD=rexpaypass
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:6543/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres.quikquwoyxuvszyqxawx
+      - SPRING_DATASOURCE_PASSWORD=EXFptq2%Bn9Rfuxje
       - RABBITMQ_HOST=kangaroo.rmq.cloudamqp.com
       - RABBITMQ_PORT=5671
       - RABBITMQ_USERNAME=jbkywnak
