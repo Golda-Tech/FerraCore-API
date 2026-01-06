@@ -227,8 +227,8 @@ public class MtnMomoService {
             }
 
             log.info("PreApprovalMandate created - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
-            return Objects.requireNonNull(response.getBody()).message() != null ? new PreApprovalResponse(xRef, response.getBody().message()) :
-                    new PreApprovalResponse(xRef, "Pre-approval mandate created successfully, pending approval.");
+           //if body is null, create response with xRef and a message indicating pending status
+            return new PreApprovalResponse(xRef, "Pre-approval mandate creation is pending approval.");
         }
         catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("createPreApprovalMandate failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());

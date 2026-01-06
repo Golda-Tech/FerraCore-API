@@ -7,7 +7,7 @@ public record PreApprovalStatusResponse(
         String payerCurrency,
         String payerMessage,
         String status,
-        Long expirationDateTime,
+        String expirationDateTime,
         ErrorReason reason
 ) {
 }

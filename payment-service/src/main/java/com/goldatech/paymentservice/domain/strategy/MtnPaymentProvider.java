@@ -183,6 +183,7 @@ public class MtnPaymentProvider implements PaymentProvider{
 
         //Call the MTN Momo service to initiate pre-approval
         PreApprovalResponse preApprovalResponse = mtnMomoService.createPreApprovalMandate(request);
+        log.info("Pre-approval response from MTN: {}", preApprovalResponse);
 
         return Optional.ofNullable(preApprovalResponse);
 
