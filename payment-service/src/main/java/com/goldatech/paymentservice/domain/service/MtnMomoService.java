@@ -223,7 +223,7 @@ public class MtnMomoService {
             ResponseEntity<PreApprovalResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, PreApprovalResponse.class);
             // Response body is expected to be null with 202 Accepted
             if (response.getStatusCode() != HttpStatus.ACCEPTED) {
-                throw new PaymentGatewayException("Unexpected status from createPreApprovalMandate: " + response.getStatusCode());
+                throw new PaymentGatewayException("Unexpected message from createPreApprovalMandate: " + response.getBody());
             }
 
             log.info("PreApprovalMandate created - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
