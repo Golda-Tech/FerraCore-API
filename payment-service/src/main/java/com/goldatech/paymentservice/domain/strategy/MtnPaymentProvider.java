@@ -45,6 +45,14 @@ public class MtnPaymentProvider implements PaymentProvider{
                         "No subscription found for partner [%s]".formatted(request.initiationPartnerId())
                 ));
 
+        //Check if subscription is active
+        boolean isActive = subscriptionRepository.isSubscriptionActiveForOrganization(orgName);
+        if (!isActive) {
+            throw new IllegalArgumentException(
+                    "Subscription for organization [%s] is not active.".formatted(orgName)
+            );
+        }
+
         // Generate reference id using injected generator. Fall back to "FC" if collectionRef is null.
 
         String referenceId = ReferenceIdGenerator.generate(

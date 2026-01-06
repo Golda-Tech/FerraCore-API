@@ -29,7 +29,7 @@
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
-        <dockerImageName>atomarkin/rexpay-${project.artifactId}</dockerImageName>
+        <dockerImageName>ferracore/rexpay-${project.artifactId}</dockerImageName>
     </properties>
     <dependencies>
         <dependency>

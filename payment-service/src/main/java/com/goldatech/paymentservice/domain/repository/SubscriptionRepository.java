@@ -30,4 +30,11 @@ public interface SubscriptionRepository  extends JpaRepository<Subscription, Lon
     Optional<Subscription> findByContactEmailAndWhitelistedNumbers(@Param("email") String email,
                                                                    @Param("number") String number);
 
+    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END " +
+           "FROM Subscription s " +
+           "WHERE s.organizationName = :orgName " +
+           "AND s.status = 0") //0 represents ACTIVE status
+    boolean isSubscriptionActiveForOrganization(String orgName);
+
+
 }

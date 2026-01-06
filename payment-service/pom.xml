@@ -28,7 +28,7 @@
     </scm>
     <properties>
         <java.version>21</java.version>
-        <dockerImageName>atomarkin/rexpay-${project.artifactId}</dockerImageName>
+        <dockerImageName>ferracore/rexpay-${project.artifactId}</dockerImageName>
     </properties>
     <dependencies>
         <dependency>
