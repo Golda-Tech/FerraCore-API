@@ -138,6 +138,7 @@ public class PreApprovalService {
                 .checkPreApprovalStatus(mandateId);
 
         if (response.isEmpty()) {
+
             log.error("Failed to check pre-approval status with MTN for mandate id: {}", mandateId);
             throw new PreApprovalException("Failed to check pre-approval status with MTN.");
         }
