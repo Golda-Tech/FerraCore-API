@@ -332,7 +332,7 @@ public class MtnMomoService {
 
         try {
             String token = getStoredToken("COLLECTION");
-            HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
+            HttpHeaders headers = createBearerHeadersForPreApprovalStatus(token);
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
             ResponseEntity<Void> response =
@@ -381,6 +381,16 @@ public class MtnMomoService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Ocp-Apim-Subscription-Key", subscriptionKey);
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+        if (mtnProps().getEnvironment() != null && !mtnProps().getEnvironment().isBlank()) {
+            headers.set("X-Target-Environment", mtnProps().getEnvironment());
+        }
+        return headers;
+    }
+
+    private HttpHeaders createBearerHeadersForPreApprovalStatus(String token) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         if (mtnProps().getEnvironment() != null && !mtnProps().getEnvironment().isBlank()) {
             headers.set("X-Target-Environment", mtnProps().getEnvironment());
