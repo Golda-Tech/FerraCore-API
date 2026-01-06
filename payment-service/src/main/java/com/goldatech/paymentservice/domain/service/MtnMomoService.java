@@ -390,7 +390,7 @@ public class MtnMomoService {
 
     private HttpHeaders createBearerHeadersForPreApprovalStatus(String token) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+//        headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         if (mtnProps().getEnvironment() != null && !mtnProps().getEnvironment().isBlank()) {
             headers.set("X-Target-Environment", mtnProps().getEnvironment());
