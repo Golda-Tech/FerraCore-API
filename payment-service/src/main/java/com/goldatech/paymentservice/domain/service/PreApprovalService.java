@@ -77,12 +77,11 @@ public class PreApprovalService {
                 "GHS",
                 request.message(),
                 request.duration().toString()
-
         );
 
         Optional<PreApprovalResponse> response = ((MtnPaymentProvider) provider)
                 .preApproval(preApprovalRequest);
-
+        log.info("Received pre-approval response : {}", response);
 
         if (response.isEmpty()) {
             log.error("Failed to create pre-approval mandate with MTN for mobile number: {}", request.mobileNumber());

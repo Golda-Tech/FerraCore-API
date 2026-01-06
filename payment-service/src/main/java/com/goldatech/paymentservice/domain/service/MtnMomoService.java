@@ -220,19 +220,25 @@ public class MtnMomoService {
 
             HttpEntity<PreApprovalRequest> entity = new HttpEntity<>(request, headers);
 
-            ResponseEntity<PreApprovalResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, PreApprovalResponse.class);
-            // Response body is expected to be null with 202 Accepted
+            ResponseEntity<PreApprovalResponse> response =
+                    restTemplate.exchange(url, HttpMethod.POST, entity, PreApprovalResponse.class);
+
             log.info("CreatePreApprovalMandate response status - {}", response.getStatusCode());
 
-            if (response.getStatusCode() != HttpStatus.ACCEPTED) {
-                throw new PaymentGatewayException("Unexpected message from createPreApprovalMandate: " + response.getBody());
+            // Accept any 2xx success status (covers 202, 201, 200, etc.)
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new PaymentGatewayException("Unexpected message from createPreApprovalMandate: status=" + response.getStatusCode());
             }
 
-            log.info("PreApprovalMandate created - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
-           //if body is null, create response with xRef and a message indicating pending status
+            PreApprovalResponse body = response.getBody();
+            if (body != null) {
+                log.info("PreApprovalMandate created - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
+                return body;
+            }
+
+            log.info("PreApprovalMandate created (no body) - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
             return new PreApprovalResponse(xRef, "Pre-approval mandate creation is pending approval.");
-        }
-        catch (HttpClientErrorException | HttpServerErrorException e) {
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("createPreApprovalMandate failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
             boolean isFatal = e.getStatusCode().is4xxClientError();
             throw new PaymentGatewayException("createPreApprovalMandate failed: " + e.getResponseBodyAsString(), e, isFatal);
@@ -240,7 +246,6 @@ public class MtnMomoService {
             log.error("Unexpected error in createPreApprovalMandate: {}", e.getMessage(), e);
             throw new PaymentGatewayException("Unexpected error in createPreApprovalMandate", e);
         }
-
     }
 
     /**
