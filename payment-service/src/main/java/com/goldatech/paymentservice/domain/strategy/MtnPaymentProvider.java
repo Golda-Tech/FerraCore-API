@@ -193,9 +193,8 @@ public class MtnPaymentProvider implements PaymentProvider{
         log.info("Checking pre-approval status with MTN for mandate id: {}", mandateId);
 
         PreApprovalStatusResponse preApprovalStatusResponse = mtnMomoService.getPreApprovalStatus(mandateId);
-
+        //Return optional
         return Optional.ofNullable(preApprovalStatusResponse);
-
     }
 
     //Cancel pre-approval
