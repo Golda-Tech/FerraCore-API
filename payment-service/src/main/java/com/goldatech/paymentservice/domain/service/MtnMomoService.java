@@ -221,8 +221,8 @@ public class MtnMomoService {
 
             HttpEntity<PreApprovalRequest> entity = new HttpEntity<>(request, headers);
 
-            ResponseEntity<PreApprovalResponse> response =
-                    restTemplate.exchange(url, HttpMethod.POST, entity, PreApprovalResponse.class);
+            ResponseEntity<Void> response =
+                    restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
 
             log.info("CreatePreApprovalMandate response status - {}", response.getStatusCode());
 
@@ -230,15 +230,8 @@ public class MtnMomoService {
             if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new PaymentGatewayException("Unexpected message from createPreApprovalMandate: status=" + response.getStatusCode());
             }
-
-            PreApprovalResponse body = response.getBody();
-            if (body != null) {
-                log.info("PreApprovalMandate created - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
-                return body;
-            }
-
-            log.info("PreApprovalMandate created (no body) - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
-            return new PreApprovalResponse(xRef, "Pre-approval mandate creation is pending approval.");
+            log.info("Pre-approval mandate creation initiated - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
+            return new PreApprovalResponse(xRef, "Pre-approval mandate creation is initiated and Pending Approval.");
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("createPreApprovalMandate failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
             boolean isFatal = e.getStatusCode().is4xxClientError();
@@ -343,16 +336,16 @@ public class MtnMomoService {
                 throw new PaymentGatewayException("Unexpected failure with status code from cancelPreapprovalMandate: " + response.getStatusCode());
             }
 
-            log.info("PreapprovalId {} cancelled successfully, status={}", preapprovalId, response.getStatusCode());
+            log.info("preapprovalId {} cancelled successfully, status={}", preapprovalId, response.getStatusCode());
             return new PreApprovalCancelResponse(response.getStatusCode().toString(), "Cancelled successfully", preapprovalId);
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            log.error("cancelPreapprovalMandate failed for {}: status={}, body={}", preapprovalId, e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("cancelPreApprovalMandate failed for {}: status={}, body={}", preapprovalId, e.getStatusCode(), e.getResponseBodyAsString());
             boolean isFatal = e.getStatusCode().is4xxClientError();
-            throw new PaymentGatewayException("cancelPreapprovalMandate failed: " + e.getResponseBodyAsString(), e, isFatal);
+            throw new PaymentGatewayException("cancelPreApprovalMandate failed with root status: " + e.getStatusCode(), e, isFatal);
         } catch (Exception e) {
-            log.error("Unexpected error in cancelPreapprovalMandate for {}: {}", preapprovalId, e.getMessage(), e);
-            throw new PaymentGatewayException("Unexpected error in cancelPreapprovalMandate", e);
+            log.error("Unexpected error in cancelPreApprovalMandate for {}: {}", preapprovalId, e.getMessage(), e);
+            throw new PaymentGatewayException("Unexpected error in cancelPreApprovalMandate", e);
         }
     }
 
