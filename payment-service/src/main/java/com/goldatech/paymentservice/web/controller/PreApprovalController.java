@@ -3,6 +3,7 @@ package com.goldatech.paymentservice.web.controller;
 import com.goldatech.paymentservice.domain.model.MandateStatus;
 import com.goldatech.paymentservice.domain.service.PreApprovalService;
 import com.goldatech.paymentservice.web.dto.request.PreApprovalMandateRequest;
+import com.goldatech.paymentservice.web.dto.response.PreApprovalCancelResponse;
 import com.goldatech.paymentservice.web.dto.response.PreApprovalMandateResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalStatusResponse;
 import jakarta.validation.Valid;
@@ -38,19 +39,10 @@ public class PreApprovalController {
 
     //cancel Pre-Approval Endpoint
     @PostMapping("/{mandateId}/cancel")
-    public ResponseEntity<PreApprovalMandateResponse> cancelPreApproval(@PathVariable String mandateId) {
+    public ResponseEntity<PreApprovalCancelResponse> cancelPreApproval(@PathVariable String mandateId) {
         log.info("Received pre-approval cancellation request for mandate ID: {}", mandateId);
-        boolean response = preApprovalService.cancelPreApprovalMandate("MTN", mandateId);
-
-        //Build response
-        PreApprovalMandateResponse preApprovalMandateResponse = new PreApprovalMandateResponse(
-                mandateId,
-                null,
-                MandateStatus.CANCELLED,
-                null,
-                null
-        );
-        return ResponseEntity.ok(preApprovalMandateResponse);
+        PreApprovalCancelResponse response = preApprovalService.cancelPreApprovalMandate("MTN", mandateId);
+        return ResponseEntity.ok(response);
     }
 
 }

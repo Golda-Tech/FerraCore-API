@@ -14,6 +14,7 @@ import com.goldatech.paymentservice.web.dto.request.momo.Payer;
 import com.goldatech.paymentservice.web.dto.request.momo.PreApprovalRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.RequestToPayRequest;
 import com.goldatech.paymentservice.web.dto.response.NameEnquiryResponse;
+import com.goldatech.paymentservice.web.dto.response.PreApprovalCancelResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.BasicUserInfoResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalStatusResponse;
@@ -178,28 +179,25 @@ public class MtnPaymentProvider implements PaymentProvider{
     }
 
 
-    public Optional<PreApprovalResponse> preApproval(PreApprovalRequest request) {
+    public PreApprovalResponse preApproval(PreApprovalRequest request) {
         log.info("Initiating pre-approval with MTN for mobile number: {}", request.payer().partyId());
 
         //Call the MTN Momo service to initiate pre-approval
         PreApprovalResponse preApprovalResponse = mtnMomoService.createPreApprovalMandate(request);
         log.info("Pre-approval response from MTN: {}", preApprovalResponse);
 
-        return Optional.ofNullable(preApprovalResponse);
-
+        return preApprovalResponse;
     }
 
     //check pre-approval status
-    public Optional<PreApprovalStatusResponse> checkPreApprovalStatus(String mandateId) {
+    public PreApprovalStatusResponse checkPreApprovalStatus(String mandateId) {
         log.info("Checking pre-approval status with MTN for mandate id: {}", mandateId);
 
-        PreApprovalStatusResponse preApprovalStatusResponse = mtnMomoService.getPreApprovalStatus(mandateId);
-        //Return optional
-        return Optional.ofNullable(preApprovalStatusResponse);
+        return mtnMomoService.getPreApprovalStatus(mandateId);
     }
 
     //Cancel pre-approval
-    public boolean cancelPreApproval(String mandateId) {
+    public PreApprovalCancelResponse cancelPreApproval(String mandateId) {
         log.info("Cancelling pre-approval with MTN for mandate id: {}", mandateId);
 
         return mtnMomoService.cancelPreapprovalMandate(mandateId);

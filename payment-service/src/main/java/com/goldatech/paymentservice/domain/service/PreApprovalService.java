@@ -12,6 +12,7 @@ import com.goldatech.paymentservice.domain.strategy.PaymentProviderFactory;
 import com.goldatech.paymentservice.web.dto.request.PreApprovalMandateRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.Payer;
 import com.goldatech.paymentservice.web.dto.request.momo.PreApprovalRequest;
+import com.goldatech.paymentservice.web.dto.response.PreApprovalCancelResponse;
 import com.goldatech.paymentservice.web.dto.response.PreApprovalMandateResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalStatusResponse;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +50,7 @@ public class PreApprovalService {
         log.info("Initiating payment request for provider: {}", request.provider());
 
         //Create PreApprovalTransaction in DB with PENDING status
-        PreApprovalTransaction transaction = PreApprovalTransaction.builder()
+        var transaction = PreApprovalTransaction.builder()
                 .externalRef(request.retrievalReference())
                 .mobileNumber(request.mobileNumber())
                 .provider(request.provider())
@@ -79,21 +79,21 @@ public class PreApprovalService {
                 request.duration().toString()
         );
 
-        Optional<PreApprovalResponse> response = ((MtnPaymentProvider) provider)
+        PreApprovalResponse response = ((MtnPaymentProvider) provider)
                 .preApproval(preApprovalRequest);
-        log.info("Received pre-approval response : {}", response);
+        log.info("Received pre-approval response message : {}", response.message());
 
-        if (response.isEmpty()) {
-            log.error("Failed to create pre-approval mandate with MTN for mobile number: {}", request.mobileNumber());
-            throw new PreApprovalException("Failed to create pre-approval mandate with MTN.");
+        if(response.preApprovalRef() == null){
+            transaction.setMessage("Failed to create pre-approval mandate with provider.");
+            transaction.setUpdatedAt(LocalDateTime.now());
+            preApprovalTransactionRepository.save(transaction);
+            throw new PreApprovalException("Failed to create pre-approval mandate with provider.");
         }
 
-        PreApprovalResponse preApprovalResponse = response.get();
-
         //Update transaction with response details
-        transaction.setTransactionRef(preApprovalResponse.preApprovalRef());
-        //transaction.setStatus(MandateStatus.valueOf(preApprovalResponse.status().toUpperCase()));
-        transaction.setMessage(preApprovalResponse.message());
+        transaction.setTransactionRef(response.preApprovalRef());
+        transaction.setStatus(MandateStatus.valueOf("PENDING"));
+        transaction.setMessage(response.message());
         transaction.setUpdatedAt(LocalDateTime.now());
         preApprovalTransactionRepository.save(transaction);
 
@@ -113,7 +113,7 @@ public class PreApprovalService {
         rabbitTemplate.convertAndSend(notificationExchange, preapprovalRoutingKey, event);
 
         return new PreApprovalMandateResponse(
-                preApprovalResponse.preApprovalRef(),
+                response.preApprovalRef(),
                 request.retrievalReference(),
                 MandateStatus.PENDING,
                 null,
@@ -133,21 +133,19 @@ public class PreApprovalService {
             throw new IllegalArgumentException("Pre-approval mandates are only supported for MTN provider at the moment.");
         }
 
-        Optional<PreApprovalStatusResponse> response = ((MtnPaymentProvider) provider)
+        PreApprovalStatusResponse response = ((MtnPaymentProvider) provider)
                 .checkPreApprovalStatus(mandateId);
 
-        if (response.isEmpty()) {
-
-            log.error("Failed to check pre-approval status with MTN for mandate id: {}", mandateId);
-            throw new PreApprovalException("Failed to check pre-approval status with MTN.");
+        if(response == null){
+            throw new PreApprovalException("Failed to retrieve pre-approval status from provider.");
         }
 
-        return response.get();
+        return response;
     }
 
 
     //Cancel pre-approval mandate
-    public boolean cancelPreApprovalMandate(String providerName, String mandateId) {
+    public PreApprovalCancelResponse cancelPreApprovalMandate(String providerName, String mandateId) {
         log.info("Cancelling pre-approval mandate for provider: {} and mandateId: {}", providerName, mandateId);
 
         PaymentProvider provider = providerFactory.getProvider(providerName);

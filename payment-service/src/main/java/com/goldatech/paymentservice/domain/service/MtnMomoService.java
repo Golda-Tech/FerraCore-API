@@ -8,6 +8,7 @@ import com.goldatech.paymentservice.domain.model.momo.MtnToken;
 import com.goldatech.paymentservice.domain.repository.MtnTokenRepository;
 import com.goldatech.paymentservice.web.dto.request.momo.PreApprovalRequest;
 import com.goldatech.paymentservice.web.dto.request.momo.RequestToPayRequest;
+import com.goldatech.paymentservice.web.dto.response.PreApprovalCancelResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -326,7 +327,7 @@ public class MtnMomoService {
      * collection/v1_0/preapproval/{preapprovalid}
      * DELETE
      */
-    public boolean cancelPreapprovalMandate(String preapprovalId) {
+    public PreApprovalCancelResponse cancelPreapprovalMandate(String preapprovalId) {
         String url = mtnProps().getBaseUrl() + "/collection/v1_0/preapproval/" + preapprovalId;
         log.info("CancelPreapprovalMandate url={}", url);
 
@@ -339,11 +340,11 @@ public class MtnMomoService {
                     restTemplate.exchange(url, HttpMethod.DELETE, entity, Void.class);
 
             if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new PaymentGatewayException("Unexpected status from cancelPreapprovalMandate: " + response.getStatusCode());
+                throw new PaymentGatewayException("Unexpected failure with status code from cancelPreapprovalMandate: " + response.getStatusCode());
             }
 
-            log.info("PreapprovalMandate {} cancelled successfully, status={}", preapprovalId, response.getStatusCode());
-            return true;
+            log.info("PreapprovalId {} cancelled successfully, status={}", preapprovalId, response.getStatusCode());
+            return new PreApprovalCancelResponse(response.getStatusCode().toString(), "Cancelled successfully", preapprovalId);
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("cancelPreapprovalMandate failed for {}: status={}, body={}", preapprovalId, e.getStatusCode(), e.getResponseBodyAsString());
