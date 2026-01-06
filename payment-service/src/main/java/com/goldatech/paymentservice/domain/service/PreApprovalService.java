@@ -56,7 +56,7 @@ public class PreApprovalService {
                 .provider(request.provider())
                 .message(request.message())
                 .validityTime(request.duration().toString())
-                .status(MandateStatus.valueOf("PENDING"))
+                .status(MandateStatus.valueOf("INACTIVE"))
                 .createdAt(LocalDateTime.now())
                 .build();
         preApprovalTransactionRepository.save(transaction);
