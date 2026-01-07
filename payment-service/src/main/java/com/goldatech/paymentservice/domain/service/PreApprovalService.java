@@ -48,7 +48,7 @@ public class PreApprovalService {
 
     @Transactional
     public PreApprovalMandateResponse createPreApprovalMandate(PreApprovalMandateRequest request) {
-        log.info("Initiating payment request for provider: {}", request.provider());
+        log.info("Initiating PreApproval mandate request for provider: {}", request.provider());
 
         //Create PreApprovalTransaction in DB with PENDING status
         var transaction = PreApprovalTransaction.builder()
