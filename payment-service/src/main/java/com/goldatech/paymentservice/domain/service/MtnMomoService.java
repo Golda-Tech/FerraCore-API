@@ -2,6 +2,7 @@
 package com.goldatech.paymentservice.domain.service;
 
 import com.goldatech.paymentservice.domain.exception.PaymentGatewayException;
+import com.goldatech.paymentservice.domain.model.MandateStatus;
 import com.goldatech.paymentservice.domain.model.MomoProperties;
 import com.goldatech.paymentservice.domain.model.TelcoProvider;
 import com.goldatech.paymentservice.domain.model.momo.MtnToken;
@@ -231,7 +232,7 @@ public class MtnMomoService {
                 throw new PaymentGatewayException("Unexpected message from createPreApprovalMandate: status=" + response.getStatusCode());
             }
             log.info("Pre-approval mandate creation initiated - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
-            return new PreApprovalResponse(xRef, "Pre-approval mandate creation is initiated and Pending Approval.");
+            return new PreApprovalResponse(xRef, "Pre-approval mandate creation is initiated and Pending Approval.", MandateStatus.valueOf("PENDING"));
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("createPreApprovalMandate Failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
             boolean isFatal = e.getStatusCode().is4xxClientError();
