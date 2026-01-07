@@ -47,7 +47,7 @@ public class PreApprovalService {
     private String otpRoutingKey;
 
     @Transactional
-    public PreApprovalMandateResponse createPreApprovalMandate(PreApprovalMandateRequest request) {
+    public PreApprovalResponse createPreApprovalMandate(PreApprovalMandateRequest request) {
         log.info("Initiating PreApproval mandate request for provider: {}", request.provider());
 
         //Create PreApprovalTransaction in DB with PENDING status
@@ -113,12 +113,10 @@ public class PreApprovalService {
         log.info("Publishing payment event to RabbitMQ for transaction: {}", transaction.getTransactionRef());
         rabbitTemplate.convertAndSend(notificationExchange, preapprovalRoutingKey, event);
 
-        return new PreApprovalMandateResponse(
+        return new PreApprovalResponse(
                 response.preApprovalRef(),
                 request.retrievalReference(),
-                MandateStatus.PENDING,
-                null,
-                null
+                MandateStatus.PENDING
         );
     }
 

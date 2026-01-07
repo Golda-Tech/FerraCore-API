@@ -10,7 +10,6 @@ public record PreApprovalStatusResponse(
         String payerCurrency,
         String payerMessage,
         String status,
-        @JsonFormat(pattern = "YYYY-MM-DDTHH:mm:SS")
         LocalDateTime expirationDateTime,
         ErrorReason reason
 ) {

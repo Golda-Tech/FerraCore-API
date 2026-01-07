@@ -5,6 +5,7 @@ import com.goldatech.paymentservice.domain.service.PreApprovalService;
 import com.goldatech.paymentservice.web.dto.request.PreApprovalMandateRequest;
 import com.goldatech.paymentservice.web.dto.response.PreApprovalCancelResponse;
 import com.goldatech.paymentservice.web.dto.response.PreApprovalMandateResponse;
+import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalResponse;
 import com.goldatech.paymentservice.web.dto.response.momo.PreApprovalStatusResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +22,9 @@ public class PreApprovalController {
     private final PreApprovalService preApprovalService;
 
     @PostMapping
-    public ResponseEntity<PreApprovalMandateResponse> createPreApproval(@Valid @RequestBody PreApprovalMandateRequest request){
+    public ResponseEntity<PreApprovalResponse> createPreApproval(@Valid @RequestBody PreApprovalMandateRequest request){
         log.info("Received pre-approval mandate creation request for provider: {}", request.provider());
-        PreApprovalMandateResponse response = preApprovalService.createPreApprovalMandate(request);
+        PreApprovalResponse response = preApprovalService.createPreApprovalMandate(request);
         return ResponseEntity.ok(response);
     }
 
