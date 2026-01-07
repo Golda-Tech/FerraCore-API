@@ -233,9 +233,9 @@ public class MtnMomoService {
             log.info("Pre-approval mandate creation initiated - X-Reference-Id={}, status={}", xRef, response.getStatusCode());
             return new PreApprovalResponse(xRef, "Pre-approval mandate creation is initiated and Pending Approval.");
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            log.error("createPreApprovalMandate failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("createPreApprovalMandate Failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
             boolean isFatal = e.getStatusCode().is4xxClientError();
-            throw new PaymentGatewayException("createPreApprovalMandate failed: " + e.getResponseBodyAsString(), e, isFatal);
+            throw new PaymentGatewayException("createPreApprovalMandate Failed: " + e.getResponseBodyAsString(), e, isFatal);
         } catch (Exception e) {
             log.error("Unexpected error in createPreApprovalMandate: {}", e.getMessage(), e);
             throw new PaymentGatewayException("Unexpected error in createPreApprovalMandate", e);
