@@ -7,7 +7,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:6543/postgres
       - SPRING_DATASOURCE_USERNAME=postgres.quikquwoyxuvszyqxawx
-      - SPRING_DATASOURCE_PASSWORD=EXFptq2%Bn9Rfuxje
+      - SPRING_DATASOURCE_PASSWORD=FHnVOX7FmhpUJnDl
       - APPLICATION_SECURITY_JWT_SECRET_KEY=v9m2W+q4zF7tPjK6dR8hQsB2yX1nV0eZ4HcP7sLq9FwT3XyK5J8bV6pQ0rN2uM1a
       - APPLICATION_SECURITY_JWT_EXPIRATION_MS=86400000
     ports:
@@ -26,7 +26,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:6543/postgres
       - SPRING_DATASOURCE_USERNAME=postgres.quikquwoyxuvszyqxawx
-      - SPRING_DATASOURCE_PASSWORD=EXFptq2%Bn9Rfuxje
+      - SPRING_DATASOURCE_PASSWORD=FHnVOX7FmhpUJnDl
       - APPLICATION_SECURITY_JWT_SECRET_KEY=v9m2W+q4zF7tPjK6dR8hQsB2yX1nV0eZ4HcP7sLq9FwT3XyK5J8bV6pQ0rN2uM1a
       - APPLICATION_SECURITY_JWT_EXPIRATION_MS=86400000
       - REX_URL
@@ -69,7 +69,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:6543/postgres
       - SPRING_DATASOURCE_USERNAME=postgres.quikquwoyxuvszyqxawx
-      - SPRING_DATASOURCE_PASSWORD=EXFptq2%Bn9Rfuxje
+      - SPRING_DATASOURCE_PASSWORD=FHnVOX7FmhpUJnDl
       - RABBITMQ_HOST=kangaroo.rmq.cloudamqp.com
       - RABBITMQ_PORT=5671
       - RABBITMQ_USERNAME=jbkywnak
@@ -92,7 +92,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-eu-north-1.pooler.supabase.com:6543/postgres
       - SPRING_DATASOURCE_USERNAME=postgres.quikquwoyxuvszyqxawx
-      - SPRING_DATASOURCE_PASSWORD=EXFptq2%Bn9Rfuxje
+      - SPRING_DATASOURCE_PASSWORD=FHnVOX7FmhpUJnDl
       - RABBITMQ_HOST=kangaroo.rmq.cloudamqp.com
       - RABBITMQ_PORT=5671
       - RABBITMQ_USERNAME=jbkywnak
