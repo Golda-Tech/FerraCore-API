@@ -87,7 +87,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         // Validate token and extract user info
         return jwtService.validateTokenAndExtractInfo(jwt)
                 .flatMap(tokenInfo -> {
-                    log.info("Token validated successfully for user: {} with ID: {}",
+                    log.info("Token is validated successfully for user: {} with ID: {}",
                             tokenInfo.getUsername(), tokenInfo.getUserId());
 
                     // Add user info headers to the request
