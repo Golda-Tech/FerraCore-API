@@ -115,7 +115,7 @@ public class PreApprovalService {
 
         return new PreApprovalResponse(
                 response.preApprovalRef(),
-                request.retrievalReference(),
+                response.message(),
                 MandateStatus.valueOf("PENDING")
         );
     }

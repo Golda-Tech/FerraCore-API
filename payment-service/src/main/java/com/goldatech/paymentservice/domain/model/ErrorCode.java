@@ -1,0 +1,54 @@
+package com.goldatech.paymentservice.domain.model;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
+public enum ErrorCode {
+    PAYEE_NOT_FOUND("PAYEE_NOT_FOUND"),
+    PAYER_NOT_FOUND("PAYER_NOT_FOUND"),
+    NOT_ALLOWED("NOT_ALLOWED"),
+    NOT_ALLOWED_TARGET_ENVIRONMENT("NOT_ALLOWED_TARGET_ENVIRONMENT"),
+    INVALID_CALLBACK_URL_HOST("INVALID_CALLBACK_URL_HOST"),
+    INVALID_CURRENCY("INVALID_CURRENCY"),
+    SERVICE_UNAVAILABLE("SERVICE_UNAVAILABLE"),
+    INTERNAL_PROCESSING_ERROR("INTERNAL_PROCESSING_ERROR"),
+    NOT_ENOUGH_FUNDS("NOT_ENOUGH_FUNDS"),
+    PAYER_LIMIT_REACHED("PAYER_LIMIT_REACHED"),
+    PAYEE_NOT_ALLOWED_TO_RECEIVE("PAYEE_NOT_ALLOWED_TO_RECEIVE"),
+    PAYMENT_NOT_APPROVED("PAYMENT_NOT_APPROVED"),
+    RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND"),
+    APPROVAL_REJECTED("APPROVAL_REJECTED"),
+    EXPIRED("EXPIRED"),
+    TRANSACTION_CANCELED("TRANSACTION_CANCELED."),
+    RESOURCE_ALREADY_EXIST("RESOURCE_ALREADY_EXIST"),
+    TRANSACTION_NOT_COMPLETED("TRANSACTION_NOT_COMPLETED"),
+    TRANSACTION_NOT_FOUND("TRANSACTION_NOT_FOUND"),
+    INFORMATIONAL_SCOPE_INSTRUCTION("INFORMATIONAL_SCOPE_INSTRUCTION"),
+    MISSING_SCOPE_INSTRUCTION("MISSING_SCOPE_INSTRUCTION"),
+    MORE_THAN_ONE_FINANCIAL_SCOPE_NOT_SUPPORTED("MORE_THAN_ONE_FINANCIAL_SCOPE_NOT_SUPPORTED"),
+    UNSUPPORTED_SCOPE_COMBINATION("UNSUPPORTED_SCOPE_COMBINATION"),
+    CONSENT_MISMATCH("CONSENT_MISMATCH"),
+    UNSUPPORTED_SCOPE("UNSUPPORTED_SCOPE"),
+    NOT_FOUND("NOT_FOUND");
+
+    private final String value;
+
+    ErrorCode(String value) {
+        this.value = value;
+    }
+
+    @JsonValue
+    public String value() {
+        return value;
+    }
+
+    @JsonCreator
+    public static ErrorCode fromValue(String value) {
+        for (ErrorCode c : ErrorCode.values()) {
+            if (c.value.equals(value)) {
+                return c;
+            }
+        }
+        throw new IllegalArgumentException("Unknown ErrorCode: " + value);
+    }
+}
