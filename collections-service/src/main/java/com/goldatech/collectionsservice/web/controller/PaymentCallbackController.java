@@ -27,7 +27,7 @@ public class PaymentCallbackController {
             collectionService.handlePaymentCallback(callbackRequest);
             return ResponseEntity.ok("Callback processed successfully");
         } catch (Exception e) {
-            log.error("Error processing payment callback for transaction ID {}: {}",
+            log.error("Failure in processing payment callback for transaction ID {}: {}",
                     callbackRequest.transactionId(), e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error processing callback: " + e.getMessage());
