@@ -87,7 +87,7 @@ public class NotificationService {
     @RabbitListener(queues = "${notification.auth.queue}")
     @Transactional
     public void handleAuthEvent(AuthEvent event) {
-        log.info("Received AuthEvent for username: {}", event.username());
+        log.info("Received the AuthEvent for username: {}", event.username());
 
         if ("USER_CREATED".equalsIgnoreCase(event.eventAction())) {
             NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
