@@ -144,7 +144,7 @@ public class SubscriptionController {
     }
 
     @Operation(summary = "Get subscription credentials",
-            description = "Returns only the API credentials (key and secret) for a subscription.")
+            description = "Returns solely the API credentials (key and secret) for a subscription.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Credentials returned",
                     content = @Content(schema = @Schema(implementation = ApiCredentialsResponse.class))),
