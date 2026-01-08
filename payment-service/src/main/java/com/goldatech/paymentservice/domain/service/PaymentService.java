@@ -382,7 +382,7 @@ public class PaymentService {
     }
 
 
-    @Transactional
+
     public void processMtnCallback(MtnCallBackRequest mtnCallBackRequest) {
 
         //Log the callback received
@@ -427,12 +427,7 @@ public class PaymentService {
             transaction.setMtnPayerMessage(mtnCallBackRequest.payerMessage());
             transaction.setMtnPayeeNote(mtnCallBackRequest.payeeNote());
 
-            Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByNameIgnoreCase(transaction.getInitiationPartner());
-            log.info("Fetching partner Id : {}", partnerOpt);
-            if (partnerOpt.isPresent()) {
-                BigDecimal amount = new BigDecimal(mtnCallBackRequest.amount());
-                partnerSummaryRepository.upsertPartnerSummary(partnerOpt.get(), transaction.getInitiationPartner(), amount);
-            }
+            upsertPartnerSummary(mtnCallBackRequest, transaction);
         }  else {
             transaction.setStatus(TransactionStatus.FAILED);
             transaction.setMessage(mtnCallBackRequest.reason() != null ? mtnCallBackRequest.reason() : "Payment failed");
@@ -450,6 +445,16 @@ public class PaymentService {
         transactionRepository.save(transaction);
         log.info("Processed MTN callback for transaction: {}, new status: {}", transaction.getTransactionRef(), transaction.getStatus());
 
+    }
+
+    @Transactional
+    private void upsertPartnerSummary(MtnCallBackRequest mtnCallBackRequest, PaymentTransaction transaction) {
+        Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByNameIgnoreCase(transaction.getInitiationPartner());
+        log.info("Fetching partner Id : {}", partnerOpt);
+        if (partnerOpt.isPresent()) {
+            BigDecimal amount = new BigDecimal(mtnCallBackRequest.amount());
+            partnerSummaryRepository.upsertPartnerSummary(partnerOpt.get(), transaction.getInitiationPartner(), amount);
+        }
     }
 
 //    public PreApprovalResponse createPerApproval(String providerName, PreApprovalRequest preApprovalRequest) {

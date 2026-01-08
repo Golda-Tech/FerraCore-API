@@ -256,8 +256,8 @@ public class MtnMomoService {
             HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-            ResponseEntity<PreApprovalStatusResponse> response =
-                    restTemplate.exchange(url, HttpMethod.GET, entity, PreApprovalStatusResponse.class);
+            ResponseEntity<Void> response =
+                    restTemplate.exchange(url, HttpMethod.GET, entity, Void.class);
             log.info("GetPreApprovalStatus response body - {}", response.getBody());
 
 
