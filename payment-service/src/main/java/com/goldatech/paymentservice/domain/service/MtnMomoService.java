@@ -247,7 +247,7 @@ public class MtnMomoService {
      * Preapproval mandate status endpoint
      * GET /collection/v2_0/preapproval/{referenceId}
      */
-    public PreApprovalStatusResponse getPreApprovalStatus(String referenceId) {
+    public Object getPreApprovalStatus(String referenceId) {
         String url = mtnProps().getBaseUrl() + "/collection/v2_0/preapproval/" + referenceId;
         log.info("GetPreApprovalStatus url={}", url);
 
@@ -256,12 +256,10 @@ public class MtnMomoService {
             HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-            ResponseEntity<PreApprovalStatusResponse> response =
-                    restTemplate.exchange(url, HttpMethod.GET, entity, PreApprovalStatusResponse.class);
+            ResponseEntity<Void> response =
+                    restTemplate.exchange(url, HttpMethod.GET, entity, Void.class);
+            log.info("GetPreApprovalStatus response body - {}", response.getBody());
 
-            if (response.getBody() == null) {
-                throw new PaymentGatewayException("Null response from GetPreApprovalStatus for " + referenceId);
-            }
 
             log.debug("PreApprovalStatus for {}: {}", referenceId, response.getBody());
             return response.getBody();
@@ -385,7 +383,7 @@ public class MtnMomoService {
 
     private HttpHeaders createBearerHeadersForPreApprovalStatus(String token) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Ocp-Apim-Subscription-Key",  mtnProps().getCollectionSubscriptionKey());
+        headers.set("Subscription-Key",  mtnProps().getCollectionSubscriptionKey());
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         if (mtnProps().getEnvironment() != null && !mtnProps().getEnvironment().isBlank()) {
             headers.set("X-Target-Environment", mtnProps().getEnvironment());
