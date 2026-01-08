@@ -2,7 +2,7 @@ package com.goldatech.paymentservice.web.dto.response.momo;
 
 import com.goldatech.paymentservice.domain.model.ErrorCode;
 
-public record ErrorReason(
+public record Reason(
         ErrorCode code,
         String message
 ) {

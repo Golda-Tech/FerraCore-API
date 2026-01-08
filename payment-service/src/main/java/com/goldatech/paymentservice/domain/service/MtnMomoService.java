@@ -256,8 +256,8 @@ public class MtnMomoService {
             HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-            ResponseEntity<Void> response =
-                    restTemplate.exchange(url, HttpMethod.GET, entity, Void.class);
+            ResponseEntity<PreApprovalStatusResponse> response =
+                    restTemplate.exchange(url, HttpMethod.GET, entity, PreApprovalStatusResponse.class);
             log.info("GetPreApprovalStatus response body - {}", response.getBody());
 
 
@@ -383,7 +383,7 @@ public class MtnMomoService {
 
     private HttpHeaders createBearerHeadersForPreApprovalStatus(String token) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Subscription-Key",  mtnProps().getCollectionSubscriptionKey());
+        headers.set("subscription-key",  mtnProps().getCollectionSubscriptionKey());
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         if (mtnProps().getEnvironment() != null && !mtnProps().getEnvironment().isBlank()) {
             headers.set("X-Target-Environment", mtnProps().getEnvironment());

@@ -382,7 +382,7 @@ public class PaymentService {
     }
 
 
-
+    @Transactional
     public void processMtnCallback(MtnCallBackRequest mtnCallBackRequest) {
 
         //Log the callback received
