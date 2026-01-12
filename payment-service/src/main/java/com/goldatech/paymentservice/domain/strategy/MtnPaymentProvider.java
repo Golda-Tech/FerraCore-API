@@ -74,7 +74,7 @@ public class MtnPaymentProvider implements PaymentProvider{
                 request.payeeNote()
         );
 
-        String xRef = mtnMomoService.requestToPay(mtnRequest, xReferenceId);
+        String xRef = mtnMomoService.requestToPay(mtnRequest, callbackUrl, xReferenceId);
 
 
         // determine user role based on initiationPartner

@@ -167,7 +167,7 @@ public class NotificationService {
 
             if ("SMS".equalsIgnoreCase(event.channel())) {
                 NotificationChannel smsChannel = channelFactory.getChannel("SMS");
-                String messageBody = String.format("Your payment OTP is: %s. It is valid for 10 minutes.",
+                String messageBody = String.format("Your payment OTP is: %s. It is valid for 5 minutes.",
                         event.otpCode());
                 smsChannel.sendNotification(new NotificationEvent(
                         "PAYMENT_OTP", "SMS", event.mobileNumber(), event.userId(),
@@ -175,7 +175,7 @@ public class NotificationService {
                 ));
             } else if ("EMAIL".equalsIgnoreCase(event.channel())) {
                 NotificationChannel emailChannel = channelFactory.getChannel("EMAIL");
-                String emailBody = String.format("Your payment OTP is: %s. It is valid for 10 minutes.",
+                String emailBody = String.format("Your payment OTP is: %s. It is valid for 5 minutes.",
                         event.otpCode());
                 emailChannel.sendNotification(new NotificationEvent(
                         "PAYMENT_OTP_EMAIL", "EMAIL", event.email(), event.userId(),

@@ -106,7 +106,7 @@ public class MtnMomoService {
      * @param xReferenceId optional X-Reference-Id; if null a new UUID will be generated
      * @return the X-Reference-Id used for the Request To Pay
      */
-    public String requestToPay(RequestToPayRequest request, String xReferenceId) {
+    public String requestToPay(RequestToPayRequest request, String callbackUrl, String xReferenceId) {
         String url = mtnProps().getBaseUrl() + "/collection/v1_0/requesttopay";
 //        String xRef = UUID.randomUUID().toString();
         log.info("RequestToPay payload - request params={}", request);
@@ -114,10 +114,10 @@ public class MtnMomoService {
         try {
             String token = getStoredToken("COLLECTION");
             HttpHeaders headers = createBearerHeaders(token, mtnProps().getCollectionSubscriptionKey());
-            headers.set("X-Callback-Url", mtnProps().getCallBackUrl());
+            headers.set("X-Callback-Url", callbackUrl);
             headers.set("X-Reference-Id", xReferenceId);
 
-            System.out.println("Headers - Callback-url: " + mtnProps().getCallBackUrl() + ", X-Reference-Id: " + xReferenceId);
+            System.out.println("Headers - Callback-url: " + callbackUrl + ", X-Reference-Id: " + xReferenceId);
 
             HttpEntity<RequestToPayRequest> entity = new HttpEntity<>(request, headers);
 
