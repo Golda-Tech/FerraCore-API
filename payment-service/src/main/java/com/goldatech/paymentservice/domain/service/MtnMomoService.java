@@ -117,6 +117,8 @@ public class MtnMomoService {
             headers.set("X-Callback-Url", mtnProps().getCallBackUrl());
             headers.set("X-Reference-Id", xReferenceId);
 
+            System.out.println("Headers - Callback-url: " + mtnProps().getCallBackUrl() + ", X-Reference-Id: " + xReferenceId);
+
             HttpEntity<RequestToPayRequest> entity = new HttpEntity<>(request, headers);
 
             ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
