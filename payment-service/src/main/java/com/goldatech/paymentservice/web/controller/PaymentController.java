@@ -157,7 +157,7 @@ public class PaymentController {
     }
 
 
-    @PutMapping("/mtn/callback")
+    @RequestMapping(value = "/mtn/callback", method = {RequestMethod.PUT, RequestMethod.POST})
     public ResponseEntity<String> handleMtnCallback(@RequestBody MtnCallBackRequest mtnCallBackRequest) {
         log.info("Received MTN callback for externalId: {}", mtnCallBackRequest.externalId());
         paymentService.processMtnCallback(mtnCallBackRequest);
