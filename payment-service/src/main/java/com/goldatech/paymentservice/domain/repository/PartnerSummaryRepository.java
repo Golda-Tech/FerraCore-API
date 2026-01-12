@@ -17,16 +17,15 @@ public interface PartnerSummaryRepository extends JpaRepository<PartnerSummary, 
 
     @Modifying
     @Query(value = """
-            INSERT INTO partner_summary(partner_id, partner_name,
-                                        total_amount_transactions, total_count_transactions)
-            VALUES (:pid, :name, :amt, 1)
-            ON CONFLICT (partner_id)
-            DO UPDATE
-                SET total_amount_transactions = partner_summary.total_amount_transactions + :amt,
-                    total_count_transactions    = partner_summary.total_count_transactions    + 1
-            """, nativeQuery = true)
+        INSERT INTO partner_summary(partner_id, partner_name,
+                                    total_amount_transactions, total_count_transactions)
+        VALUES (:pid, :name, :amt, 1)
+        ON CONFLICT (partner_id)
+        DO UPDATE
+            SET total_amount_transactions = (partner_summary.total_amount_transactions)::NUMERIC + :amt,
+                total_count_transactions    = (partner_summary.total_count_transactions)::INTEGER + 1
+        """, nativeQuery = true)
     void upsertPartnerSummary(@Param("pid") String partnerId,
                               @Param("name") String partnerName,
                               @Param("amt") BigDecimal amount);
-
 }
