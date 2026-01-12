@@ -382,7 +382,7 @@ public class PaymentService {
     }
 
 
-
+@Transactional
     public void processMtnCallback(MtnCallBackRequest mtnCallBackRequest) {
 
         //Log the callback received
@@ -427,7 +427,18 @@ public class PaymentService {
             transaction.setMtnPayerMessage(mtnCallBackRequest.payerMessage());
             transaction.setMtnPayeeNote(mtnCallBackRequest.payeeNote());
 
-            upsertPartnerSummary(mtnCallBackRequest, transaction);
+//            upsertPartnerSummary(mtnCallBackRequest, transaction);
+            Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByNameIgnoreCase(transaction.getInitiationPartner());
+            log.info("Fetching partner Id : {}", partnerOpt);
+            if (partnerOpt.isPresent()) {
+                BigDecimal amount = new BigDecimal(mtnCallBackRequest.amount());
+                try {
+                    partnerSummaryRepository.upsertPartnerSummary(partnerOpt.get(), transaction.getInitiationPartner(), amount);
+                } catch (Exception e) {
+                    log.error("Error upserting partner summary for partnerId: {}, partnerName: {}. Error: {}",
+                            partnerOpt.get(), transaction.getInitiationPartner(), e.getMessage(), e);
+                }
+            }
         }  else {
             transaction.setStatus(TransactionStatus.FAILED);
             transaction.setMessage(mtnCallBackRequest.reason() != null ? mtnCallBackRequest.reason() : "Payment failed");
