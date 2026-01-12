@@ -57,7 +57,7 @@ public record UserProfileResponse(
     public record Summary(
             String partnerId,
             String partnerName,
-            Integer totalCountTransactions,
+            String totalCountTransactions,
             Long successfulTransactionsCount,
             Long failedTransactionsCount,
             BigDecimal totalSuccessfulAmountTransactions
