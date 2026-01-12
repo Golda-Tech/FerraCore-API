@@ -71,7 +71,7 @@ public class SubscriptionService {
                 .partnerId(orgId)
                 .partnerName(request.organizationName().toUpperCase())
                 .totalAmountTransactions(BigDecimal.valueOf(0.00))
-                .totalCountTransactions(0)
+                .totalCountTransactions(String.valueOf(0))
                 .createdBy(createdBy)
                 .build();
         partnerSummaryRepository.save(partnerSummary);
