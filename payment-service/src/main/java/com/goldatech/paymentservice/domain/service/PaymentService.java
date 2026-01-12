@@ -448,12 +448,17 @@ public class PaymentService {
     }
 
     @Transactional
-    private void upsertPartnerSummary(MtnCallBackRequest mtnCallBackRequest, PaymentTransaction transaction) {
+    public void upsertPartnerSummary(MtnCallBackRequest mtnCallBackRequest, PaymentTransaction transaction) {
         Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByNameIgnoreCase(transaction.getInitiationPartner());
         log.info("Fetching partner Id : {}", partnerOpt);
         if (partnerOpt.isPresent()) {
             BigDecimal amount = new BigDecimal(mtnCallBackRequest.amount());
-            partnerSummaryRepository.upsertPartnerSummary(partnerOpt.get(), transaction.getInitiationPartner(), amount);
+            try {
+                partnerSummaryRepository.upsertPartnerSummary(partnerOpt.get(), transaction.getInitiationPartner(), amount);
+            } catch (Exception e) {
+                log.error("Error upserting partner summary for partnerId: {}, partnerName: {}. Error: {}",
+                        partnerOpt.get(), transaction.getInitiationPartner(), e.getMessage(), e);
+            }
         }
     }
 

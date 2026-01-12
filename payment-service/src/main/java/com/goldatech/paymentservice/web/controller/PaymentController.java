@@ -161,7 +161,7 @@ public class PaymentController {
     public ResponseEntity<String> handleMtnCallback(@RequestBody MtnCallBackRequest mtnCallBackRequest) {
         log.info("Received MTN callback for externalId: {}", mtnCallBackRequest.externalId());
         paymentService.processMtnCallback(mtnCallBackRequest);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Callback processed successfully");
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body("");
     }
 
 
