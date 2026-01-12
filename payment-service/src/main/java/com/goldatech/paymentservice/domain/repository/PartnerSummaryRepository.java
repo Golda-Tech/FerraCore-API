@@ -23,7 +23,7 @@ public interface PartnerSummaryRepository extends JpaRepository<PartnerSummary, 
         ON CONFLICT (partner_id)
         DO UPDATE
             SET total_amount_transactions = (partner_summary.total_amount_transactions)::NUMERIC + :amt,
-                total_count_transactions    = (partner_summary.total_count_transactions)::INTEGER + 1
+                total_count_transactions = (partner_summary.total_count_transactions)::INTEGER + 1
         """, nativeQuery = true)
     void upsertPartnerSummary(@Param("pid") String partnerId,
                               @Param("name") String partnerName,

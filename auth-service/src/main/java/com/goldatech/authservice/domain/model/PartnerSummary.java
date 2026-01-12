@@ -36,7 +36,7 @@ public class PartnerSummary  {
     private BigDecimal totalAmountTransactions;
 
     @Column(name = "total_count_transactions")
-    private String totalCountTransactions;
+    private Integer totalCountTransactions;
 
     @Column(name = "createdBy")
     private String createdBy;

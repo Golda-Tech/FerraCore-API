@@ -10,7 +10,7 @@ import java.math.BigDecimal; // Import this
 @AllArgsConstructor
 public class TransactionSummaryDTO {
     private String email;
-    private Long totalTransactions;
+    private Integer totalTransactions;
     private BigDecimal totalSuccessAmount;
     private Long totalSuccessCount;
     private Long totalFailedCount;

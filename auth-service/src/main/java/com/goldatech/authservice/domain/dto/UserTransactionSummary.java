@@ -9,7 +9,7 @@ import lombok.Builder;
 @Value
 @Builder
 public class UserTransactionSummary {
-    long totalTransactionCount;
+    Integer totalTransactionCount;
     BigDecimal successfulTotalTransactionAmount;
     BigDecimal failedTotalTransactionAmount;
     long failedTransactionCount;

@@ -427,7 +427,7 @@ public class PaymentService {
             transaction.setMtnPayerMessage(mtnCallBackRequest.payerMessage());
             transaction.setMtnPayeeNote(mtnCallBackRequest.payeeNote());
 
-//            upsertPartnerSummary(mtnCallBackRequest, transaction);
+
             Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByNameIgnoreCase(transaction.getInitiationPartner());
             log.info("Fetching partner Id : {}", partnerOpt);
             if (partnerOpt.isPresent()) {
@@ -458,20 +458,6 @@ public class PaymentService {
 
     }
 
-    @Transactional
-    public void upsertPartnerSummary(MtnCallBackRequest mtnCallBackRequest, PaymentTransaction transaction) {
-        Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByNameIgnoreCase(transaction.getInitiationPartner());
-        log.info("Fetching partner Id : {}", partnerOpt);
-        if (partnerOpt.isPresent()) {
-            BigDecimal amount = new BigDecimal(mtnCallBackRequest.amount());
-            try {
-                partnerSummaryRepository.upsertPartnerSummary(partnerOpt.get(), transaction.getInitiationPartner(), amount);
-            } catch (Exception e) {
-                log.error("Error upserting partner summary for partnerId: {}, partnerName: {}. Error: {}",
-                        partnerOpt.get(), transaction.getInitiationPartner(), e.getMessage(), e);
-            }
-        }
-    }
 
 //    public PreApprovalResponse createPerApproval(String providerName, PreApprovalRequest preApprovalRequest) {
 //        log.info("Creating pre-approval for provider: {}", providerName);

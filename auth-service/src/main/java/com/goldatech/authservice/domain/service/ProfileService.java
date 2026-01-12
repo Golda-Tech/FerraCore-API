@@ -91,7 +91,7 @@ public class ProfileService {
     private UserTransactionSummary mapToTransactionSummary(TransactionSummaryDTO row) {
         if (row == null) {
             return UserTransactionSummary.builder()
-                    .totalTransactionCount(0L)
+                    .totalTransactionCount(0)
                     .successTransactionCount(0L)
                     .failedTransactionCount(0L)
                     .successfulTotalTransactionAmount(BigDecimal.valueOf(0.0)) // Assuming this is Double
@@ -416,7 +416,7 @@ public class ProfileService {
         UserProfileResponse.Summary summary = UserProfileResponse.Summary.builder()
                 .partnerId(u.getEmail())
                 .partnerName(u.getOrganizationName())
-                .totalCountTransactions(String.valueOf(uts.getTotalTransactionCount()))
+                .totalCountTransactions(uts.getTotalTransactionCount())
                 .totalSuccessfulAmountTransactions(uts.getSuccessfulTotalTransactionAmount())
                 .failedTransactionsCount(uts.getFailedTransactionCount())
                 .successfulTransactionsCount(uts.getSuccessTransactionCount())
