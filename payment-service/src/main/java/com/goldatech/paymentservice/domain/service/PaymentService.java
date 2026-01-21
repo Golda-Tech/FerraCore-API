@@ -429,7 +429,7 @@ public class PaymentService {
             PaymentLedger ledger = PaymentLedger.builder()
                     .status(TransactionStatus.SUCCESSFUL)
                     .build();
-            paymentLedgerRepository.updateStatusByTransactionId(ledger.getStatus(), transaction.getTransactionRef());
+            paymentLedgerRepository.updateStatusByTransactionId(ledger.getStatus(), UUID.fromString(transaction.getTransactionRef()));
 
 
 
@@ -460,7 +460,7 @@ public class PaymentService {
             PaymentLedger ledger = PaymentLedger.builder()
                     .status(TransactionStatus.FAILED)
                     .build();
-            paymentLedgerRepository.updateStatusByTransactionId(ledger.getStatus(), transaction.getTransactionRef());
+            paymentLedgerRepository.updateStatusByTransactionId(ledger.getStatus(), UUID.fromString(transaction.getTransactionRef()));
 
         }
 

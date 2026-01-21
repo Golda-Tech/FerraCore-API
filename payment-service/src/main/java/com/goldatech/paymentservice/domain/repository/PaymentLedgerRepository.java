@@ -16,5 +16,5 @@ public interface PaymentLedgerRepository extends JpaRepository<PaymentLedger, UU
     @Modifying
     @Query("update PaymentLedger p set p.status = :status where p.transactionId = :transactionId")
     void updateStatusByTransactionId(@Param("status") TransactionStatus status,
-                                     @Param("transactionId") String transactionId);
+                                     @Param("transactionId") UUID transactionId);
 }
