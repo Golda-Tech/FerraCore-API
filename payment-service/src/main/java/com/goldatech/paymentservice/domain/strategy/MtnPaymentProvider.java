@@ -83,14 +83,7 @@ public class MtnPaymentProvider implements PaymentProvider{
         String xRef = mtnMomoService.requestToPay(mtnRequest, callbackUrl, xReferenceId);
 
 
-        // determine user type based on initiationPartner
-        UserRoles userRole = subscriptionRepository.findUserTypeByOrganizationNameAndContactEmail(
-                orgName,
-                request.initiatedBy()
-        ).orElse(UserRoles.BUSINESS_OPERATOR); //default to BUSINESS_OPERATOR if not found
 
-        //log user role
-        log.info("User role for initiator {}: {}", request.initiatedBy(), userRole);
 
         PaymentLedger ledger = PaymentLedger.builder()
                 .partnerName(orgName)
@@ -118,7 +111,7 @@ public class MtnPaymentProvider implements PaymentProvider{
                 .transactionFee(finalCommissionAmount)
                 .initiatedBy(request.initiatedBy())
                 .initiationPartner(orgName)
-                .userRoles(userRole)
+                .userRoles(null)
                 .currency("GHS")
                 .status(TransactionStatus.PENDING)
                 .message("Payment request sent to MTN.")
