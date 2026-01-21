@@ -1,6 +1,8 @@
 package com.goldatech.paymentservice.domain.repository;
 
 import com.goldatech.paymentservice.domain.model.Subscription;
+import com.goldatech.paymentservice.domain.model.UserRoles;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -37,4 +39,5 @@ public interface SubscriptionRepository  extends JpaRepository<Subscription, Lon
     boolean isSubscriptionActiveForOrganization(String orgName);
 
 
+    Optional<UserRoles> findUserTypeByOrganizationNameAndContactEmail(String orgName, @NotBlank String s);
 }

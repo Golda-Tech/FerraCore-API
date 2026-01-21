@@ -1,8 +1,10 @@
 package com.goldatech.paymentservice.domain.strategy;
 
+import com.goldatech.paymentservice.domain.model.PaymentLedger;
 import com.goldatech.paymentservice.domain.model.PaymentTransaction;
 import com.goldatech.paymentservice.domain.model.TransactionStatus;
 import com.goldatech.paymentservice.domain.model.UserRoles;
+import com.goldatech.paymentservice.domain.repository.PaymentLedgerRepository;
 import com.goldatech.paymentservice.domain.repository.PaymentTransactionRepository;
 import com.goldatech.paymentservice.domain.repository.PreApprovalTransactionRepository;
 import com.goldatech.paymentservice.domain.repository.SubscriptionRepository;
@@ -26,6 +28,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component("MTN")
 @RequiredArgsConstructor
@@ -34,6 +37,7 @@ public class MtnPaymentProvider implements PaymentProvider{
     private final PaymentTransactionRepository transactionRepository;
     private final PreApprovalTransactionRepository preApprovalTransactionRepository;
     private final SubscriptionRepository subscriptionRepository;
+    public final PaymentLedgerRepository paymentLedgerRepository;
     private final MtnMomoService mtnMomoService;
 
     @Override
@@ -63,10 +67,12 @@ public class MtnPaymentProvider implements PaymentProvider{
         // compute commission: 1.75% of the amount, capped at 35 GHS
         BigDecimal finalCommissionAmount = deriveCommissionFees(request);
 
+        BigDecimal providerFee = deriveProviderFees(request.amount());
+
         BigDecimal netAmount = request.amount().subtract(finalCommissionAmount);
 
         RequestToPayRequest mtnRequest = new RequestToPayRequest(
-                netAmount.toPlainString(),
+                request.amount().toPlainString(),
                 "GHS",
                 referenceId,//externalId
                 new Payer("MSISDN", request.mobileNumber()),
@@ -77,20 +83,30 @@ public class MtnPaymentProvider implements PaymentProvider{
         String xRef = mtnMomoService.requestToPay(mtnRequest, callbackUrl, xReferenceId);
 
 
-        // determine user role based on initiationPartner
-        String initiationPartner = Optional.ofNullable(orgName).orElse("").trim();
-        UserRoles userRole;
-        if (initiationPartner.equalsIgnoreCase("Ferracore Technologies") || initiationPartner.equalsIgnoreCase("Rexhub")) {
-            userRole = UserRoles.SUPER_ADMIN;
-        } else if (initiationPartner.equalsIgnoreCase("Global Accelerex")) {
-            userRole = UserRoles.GA_ADMIN;
-        } else {
-            userRole = UserRoles.BUSINESS_ADMIN;
-        }
+        // determine user type based on initiationPartner
+        UserRoles userRole = subscriptionRepository.findUserTypeByOrganizationNameAndContactEmail(
+                orgName,
+                request.initiatedBy()
+        ).orElse(UserRoles.BUSINESS_OPERATOR); //default to BUSINESS_OPERATOR if not found
+
+        //log user role
+        log.info("User role for initiator {}: {}", request.initiatedBy(), userRole);
+
+        PaymentLedger ledger = PaymentLedger.builder()
+                .partnerName(orgName)
+                .transactionId(UUID.fromString(xRef))//Use the internal reference as transaction ID
+                .transAmount(netAmount)//Amount after deducting commission
+                .gatewayFee(finalCommissionAmount)//Fee paid to Ferracore Tech, capped at GH₵ 35.00
+                .billingAmount(request.amount())//assumption that customer is billed the full amount including charges
+                .providerFee(providerFee)//Fee paid to MTN, capped at GH₵ 20.00
+                .settle0Mtn(request.amount())//Net from Provider
+                .settle1Partner(netAmount)//Net to Partner
+                .status(TransactionStatus.PENDING)
+                .build();
+        log.info("Saving payment ledger: {}", ledger);
+        paymentLedgerRepository.save(ledger);
 
 
-
-        // For now, we'll simulate a Pending transaction.
 
         PaymentTransaction transaction = PaymentTransaction.builder()
                 .collectionRef(request.collectionRef())
@@ -131,6 +147,23 @@ public class MtnPaymentProvider implements PaymentProvider{
 
         //round commission fee to 2dp
         return commissionFee.setScale(2, RoundingMode.HALF_UP);
+    }
+
+
+    private static BigDecimal deriveProviderFees(BigDecimal amount) {
+        BigDecimal providerFee = amount
+                .multiply(new BigDecimal("0.01"))
+                .setScale(8, RoundingMode.HALF_UP);
+
+        BigDecimal cappedFee = providerFee.min(new BigDecimal("20.00"))
+                .setScale(8, RoundingMode.HALF_UP);
+
+        if (providerFee.compareTo(cappedFee) > 0) {
+            providerFee = cappedFee;
+        }
+
+        //round provider fee to 2dp
+        return providerFee.setScale(2, RoundingMode.HALF_UP);
     }
 
     @Override

@@ -1,11 +1,7 @@
 package com.goldatech.paymentservice.domain.service;
 
-import com.goldatech.paymentservice.domain.model.Subscription;
+import com.goldatech.paymentservice.domain.model.*;
 import com.goldatech.paymentservice.domain.repository.*;
-import com.goldatech.paymentservice.domain.model.MtnCallback;
-import com.goldatech.paymentservice.domain.model.Otp;
-import com.goldatech.paymentservice.domain.model.PaymentTransaction;
-import com.goldatech.paymentservice.domain.model.TransactionStatus;
 import com.goldatech.paymentservice.domain.model.events.OtpEvent;
 import com.goldatech.paymentservice.domain.model.events.PaymentEvent;
 import com.goldatech.paymentservice.domain.strategy.PaymentProvider;
@@ -41,6 +37,7 @@ public class PaymentService {
     private final PaymentProviderFactory providerFactory;
     private final PaymentTransactionRepository transactionRepository;
     private final PartnerSummaryRepository partnerSummaryRepository;
+    private final PaymentLedgerRepository paymentLedgerRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final OtpRepository otpRepository;
     private final RabbitTemplate rabbitTemplate;
@@ -413,6 +410,7 @@ public class PaymentService {
         }
 
         PaymentTransaction transaction = transactionOpt.get();
+
         //If status is successful and reason is null or empty then it is a success
         if("SUCCESSFUL".equalsIgnoreCase(mtnCallBackRequest.status())
                 && (mtnCallBackRequest.reason() == null || mtnCallBackRequest.reason().isEmpty())) {
@@ -426,6 +424,13 @@ public class PaymentService {
             transaction.setMtnPayerPartyId(mtnCallBackRequest.payer().partyId());
             transaction.setMtnPayerMessage(mtnCallBackRequest.payerMessage());
             transaction.setMtnPayeeNote(mtnCallBackRequest.payeeNote());
+
+            //update payment ledger table column status to successful
+            PaymentLedger ledger = PaymentLedger.builder()
+                    .status(TransactionStatus.SUCCESSFUL)
+                    .build();
+            paymentLedgerRepository.updateStatusByTransactionId(ledger.getStatus(), transaction.getTransactionRef());
+
 
 
             Optional<String> partnerOpt = partnerSummaryRepository.findPartnerIdByNameIgnoreCase(transaction.getInitiationPartner());
@@ -450,6 +455,12 @@ public class PaymentService {
             transaction.setMtnPayerPartyId(mtnCallBackRequest.payer().partyId());
             transaction.setMtnPayerMessage(mtnCallBackRequest.payerMessage());
             transaction.setMtnPayeeNote(mtnCallBackRequest.payeeNote());
+
+            //update payment ledger table column status to failed
+            PaymentLedger ledger = PaymentLedger.builder()
+                    .status(TransactionStatus.FAILED)
+                    .build();
+            paymentLedgerRepository.updateStatusByTransactionId(ledger.getStatus(), transaction.getTransactionRef());
 
         }
 
